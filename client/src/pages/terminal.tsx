@@ -142,15 +142,22 @@ export default function Terminal() {
         className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-3"
         data-testid="header-model-selection"
       >
-        <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-0">
+        <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:hidden">
           <StageCountSelector
             value={stageCount}
             onChange={setStageCount}
             disabled={verifyMutation.isPending}
           />
-          <span className="text-muted-foreground opacity-40 hidden sm:inline">|</span>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+          <div className="hidden sm:flex sm:items-center sm:gap-4">
+            <StageCountSelector
+              value={stageCount}
+              onChange={setStageCount}
+              disabled={verifyMutation.isPending}
+            />
+            <span className="text-muted-foreground opacity-40">|</span>
+          </div>
           {activeChain.map((model, index) => (
             <ModelSelector
               key={index}
