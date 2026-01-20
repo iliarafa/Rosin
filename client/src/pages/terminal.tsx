@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ModelSelector } from "@/components/model-selector";
@@ -142,12 +143,19 @@ export default function Terminal() {
         className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-3"
         data-testid="header-model-selection"
       >
-        <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:hidden">
+        <div className="flex items-center justify-between mb-2 sm:hidden">
           <StageCountSelector
             value={stageCount}
             onChange={setStageCount}
             disabled={verifyMutation.isPending}
           />
+          <Link
+            href="/readme"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+            data-testid="link-readme-mobile"
+          >
+            [README]
+          </Link>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
           <div className="hidden sm:flex sm:items-center sm:gap-4">
@@ -167,6 +175,15 @@ export default function Terminal() {
               disabled={verifyMutation.isPending}
             />
           ))}
+          <div className="hidden sm:flex sm:items-center sm:ml-auto">
+            <Link
+              href="/readme"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+              data-testid="link-readme"
+            >
+              [README]
+            </Link>
+          </div>
         </div>
       </header>
 
