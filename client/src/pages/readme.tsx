@@ -110,6 +110,31 @@ export default function ReadmePage() {
           </section>
 
           <section>
+            <h3 className="text-sm font-medium mb-2 text-foreground">&gt; ADD TO HOME SCREEN</h3>
+            <div className="text-sm text-muted-foreground space-y-3 pl-4 border-l border-border">
+              <div>
+                <p className="text-foreground mb-1">iPhone / iPad:</p>
+                <ul className="pl-4 space-y-1">
+                  <li>1. Tap the <span className="text-foreground">Share</span> button (square with arrow)</li>
+                  <li>2. Scroll down and tap <span className="text-foreground">"Add to Home Screen"</span></li>
+                  <li>3. Tap <span className="text-foreground">"Add"</span> in the top right</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-foreground mb-1">Android (Chrome):</p>
+                <ul className="pl-4 space-y-1">
+                  <li>1. Tap the <span className="text-foreground">menu</span> button (three dots)</li>
+                  <li>2. Tap <span className="text-foreground">"Add to Home screen"</span></li>
+                  <li>3. Tap <span className="text-foreground">"Add"</span> to confirm</li>
+                </ul>
+              </div>
+              <p className="opacity-80">
+                The app will appear on your home screen with the ROSIN icon for quick access.
+              </p>
+            </div>
+          </section>
+
+          <section>
             <h3 className="text-sm font-medium mb-2 text-foreground">&gt; TIPS</h3>
             <div className="text-sm text-muted-foreground space-y-2 pl-4 border-l border-border">
               <p>
