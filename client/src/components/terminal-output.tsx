@@ -7,6 +7,7 @@ interface TerminalOutputProps {
   stages: StageOutput[];
   summary: VerificationSummaryType | null;
   isProcessing: boolean;
+  expectedStageCount: number;
 }
 
 export function TerminalOutput({
@@ -14,6 +15,7 @@ export function TerminalOutput({
   stages,
   summary,
   isProcessing,
+  expectedStageCount,
 }: TerminalOutputProps) {
   if (stages.length === 0 && !isProcessing) {
     return (
@@ -34,7 +36,7 @@ export function TerminalOutput({
     );
   }
 
-  const allComplete = stages.length > 0 && stages.every((s) => s.status === "complete");
+  const allComplete = stages.length === expectedStageCount && stages.every((s) => s.status === "complete");
   const lastStage = allComplete ? stages[stages.length - 1] : null;
 
   return (

@@ -174,11 +174,13 @@ export async function registerRoutes(
 
       let clientDisconnected = false;
       req.on("close", () => {
+        console.log("Request close event fired");
         clientDisconnected = true;
       });
 
       const checkDisconnect = () => {
-        if (clientDisconnected) {
+        if (res.writableEnded) {
+          console.log("Response already ended, stopping");
           throw new Error("Client disconnected");
         }
       };
@@ -220,6 +222,8 @@ Provide a refined and verified version of the response.`;
 
       let previousOutput = query;
 
+      console.log(`Starting verification with ${totalStages} stages`);
+
       for (let i = 0; i < totalStages; i++) {
         checkDisconnect();
         const stageNum = i + 1;
@@ -227,11 +231,19 @@ Provide a refined and verified version of the response.`;
         const isLast = i === totalStages - 1;
         const prompt = getStagePrompt(stageNum, isLast);
 
+        console.log(`Starting stage ${stageNum}/${totalStages}, provider: ${chain[i].provider}, model: ${chain[i].model}`);
+
         const userContent = isFirst
           ? `Original Query: ${query}`
           : `Original Query: ${query}\n\nPrevious Response:\n${previousOutput}`;
 
-        previousOutput = await runStage(chain[i], prompt, userContent, res, stageNum);
+        try {
+          previousOutput = await runStage(chain[i], prompt, userContent, res, stageNum);
+          console.log(`Stage ${stageNum} completed successfully`);
+        } catch (stageError) {
+          console.error(`Stage ${stageNum} failed:`, stageError);
+          throw stageError;
+        }
       }
 
       const summary = {

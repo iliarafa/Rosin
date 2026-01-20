@@ -9,7 +9,7 @@ import { type LLMModel, type StageOutput, type VerificationSummary } from "@shar
 
 const allModels: LLMModel[] = [
   { provider: "openai", model: "gpt-4o" },
-  { provider: "anthropic", model: "claude-sonnet-4-20250514" },
+  { provider: "anthropic", model: "claude-sonnet-4-5" },
   { provider: "gemini", model: "gemini-2.0-flash" },
   { provider: "openai", model: "gpt-4o-mini" },
 ];
@@ -171,6 +171,7 @@ export default function Terminal() {
           stages={stages}
           summary={finalSummary}
           isProcessing={verifyMutation.isPending}
+          expectedStageCount={stageCount}
         />
       </main>
 
