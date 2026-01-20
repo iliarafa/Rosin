@@ -190,25 +190,25 @@ export default function ReadmePage() {
       </header>
 
       <main className="flex-1 overflow-auto px-3 py-4 sm:px-6 sm:py-6" data-testid="readme-content">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
           <section>
-            <h2 className="text-base font-medium mb-3 text-foreground">
+            <h2 className="text-xs sm:text-base font-medium mb-2 sm:mb-3 text-foreground">
               ═══════════════════════════════════════
             </h2>
-            <h2 className="text-base font-medium mb-3 text-foreground">
+            <h2 className="text-xs sm:text-base font-medium mb-2 sm:mb-3 text-foreground">
               {t.title}
             </h2>
-            <h2 className="text-base font-medium mb-4 text-foreground">
+            <h2 className="text-xs sm:text-base font-medium mb-3 sm:mb-4 text-foreground">
               ═══════════════════════════════════════
             </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               {t.description}
             </p>
           </section>
 
           <section>
-            <h3 className="text-sm font-medium mb-2 text-foreground">{t.howItWorks.title}</h3>
-            <div className="text-sm text-muted-foreground space-y-2 pl-4 border-l border-border">
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.howItWorks.title}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
               {t.howItWorks.steps.map((step, i) => (
                 <p key={i}>
                   <span className="text-foreground">{step.num}</span> {step.text}{" "}
@@ -235,8 +235,8 @@ export default function ReadmePage() {
           </section>
 
           <section>
-            <h3 className="text-sm font-medium mb-2 text-foreground">{t.models.title}</h3>
-            <div className="text-sm text-muted-foreground space-y-2 pl-4 border-l border-border">
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.models.title}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
               <p><span className="text-foreground">OpenAI:</span> {t.models.openai}</p>
               <p><span className="text-foreground">Anthropic:</span> {t.models.anthropic}</p>
               <p><span className="text-foreground">Gemini:</span> {t.models.gemini}</p>
@@ -245,8 +245,8 @@ export default function ReadmePage() {
           </section>
 
           <section>
-            <h3 className="text-sm font-medium mb-2 text-foreground">{t.usage.title}</h3>
-            <div className="text-sm text-muted-foreground space-y-2 pl-4 border-l border-border">
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.usage.title}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
               {t.usage.steps.map((step, i) => (
                 <p key={i}>
                   <span className="text-foreground">{step.step}</span> {step.text}
@@ -256,10 +256,10 @@ export default function ReadmePage() {
           </section>
 
           <section>
-            <h3 className="text-sm font-medium mb-2 text-foreground">{t.summary.title}</h3>
-            <div className="text-sm text-muted-foreground space-y-2 pl-4 border-l border-border">
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.summary.title}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
               <p>{t.summary.intro}</p>
-              <ul className="pl-4 space-y-1">
+              <ul className="pl-3 sm:pl-4 space-y-1">
                 {t.summary.items.map((item, i) => (
                   <li key={i}>• <span className="text-foreground">{item.label}</span>{item.text}</li>
                 ))}
@@ -268,11 +268,11 @@ export default function ReadmePage() {
           </section>
 
           <section>
-            <h3 className="text-sm font-medium mb-2 text-foreground">{t.homeScreen.title}</h3>
-            <div className="text-sm text-muted-foreground space-y-3 pl-4 border-l border-border">
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.homeScreen.title}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-3 pl-3 sm:pl-4 border-l border-border">
               <div>
                 <p className="text-foreground mb-1">{t.homeScreen.iphone.label}</p>
-                <ul className="pl-4 space-y-1">
+                <ul className="pl-3 sm:pl-4 space-y-1">
                   {t.homeScreen.iphone.steps.map((step, i) => (
                     <li key={i}>
                       {step.num} {step.text} <span className="text-foreground">{step.highlight}</span>{step.after}
@@ -282,7 +282,7 @@ export default function ReadmePage() {
               </div>
               <div>
                 <p className="text-foreground mb-1">{t.homeScreen.android.label}</p>
-                <ul className="pl-4 space-y-1">
+                <ul className="pl-3 sm:pl-4 space-y-1">
                   {t.homeScreen.android.steps.map((step, i) => (
                     <li key={i}>
                       {step.num} {step.text} <span className="text-foreground">{step.highlight}</span>{step.after}
@@ -295,8 +295,8 @@ export default function ReadmePage() {
           </section>
 
           <section>
-            <h3 className="text-sm font-medium mb-2 text-foreground">{t.tips.title}</h3>
-            <div className="text-sm text-muted-foreground space-y-2 pl-4 border-l border-border">
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.tips.title}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
               {t.tips.items.map((tip, i) => (
                 <p key={i}>
                   • {tip.text && <>{tip.text} </>}
