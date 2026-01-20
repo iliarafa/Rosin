@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 
 type Language = "en" | "gr";
 
@@ -155,7 +155,10 @@ const content = {
 };
 
 export default function RecommendationsPage() {
-  const [lang, setLang] = useState<Language>("en");
+  const searchString = useSearch();
+  const params = new URLSearchParams(searchString);
+  const initialLang = params.get("lang") === "gr" ? "gr" : "en";
+  const [lang, setLang] = useState<Language>(initialLang);
   const t = content[lang];
 
   return (

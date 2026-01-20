@@ -248,7 +248,7 @@ export default function ReadmePage() {
                     : "Μάθετε ποιες ακολουθίες LLM λειτουργούν καλύτερα για διαφορετικές περιπτώσεις χρήσης."}
                 </p>
                 <Link
-                  href="/recommendations"
+                  href={`/recommendations${lang === "gr" ? "?lang=gr" : ""}`}
                   className="inline-block mt-2 text-xs text-foreground hover:text-muted-foreground transition-colors px-3 py-2 border border-border rounded-none"
                   data-testid="link-recommendations"
                 >
