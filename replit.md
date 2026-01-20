@@ -31,10 +31,10 @@ Preferred communication style: Simple, everyday language.
 - **Supported Providers**: OpenAI, Anthropic, Google Gemini
 - **Available Models**:
   - OpenAI: gpt-4o, gpt-4o-mini, gpt-4-turbo
-  - Anthropic: claude-sonnet-4-20250514, claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022
+  - Anthropic: claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5
   - Gemini: gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash
 - **Streaming**: Real-time response streaming via SSE with stage-by-stage output
-- **Chain Configuration**: User-configurable 2-4 stage verification chains
+- **Chain Configuration**: User-configurable 2-4 stage verification chains (selectable via dropdown)
 
 ### Data Layer
 - **ORM**: Drizzle ORM with PostgreSQL dialect

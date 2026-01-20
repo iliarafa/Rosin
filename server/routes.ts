@@ -172,12 +172,6 @@ export async function registerRoutes(
       res.setHeader("Connection", "keep-alive");
       res.setHeader("X-Accel-Buffering", "no");
 
-      let clientDisconnected = false;
-      req.on("close", () => {
-        console.log("Request close event fired");
-        clientDisconnected = true;
-      });
-
       const checkDisconnect = () => {
         if (res.writableEnded) {
           console.log("Response already ended, stopping");
