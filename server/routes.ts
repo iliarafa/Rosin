@@ -24,11 +24,20 @@ const gemini = new GoogleGenAI({
   },
 });
 
-// xAI/Grok client using OpenAI-compatible API
-const xai = new OpenAI({
-  apiKey: process.env.XAI_API_KEY,
-  baseURL: "https://api.x.ai/v1",
-});
+// xAI/Grok client using OpenAI-compatible API (initialized lazily)
+let xai: OpenAI | null = null;
+function getXAIClient(): OpenAI {
+  if (!xai) {
+    if (!process.env.XAI_API_KEY) {
+      throw new Error("XAI_API_KEY environment variable is not set. Please add your xAI API key to use Grok models.");
+    }
+    xai = new OpenAI({
+      apiKey: process.env.XAI_API_KEY,
+      baseURL: "https://api.x.ai/v1",
+    });
+  }
+  return xai;
+}
 
 function sendSSE(res: Response, data: Record<string, unknown>) {
   if (!res.writableEnded) {
@@ -133,8 +142,9 @@ async function streamXAI(
   stage: number
 ): Promise<string> {
   let fullResponse = "";
+  const client = getXAIClient();
 
-  const stream = await xai.chat.completions.create({
+  const stream = await client.chat.completions.create({
     model,
     messages: [
       { role: "system", content: systemPrompt },
