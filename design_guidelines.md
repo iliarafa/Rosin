@@ -166,10 +166,11 @@
 
 ## Key Layout Specifications
 
+### Desktop Layout (≥640px)
 ```
 ┌─────────────────────────────────────────┐
-│ [1] GPT-4 ▾  [2] Claude ▾  [3] Gemini ▾ │ ← Fixed header (h-16)
-│                           [4] GPT-5 ▾   │
+│ STAGES: [4] | [1] GPT-4 ▾ [2] Claude ▾  │ ← Fixed header
+│              [3] Gemini ▾ [4] Grok ▾    │
 ├─────────────────────────────────────────┤
 │                                         │
 │ > STAGE [1]: GPT-4                      │
@@ -181,8 +182,36 @@
 │ ⣾ Processing...                         │
 │                                         │
 ├─────────────────────────────────────────┤
-│ $ Enter your query here_                │ ← Fixed input (h-20)
+│ $ Enter your query here_                │ ← Fixed input
 └─────────────────────────────────────────┘
 ```
+
+### Mobile Layout (<640px)
+```
+┌─────────────────────────┐
+│ STAGES: [4]             │
+├─────────────────────────┤
+│ [1] GPT-4 ▾  [2] Claude │ ← 2-column grid
+│ [3] Gemini   [4] Grok ▾ │    for selectors
+├─────────────────────────┤
+│                         │
+│ > STAGE [1]: GPT-4      │
+│ ───────────────────     │
+│ [Response...]           │ ← Scrollable
+│                         │
+├─────────────────────────┤
+│ $ Query here_      RUN  │ ← Fixed input
+└─────────────────────────┘
+```
+
+**Responsive Breakpoints:**
+- Mobile: < 640px (sm breakpoint)
+- Desktop: ≥ 640px
+
+**Mobile-Specific Adjustments:**
+- Model selectors: 2-column grid layout
+- Reduced padding: `px-3 py-2` instead of `px-4 py-3`
+- Model selector width: `min-w-[120px]` fluid width
+- Stage count separated from model selectors
 
 **No Images:** This is a pure terminal interface - no hero images, no decorative graphics.

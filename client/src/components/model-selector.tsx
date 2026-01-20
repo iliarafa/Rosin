@@ -38,7 +38,7 @@ export function ModelSelector({
   const currentValue = `${selectedModel.provider}:${selectedModel.model}`;
 
   return (
-    <div className="flex items-center gap-2" data-testid={`model-selector-stage-${stageNumber}`}>
+    <div className="flex items-center gap-1 sm:gap-2" data-testid={`model-selector-stage-${stageNumber}`}>
       <span className="text-xs text-muted-foreground opacity-80">[{stageNumber}]</span>
       <Select
         value={currentValue}
@@ -49,7 +49,7 @@ export function ModelSelector({
         disabled={disabled}
       >
         <SelectTrigger
-          className="w-[200px] text-xs bg-transparent border-border rounded-none"
+          className="w-full min-w-[120px] sm:w-[200px] text-xs bg-transparent border-border rounded-none"
           aria-label={`Select LLM for Stage ${stageNumber}`}
           data-testid={`select-trigger-stage-${stageNumber}`}
         >
