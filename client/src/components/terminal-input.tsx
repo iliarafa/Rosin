@@ -33,16 +33,16 @@ export function TerminalInput({
 
   return (
     <div className="flex items-end gap-2">
-      <span className="text-sm text-muted-foreground pb-2">$</span>
+      <span className="text-xs sm:text-sm text-muted-foreground pb-2 shrink-0">$</span>
       <Textarea
         ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Enter your query here..."
+        placeholder="Enter your query..."
         disabled={isProcessing}
         aria-label="Query input"
-        className="flex-1 resize-none bg-transparent border-0 rounded-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+        className="flex-1 min-w-0 resize-none bg-transparent border-0 rounded-none text-xs sm:text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
         data-testid="input-query"
       />
       <Button
@@ -50,10 +50,10 @@ export function TerminalInput({
         disabled={isProcessing || !value.trim()}
         variant="outline"
         size="sm"
-        className="text-xs rounded-none"
+        className="text-xs rounded-none shrink-0"
         data-testid="button-submit"
       >
-        {isProcessing ? "PROCESSING..." : "RUN"}
+        {isProcessing ? "..." : "RUN"}
       </Button>
     </div>
   );

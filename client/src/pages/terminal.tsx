@@ -202,7 +202,7 @@ export default function Terminal() {
       </main>
 
       <footer
-        className="sticky bottom-0 z-50 border-t border-border bg-background/80 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-3"
+        className="sticky bottom-0 z-50 border-t border-border bg-background/80 backdrop-blur-sm px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3"
         data-testid="footer-input"
       >
         <TerminalInput
