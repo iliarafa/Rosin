@@ -87,6 +87,12 @@ export default {
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
       },
+      borderRadius: {
+        lg: ".5625rem",
+        md: ".375rem",
+        sm: ".1875rem",
+        none: "0",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
