@@ -307,6 +307,24 @@ export default function ReadmePage() {
             </div>
           </section>
 
+          <section>
+            <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{lang === "en" ? "> MODEL RECOMMENDATIONS" : "> ΣΥΣΤΑΣΕΙΣ ΜΟΝΤΕΛΩΝ"}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
+              <p>
+                {lang === "en" 
+                  ? "Learn which LLM sequences work best for different use cases."
+                  : "Μάθετε ποιες ακολουθίες LLM λειτουργούν καλύτερα για διαφορετικές περιπτώσεις χρήσης."}
+              </p>
+              <Link
+                href="/recommendations"
+                className="inline-block mt-2 text-xs text-foreground hover:text-muted-foreground transition-colors px-3 py-2 border border-border rounded-none"
+                data-testid="link-recommendations"
+              >
+                [{lang === "en" ? "VIEW RECOMMENDATIONS" : "ΔΕΙΤΕ ΣΥΣΤΑΣΕΙΣ"}]
+              </Link>
+            </div>
+          </section>
+
           <section className="pt-4">
             <p className="text-xs text-muted-foreground opacity-60">
               ─────────────────────────────────────────────────

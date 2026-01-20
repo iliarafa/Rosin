@@ -78,6 +78,36 @@ The app will be available at `http://localhost:5000`
 5. Watch as each model processes and verifies the previous output
 6. Get a final synthesized response with confidence assessment
 
+## Recommended Configurations
+
+### Balanced (Recommended)
+| Stage | Model | Purpose |
+|-------|-------|---------|
+| 1 | gpt-4o | Fast, capable baseline response |
+| 2 | claude-sonnet-4-5 | Cross-provider verification |
+| 3 | gemini-2.5-pro | Deep analysis and synthesis |
+| 4 | grok-3 | Final independent check |
+
+### Speed Optimized
+| Stage | Model | Purpose |
+|-------|-------|---------|
+| 1 | gpt-4o-mini | Fast initial response |
+| 2 | gemini-2.5-flash | Quick cross-check |
+| 3 | claude-haiku-4-5 | Rapid synthesis |
+
+### Maximum Accuracy
+| Stage | Model | Purpose |
+|-------|-------|---------|
+| 1 | gpt-4-turbo | Thorough initial analysis |
+| 2 | claude-opus-4-5 | Deep verification |
+| 3 | gemini-2.5-pro | Comprehensive cross-check |
+| 4 | gpt-4o | Final synthesis |
+
+### Key Principles
+- **Mix providers**: Never use the same provider twice in a row
+- **Start fast, go deep**: Use faster models early, thorough models later
+- **End with synthesis**: Final stage should excel at summarization
+
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui

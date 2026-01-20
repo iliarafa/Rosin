@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Terminal from "@/pages/terminal";
 import ReadmePage from "@/pages/readme";
+import RecommendationsPage from "@/pages/recommendations";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -12,6 +13,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Terminal} />
       <Route path="/readme" component={ReadmePage} />
+      <Route path="/recommendations" component={RecommendationsPage} />
       <Route component={NotFound} />
     </Switch>
   );
