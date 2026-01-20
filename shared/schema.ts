@@ -17,13 +17,14 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export const llmProviders = ["openai", "anthropic", "gemini"] as const;
+export const llmProviders = ["openai", "anthropic", "gemini", "xai"] as const;
 export type LLMProvider = (typeof llmProviders)[number];
 
 export const llmModels = {
   openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
   anthropic: ["claude-sonnet-4-5", "claude-haiku-4-5", "claude-opus-4-5"],
-  gemini: ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
+  gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
+  xai: ["grok-2-1212", "grok-beta"],
 } as const;
 
 export const llmModelSchema = z.object({

@@ -10,8 +10,8 @@ import { type LLMModel, type StageOutput, type VerificationSummary } from "@shar
 const allModels: LLMModel[] = [
   { provider: "openai", model: "gpt-4o" },
   { provider: "anthropic", model: "claude-sonnet-4-5" },
-  { provider: "gemini", model: "gemini-2.0-flash" },
-  { provider: "openai", model: "gpt-4o-mini" },
+  { provider: "gemini", model: "gemini-2.5-flash" },
+  { provider: "xai", model: "grok-2-1212" },
 ];
 
 interface VerificationInput {

@@ -18,6 +18,7 @@ const providerLabels: Record<LLMProvider, string> = {
   openai: "OpenAI",
   anthropic: "Anthropic",
   gemini: "Gemini",
+  xai: "xAI/Grok",
 };
 
 export function ModelSelector({

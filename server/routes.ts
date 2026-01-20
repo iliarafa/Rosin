@@ -24,6 +24,12 @@ const gemini = new GoogleGenAI({
   },
 });
 
+// xAI/Grok client using OpenAI-compatible API
+const xai = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: "https://api.x.ai/v1",
+});
+
 function sendSSE(res: Response, data: Record<string, unknown>) {
   if (!res.writableEnded) {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
@@ -119,6 +125,36 @@ async function streamGemini(
   return fullResponse;
 }
 
+async function streamXAI(
+  model: string,
+  systemPrompt: string,
+  userContent: string,
+  res: Response,
+  stage: number
+): Promise<string> {
+  let fullResponse = "";
+
+  const stream = await xai.chat.completions.create({
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent },
+    ],
+    stream: true,
+    max_tokens: 2048,
+  });
+
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content || "";
+    if (content) {
+      fullResponse += content;
+      sendSSE(res, { type: "stage_content", stage, content });
+    }
+  }
+
+  return fullResponse;
+}
+
 async function runStage(
   model: LLMModel,
   systemPrompt: string,
@@ -140,6 +176,9 @@ async function runStage(
         break;
       case "gemini":
         result = await streamGemini(model.model, systemPrompt, userContent, res, stage);
+        break;
+      case "xai":
+        result = await streamXAI(model.model, systemPrompt, userContent, res, stage);
         break;
       default:
         throw new Error(`Unknown provider: ${model.provider}`);

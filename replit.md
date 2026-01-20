@@ -28,11 +28,12 @@ Preferred communication style: Simple, everyday language.
 - **Build**: esbuild for production bundling with selective dependency bundling
 
 ### Multi-LLM Pipeline
-- **Supported Providers**: OpenAI, Anthropic, Google Gemini
+- **Supported Providers**: OpenAI, Anthropic, Google Gemini, xAI/Grok
 - **Available Models**:
   - OpenAI: gpt-4o, gpt-4o-mini, gpt-4-turbo
   - Anthropic: claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5
-  - Gemini: gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash
+  - Gemini: gemini-2.5-flash, gemini-2.5-pro
+  - xAI/Grok: grok-2-1212, grok-beta
 - **Streaming**: Real-time response streaming via SSE with stage-by-stage output
 - **Chain Configuration**: User-configurable 2-4 stage verification chains (selectable via dropdown)
 
@@ -63,6 +64,7 @@ shared/           # Shared types and schemas
 - **OpenAI API**: Text completions via `openai` SDK
 - **Anthropic API**: Claude models via `@anthropic-ai/sdk`
 - **Google Gemini**: Via `@google/genai` SDK with Replit AI Integrations support
+- **xAI/Grok API**: Via OpenAI-compatible SDK
 
 ### Environment Variables Required
 - `DATABASE_URL`: PostgreSQL connection string
@@ -72,6 +74,7 @@ shared/           # Shared types and schemas
 - `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`: Anthropic API base URL
 - `AI_INTEGRATIONS_GEMINI_API_KEY`: Gemini API key
 - `AI_INTEGRATIONS_GEMINI_BASE_URL`: Gemini API base URL
+- `XAI_API_KEY`: xAI/Grok API key (required for Grok models)
 
 ### Database
 - PostgreSQL for persistent storage
