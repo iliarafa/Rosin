@@ -21,7 +21,7 @@ export function TerminalOutput({
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <div className="text-center space-y-4">
-          <div className="text-sm opacity-60">ROSIN - PURE OUTPUT</div>
+          <div className="text-sm opacity-60 text-[#000000]">ROSIN - PURE OUTPUT</div>
           <div className="text-xs opacity-40 max-w-md">
             Enter a query below. It will pass through multiple LLMs in sequence.
             Each model verifies and refines the previous output to distill truth
