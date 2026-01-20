@@ -21,7 +21,7 @@ export function TerminalOutput({
         <div className="text-center space-y-4">
           <div className="text-sm opacity-60">MULTI-LLM VERIFICATION SYSTEM</div>
           <div className="text-xs opacity-40 max-w-md">
-            Enter a query below. It will pass through 4 LLMs in sequence.
+            Enter a query below. It will pass through multiple LLMs in sequence.
             Each model verifies and refines the previous output to distill truth
             and detect hallucinations.
           </div>
@@ -34,8 +34,8 @@ export function TerminalOutput({
     );
   }
 
-  const stage4Complete = stages.find((s) => s.stage === 4 && s.status === "complete");
-  const allComplete = stages.length === 4 && stages.every((s) => s.status === "complete");
+  const allComplete = stages.length > 0 && stages.every((s) => s.status === "complete");
+  const lastStage = allComplete ? stages[stages.length - 1] : null;
 
   return (
     <div className="space-y-6" data-testid="stages-container">
@@ -50,7 +50,7 @@ export function TerminalOutput({
         <StageBlock key={stage.stage} stage={stage} />
       ))}
 
-      {allComplete && stage4Complete && (
+      {allComplete && lastStage && (
         <div className="mt-8 space-y-2" data-testid="verified-output">
           <div className="text-xs text-muted-foreground">
             {"=".repeat(50)}
@@ -60,7 +60,7 @@ export function TerminalOutput({
             {"=".repeat(50)}
           </div>
           <div className="text-sm whitespace-pre-wrap leading-relaxed py-2">
-            {stage4Complete.content}
+            {lastStage.content}
           </div>
           <div className="text-xs text-muted-foreground">
             {"=".repeat(50)}

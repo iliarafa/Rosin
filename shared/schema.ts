@@ -21,9 +21,9 @@ export const llmProviders = ["openai", "anthropic", "gemini"] as const;
 export type LLMProvider = (typeof llmProviders)[number];
 
 export const llmModels = {
-  openai: ["gpt-5", "gpt-4o", "gpt-4o-mini"],
-  anthropic: ["claude-sonnet-4-5", "claude-haiku-4-5", "claude-opus-4-5"],
-  gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
+  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
+  anthropic: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"],
+  gemini: ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
 } as const;
 
 export const llmModelSchema = z.object({
@@ -35,7 +35,7 @@ export type LLMModel = z.infer<typeof llmModelSchema>;
 
 export const insertVerificationRequestSchema = z.object({
   query: z.string().min(1),
-  chain: z.array(llmModelSchema).length(4),
+  chain: z.array(llmModelSchema).min(2).max(4),
 });
 
 export type InsertVerificationRequest = z.infer<typeof insertVerificationRequestSchema>;

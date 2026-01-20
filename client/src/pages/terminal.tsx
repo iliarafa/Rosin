@@ -2,15 +2,16 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ModelSelector } from "@/components/model-selector";
+import { StageCountSelector } from "@/components/stage-count-selector";
 import { TerminalOutput } from "@/components/terminal-output";
 import { TerminalInput } from "@/components/terminal-input";
 import { type LLMModel, type StageOutput, type VerificationSummary } from "@shared/schema";
 
-const defaultChain: LLMModel[] = [
+const allModels: LLMModel[] = [
   { provider: "openai", model: "gpt-4o" },
-  { provider: "anthropic", model: "claude-sonnet-4-5" },
-  { provider: "gemini", model: "gemini-2.5-flash" },
-  { provider: "openai", model: "gpt-5" },
+  { provider: "anthropic", model: "claude-sonnet-4-20250514" },
+  { provider: "gemini", model: "gemini-2.0-flash" },
+  { provider: "openai", model: "gpt-4o-mini" },
 ];
 
 interface VerificationInput {
@@ -19,11 +20,14 @@ interface VerificationInput {
 }
 
 export default function Terminal() {
-  const [chain, setChain] = useState<LLMModel[]>(defaultChain);
+  const [stageCount, setStageCount] = useState(4);
+  const [chain, setChain] = useState<LLMModel[]>(allModels);
   const [query, setQuery] = useState("");
   const [stages, setStages] = useState<StageOutput[]>([]);
   const [finalSummary, setFinalSummary] = useState<VerificationSummary | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+
+  const activeChain = chain.slice(0, stageCount);
 
   const updateModel = (index: number, model: LLMModel) => {
     setChain((prev) => {
@@ -123,7 +127,7 @@ export default function Terminal() {
 
     setStages([]);
     setFinalSummary(null);
-    verifyMutation.mutate({ query, chain });
+    verifyMutation.mutate({ query, chain: activeChain });
   };
 
   useEffect(() => {
@@ -139,7 +143,13 @@ export default function Terminal() {
         data-testid="header-model-selection"
       >
         <div className="flex flex-wrap items-center gap-4">
-          {chain.map((model, index) => (
+          <StageCountSelector
+            value={stageCount}
+            onChange={setStageCount}
+            disabled={verifyMutation.isPending}
+          />
+          <span className="text-muted-foreground opacity-40">|</span>
+          {activeChain.map((model, index) => (
             <ModelSelector
               key={index}
               stageNumber={index + 1}

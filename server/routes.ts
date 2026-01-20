@@ -183,33 +183,17 @@ export async function registerRoutes(
         }
       };
 
-      const stage1Prompt = `You are the first stage of a multi-LLM verification pipeline. Your task is to provide an initial, thorough response to the user's query. Focus on accuracy and comprehensive coverage of the topic.
+      const totalStages = chain.length;
+
+      const getStagePrompt = (stageNum: number, isLast: boolean): string => {
+        if (stageNum === 1) {
+          return `You are the first stage of a multi-LLM verification pipeline. Your task is to provide an initial, thorough response to the user's query. Focus on accuracy and comprehensive coverage of the topic.
 
 Be factual and cite any assumptions you make. If you're uncertain about something, acknowledge it.`;
+        }
 
-      const stage2Prompt = `You are the second stage of a multi-LLM verification pipeline. You are reviewing and verifying the output from Stage 1.
-
-Your tasks:
-1. Verify the factual accuracy of the previous response
-2. Identify any potential errors, hallucinations, or unsupported claims
-3. Correct any inaccuracies you find
-4. Add any important information that was missed
-5. Improve clarity where needed
-
-Provide a refined and verified version of the response.`;
-
-      const stage3Prompt = `You are the third stage of a multi-LLM verification pipeline. You are reviewing the verified output from Stage 2.
-
-Your tasks:
-1. Cross-check the information against your knowledge
-2. Identify any remaining inconsistencies or questionable claims
-3. Synthesize the verified information into a clearer, more coherent response
-4. Flag any areas where there is genuine uncertainty or debate
-5. Ensure the response directly addresses the original query
-
-Provide a further refined response.`;
-
-      const stage4Prompt = `You are the final stage of a multi-LLM verification pipeline. You produce the definitive, verified response.
+        if (isLast) {
+          return `You are the final stage of a multi-LLM verification pipeline. You produce the definitive, verified response.
 
 Your tasks:
 1. Final verification of all claims
@@ -219,46 +203,41 @@ Your tasks:
 5. Note any remaining caveats or areas of genuine uncertainty
 
 Produce the final verified response that best answers the user's original query.`;
+        }
+
+        return `You are stage ${stageNum} of a multi-LLM verification pipeline. You are reviewing and verifying the previous output.
+
+Your tasks:
+1. Verify the factual accuracy of the previous response
+2. Identify any potential errors, hallucinations, or unsupported claims
+3. Correct any inaccuracies you find
+4. Add any important information that was missed
+5. Cross-check the information against your knowledge
+6. Improve clarity where needed
+
+Provide a refined and verified version of the response.`;
+      };
 
       let previousOutput = query;
 
-      checkDisconnect();
-      const stage1Result = await runStage(chain[0], stage1Prompt, `Original Query: ${query}`, res, 1);
-      previousOutput = stage1Result;
+      for (let i = 0; i < totalStages; i++) {
+        checkDisconnect();
+        const stageNum = i + 1;
+        const isFirst = i === 0;
+        const isLast = i === totalStages - 1;
+        const prompt = getStagePrompt(stageNum, isLast);
 
-      checkDisconnect();
-      const stage2Result = await runStage(
-        chain[1],
-        stage2Prompt,
-        `Original Query: ${query}\n\nStage 1 Response:\n${previousOutput}`,
-        res,
-        2
-      );
-      previousOutput = stage2Result;
+        const userContent = isFirst
+          ? `Original Query: ${query}`
+          : `Original Query: ${query}\n\nPrevious Response:\n${previousOutput}`;
 
-      checkDisconnect();
-      const stage3Result = await runStage(
-        chain[2],
-        stage3Prompt,
-        `Original Query: ${query}\n\nPrevious Verified Response:\n${previousOutput}`,
-        res,
-        3
-      );
-      previousOutput = stage3Result;
-
-      checkDisconnect();
-      await runStage(
-        chain[3],
-        stage4Prompt,
-        `Original Query: ${query}\n\nPrevious Verified Response:\n${previousOutput}`,
-        res,
-        4
-      );
+        previousOutput = await runStage(chain[i], prompt, userContent, res, stageNum);
+      }
 
       const summary = {
-        consistency: "Cross-verified across 4 independent LLMs",
+        consistency: `Cross-verified across ${totalStages} independent LLMs`,
         hallucinations: "Checked at each stage - potential issues flagged",
-        confidence: "High - multi-stage verification complete",
+        confidence: totalStages >= 3 ? "High - multi-stage verification complete" : "Moderate - dual verification complete",
       };
 
       sendSSE(res, { type: "summary", summary });
