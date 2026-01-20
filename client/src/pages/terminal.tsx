@@ -11,7 +11,7 @@ const allModels: LLMModel[] = [
   { provider: "openai", model: "gpt-4o" },
   { provider: "anthropic", model: "claude-sonnet-4-5" },
   { provider: "gemini", model: "gemini-2.5-flash" },
-  { provider: "xai", model: "grok-2-1212" },
+  { provider: "xai", model: "grok-3" },
 ];
 
 interface VerificationInput {

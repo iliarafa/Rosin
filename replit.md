@@ -33,7 +33,7 @@ Preferred communication style: Simple, everyday language.
   - OpenAI: gpt-4o, gpt-4o-mini, gpt-4-turbo
   - Anthropic: claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5
   - Gemini: gemini-2.5-flash, gemini-2.5-pro
-  - xAI/Grok: grok-2-1212, grok-beta
+  - xAI/Grok: grok-3, grok-3-fast
 - **Streaming**: Real-time response streaming via SSE with stage-by-stage output
 - **Chain Configuration**: User-configurable 2-4 stage verification chains (selectable via dropdown)
 

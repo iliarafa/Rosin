@@ -24,7 +24,7 @@ export const llmModels = {
   openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
   anthropic: ["claude-sonnet-4-5", "claude-haiku-4-5", "claude-opus-4-5"],
   gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
-  xai: ["grok-2-1212", "grok-beta"],
+  xai: ["grok-3", "grok-3-fast"],
 } as const;
 
 export const llmModelSchema = z.object({
