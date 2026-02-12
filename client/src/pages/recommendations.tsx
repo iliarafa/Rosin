@@ -185,7 +185,7 @@ export default function RecommendationsPage() {
               [README]
             </Link>
             <Link
-              href="/"
+              href="/terminal"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
               data-testid="link-terminal"
             >
