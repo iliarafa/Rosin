@@ -1,0 +1,570 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10001000000000000000001 /* RosinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20001000000000000000001 /* RosinApp.swift */; };
+		A10002000000000000000002 /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20002000000000000000002 /* LLMProvider.swift */; };
+		A10003000000000000000003 /* StageOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20003000000000000000003 /* StageOutput.swift */; };
+		A10004000000000000000004 /* VerificationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20004000000000000000004 /* VerificationSummary.swift */; };
+		A10005000000000000000005 /* PipelineEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20005000000000000000005 /* PipelineEvent.swift */; };
+		A10006000000000000000006 /* StreamingResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20006000000000000000006 /* StreamingResponse.swift */; };
+		A10007000000000000000007 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20007000000000000000007 /* KeychainService.swift */; };
+		A10008000000000000000008 /* APIKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20008000000000000000008 /* APIKeyManager.swift */; };
+		A10009000000000000000009 /* LLMStreamingProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20009000000000000000009 /* LLMStreamingProtocol.swift */; };
+		A1000A00000000000000000A /* SSELineParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000A00000000000000000A /* SSELineParser.swift */; };
+		A1000B00000000000000000B /* AnthropicStreamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000B00000000000000000B /* AnthropicStreamingService.swift */; };
+		A1000C00000000000000000C /* GeminiStreamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000C00000000000000000C /* GeminiStreamingService.swift */; };
+		A1000D00000000000000000D /* XAIStreamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000D00000000000000000D /* XAIStreamingService.swift */; };
+		A1000E00000000000000000E /* LLMServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000E00000000000000000E /* LLMServiceFactory.swift */; };
+		A1000F00000000000000000F /* StagePromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F00000000000000000F /* StagePromptBuilder.swift */; };
+		A10010000000000000000010 /* VerificationPipelineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20010000000000000000010 /* VerificationPipelineManager.swift */; };
+		A10011000000000000000011 /* TerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20011000000000000000011 /* TerminalViewModel.swift */; };
+		A10012000000000000000012 /* TerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20012000000000000000012 /* TerminalView.swift */; };
+		A10013000000000000000013 /* StageBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20013000000000000000013 /* StageBlockView.swift */; };
+		A10014000000000000000014 /* TerminalOutputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20014000000000000000014 /* TerminalOutputView.swift */; };
+		A10015000000000000000015 /* TerminalInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20015000000000000000015 /* TerminalInputView.swift */; };
+		A10016000000000000000016 /* ModelSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20016000000000000000016 /* ModelSelectorView.swift */; };
+		A10017000000000000000017 /* StageCountSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20017000000000000000017 /* StageCountSelectorView.swift */; };
+		A10018000000000000000018 /* VerificationSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20018000000000000000018 /* VerificationSummaryView.swift */; };
+		A10019000000000000000019 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20019000000000000000019 /* EmptyStateView.swift */; };
+		A1001A00000000000000001A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001A00000000000000001A /* SettingsView.swift */; };
+		A1001B00000000000000001B /* APIKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001B00000000000000001B /* APIKeyRowView.swift */; };
+		A10024000000000000000024 /* APIKeyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20024000000000000000024 /* APIKeyGuideView.swift */; };
+		A1001C00000000000000001C /* ReadmeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001C00000000000000001C /* ReadmeView.swift */; };
+		A1001D00000000000000001D /* RecommendationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001D00000000000000001D /* RecommendationsView.swift */; };
+		A1001E00000000000000001E /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001E00000000000000001E /* StatusIndicator.swift */; };
+		A1001F00000000000000001F /* DividerLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001F00000000000000001F /* DividerLine.swift */; };
+		A10020000000000000000020 /* RosinTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20020000000000000000020 /* RosinTheme.swift */; };
+		A10021000000000000000021 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20021000000000000000021 /* ExportService.swift */; };
+		A10022000000000000000022 /* ShareSheetRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20022000000000000000022 /* ShareSheetRepresentable.swift */; };
+		A10023000000000000000023 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20023000000000000000023 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20001000000000000000001 /* RosinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinApp.swift; sourceTree = "<group>"; };
+		A20002000000000000000002 /* LLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMProvider.swift; sourceTree = "<group>"; };
+		A20003000000000000000003 /* StageOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageOutput.swift; sourceTree = "<group>"; };
+		A20004000000000000000004 /* VerificationSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationSummary.swift; sourceTree = "<group>"; };
+		A20005000000000000000005 /* PipelineEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineEvent.swift; sourceTree = "<group>"; };
+		A20006000000000000000006 /* StreamingResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingResponse.swift; sourceTree = "<group>"; };
+		A20007000000000000000007 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		A20008000000000000000008 /* APIKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyManager.swift; sourceTree = "<group>"; };
+		A20009000000000000000009 /* LLMStreamingProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMStreamingProtocol.swift; sourceTree = "<group>"; };
+		A2000A00000000000000000A /* SSELineParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSELineParser.swift; sourceTree = "<group>"; };
+		A2000B00000000000000000B /* AnthropicStreamingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicStreamingService.swift; sourceTree = "<group>"; };
+		A2000C00000000000000000C /* GeminiStreamingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiStreamingService.swift; sourceTree = "<group>"; };
+		A2000D00000000000000000D /* XAIStreamingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XAIStreamingService.swift; sourceTree = "<group>"; };
+		A2000E00000000000000000E /* LLMServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceFactory.swift; sourceTree = "<group>"; };
+		A2000F00000000000000000F /* StagePromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagePromptBuilder.swift; sourceTree = "<group>"; };
+		A20010000000000000000010 /* VerificationPipelineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationPipelineManager.swift; sourceTree = "<group>"; };
+		A20011000000000000000011 /* TerminalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalViewModel.swift; sourceTree = "<group>"; };
+		A20012000000000000000012 /* TerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalView.swift; sourceTree = "<group>"; };
+		A20013000000000000000013 /* StageBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageBlockView.swift; sourceTree = "<group>"; };
+		A20014000000000000000014 /* TerminalOutputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalOutputView.swift; sourceTree = "<group>"; };
+		A20015000000000000000015 /* TerminalInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalInputView.swift; sourceTree = "<group>"; };
+		A20016000000000000000016 /* ModelSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelSelectorView.swift; sourceTree = "<group>"; };
+		A20017000000000000000017 /* StageCountSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageCountSelectorView.swift; sourceTree = "<group>"; };
+		A20018000000000000000018 /* VerificationSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationSummaryView.swift; sourceTree = "<group>"; };
+		A20019000000000000000019 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		A2001A00000000000000001A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A2001B00000000000000001B /* APIKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyRowView.swift; sourceTree = "<group>"; };
+		A20024000000000000000024 /* APIKeyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyGuideView.swift; sourceTree = "<group>"; };
+		A2001C00000000000000001C /* ReadmeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadmeView.swift; sourceTree = "<group>"; };
+		A2001D00000000000000001D /* RecommendationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationsView.swift; sourceTree = "<group>"; };
+		A2001E00000000000000001E /* StatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIndicator.swift; sourceTree = "<group>"; };
+		A2001F00000000000000001F /* DividerLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DividerLine.swift; sourceTree = "<group>"; };
+		A20020000000000000000020 /* RosinTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinTheme.swift; sourceTree = "<group>"; };
+		A20021000000000000000021 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		A20022000000000000000022 /* ShareSheetRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetRepresentable.swift; sourceTree = "<group>"; };
+		A20023000000000000000023 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A40000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A50000000000000000000000 /* = */ = {
+			isa = PBXGroup;
+			children = (
+				A50001000000000000000001 /* Rosin */,
+				A50002000000000000000002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A50002000000000000000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A30000000000000000000000 /* Rosin.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A50001000000000000000001 /* Rosin */ = {
+			isa = PBXGroup;
+			children = (
+				A20001000000000000000001 /* RosinApp.swift */,
+				A50003000000000000000003 /* Models */,
+				A50004000000000000000004 /* Services */,
+				A50008000000000000000008 /* ViewModels */,
+				A50009000000000000000009 /* Views */,
+				A5000E00000000000000000E /* Theme */,
+				A5000F00000000000000000F /* Utilities */,
+				A20023000000000000000023 /* Assets.xcassets */,
+			);
+			path = Rosin;
+			sourceTree = "<group>";
+		};
+		A50003000000000000000003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A20002000000000000000002 /* LLMProvider.swift */,
+				A20003000000000000000003 /* StageOutput.swift */,
+				A20004000000000000000004 /* VerificationSummary.swift */,
+				A20005000000000000000005 /* PipelineEvent.swift */,
+				A20006000000000000000006 /* StreamingResponse.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A50004000000000000000004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A50005000000000000000005 /* Keychain */,
+				A50006000000000000000006 /* Networking */,
+				A50007000000000000000007 /* Pipeline */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A50005000000000000000005 /* Keychain */ = {
+			isa = PBXGroup;
+			children = (
+				A20007000000000000000007 /* KeychainService.swift */,
+				A20008000000000000000008 /* APIKeyManager.swift */,
+			);
+			path = Keychain;
+			sourceTree = "<group>";
+		};
+		A50006000000000000000006 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				A20009000000000000000009 /* LLMStreamingProtocol.swift */,
+				A2000A00000000000000000A /* SSELineParser.swift */,
+				A2000B00000000000000000B /* AnthropicStreamingService.swift */,
+				A2000C00000000000000000C /* GeminiStreamingService.swift */,
+				A2000D00000000000000000D /* XAIStreamingService.swift */,
+				A2000E00000000000000000E /* LLMServiceFactory.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		A50007000000000000000007 /* Pipeline */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F00000000000000000F /* StagePromptBuilder.swift */,
+				A20010000000000000000010 /* VerificationPipelineManager.swift */,
+			);
+			path = Pipeline;
+			sourceTree = "<group>";
+		};
+		A50008000000000000000008 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A20011000000000000000011 /* TerminalViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A50009000000000000000009 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A5000A00000000000000000A /* Terminal */,
+				A5000B00000000000000000B /* Settings */,
+				A5000C00000000000000000C /* Info */,
+				A5000D00000000000000000D /* Shared */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A5000A00000000000000000A /* Terminal */ = {
+			isa = PBXGroup;
+			children = (
+				A20012000000000000000012 /* TerminalView.swift */,
+				A20013000000000000000013 /* StageBlockView.swift */,
+				A20014000000000000000014 /* TerminalOutputView.swift */,
+				A20015000000000000000015 /* TerminalInputView.swift */,
+				A20016000000000000000016 /* ModelSelectorView.swift */,
+				A20017000000000000000017 /* StageCountSelectorView.swift */,
+				A20018000000000000000018 /* VerificationSummaryView.swift */,
+				A20019000000000000000019 /* EmptyStateView.swift */,
+			);
+			path = Terminal;
+			sourceTree = "<group>";
+		};
+		A5000B00000000000000000B /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A2001A00000000000000001A /* SettingsView.swift */,
+				A2001B00000000000000001B /* APIKeyRowView.swift */,
+				A20024000000000000000024 /* APIKeyGuideView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A5000C00000000000000000C /* Info */ = {
+			isa = PBXGroup;
+			children = (
+				A2001C00000000000000001C /* ReadmeView.swift */,
+				A2001D00000000000000001D /* RecommendationsView.swift */,
+			);
+			path = Info;
+			sourceTree = "<group>";
+		};
+		A5000D00000000000000000D /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A2001E00000000000000001E /* StatusIndicator.swift */,
+				A2001F00000000000000001F /* DividerLine.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A5000E00000000000000000E /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				A20020000000000000000020 /* RosinTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		A5000F00000000000000000F /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A20021000000000000000021 /* ExportService.swift */,
+				A20022000000000000000022 /* ShareSheetRepresentable.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A60000000000000000000001 /* Rosin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000000000000000000003 /* Build configuration list for PBXNativeTarget "Rosin" */;
+			buildPhases = (
+				A70000000000000000000001 /* Sources */,
+				A40000000000000000000001 /* Frameworks */,
+				A70000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Rosin;
+			productName = Rosin;
+			productReference = A30000000000000000000000 /* Rosin.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A90000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				ORGANIZATIONNAME = Rosin;
+				TargetAttributes = {
+					A60000000000000000000001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = A80000000000000000000001 /* Build configuration list for PBXProject "Rosin" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A50000000000000000000000;
+			productRefGroup = A50002000000000000000002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A60000000000000000000001 /* Rosin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A70000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10023000000000000000023 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A70000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001000000000000000001 /* RosinApp.swift in Sources */,
+				A10002000000000000000002 /* LLMProvider.swift in Sources */,
+				A10003000000000000000003 /* StageOutput.swift in Sources */,
+				A10004000000000000000004 /* VerificationSummary.swift in Sources */,
+				A10005000000000000000005 /* PipelineEvent.swift in Sources */,
+				A10006000000000000000006 /* StreamingResponse.swift in Sources */,
+				A10007000000000000000007 /* KeychainService.swift in Sources */,
+				A10008000000000000000008 /* APIKeyManager.swift in Sources */,
+				A10009000000000000000009 /* LLMStreamingProtocol.swift in Sources */,
+				A1000A00000000000000000A /* SSELineParser.swift in Sources */,
+				A1000B00000000000000000B /* AnthropicStreamingService.swift in Sources */,
+				A1000C00000000000000000C /* GeminiStreamingService.swift in Sources */,
+				A1000D00000000000000000D /* XAIStreamingService.swift in Sources */,
+				A1000E00000000000000000E /* LLMServiceFactory.swift in Sources */,
+				A1000F00000000000000000F /* StagePromptBuilder.swift in Sources */,
+				A10010000000000000000010 /* VerificationPipelineManager.swift in Sources */,
+				A10011000000000000000011 /* TerminalViewModel.swift in Sources */,
+				A10012000000000000000012 /* TerminalView.swift in Sources */,
+				A10013000000000000000013 /* StageBlockView.swift in Sources */,
+				A10014000000000000000014 /* TerminalOutputView.swift in Sources */,
+				A10015000000000000000015 /* TerminalInputView.swift in Sources */,
+				A10016000000000000000016 /* ModelSelectorView.swift in Sources */,
+				A10017000000000000000017 /* StageCountSelectorView.swift in Sources */,
+				A10018000000000000000018 /* VerificationSummaryView.swift in Sources */,
+				A10019000000000000000019 /* EmptyStateView.swift in Sources */,
+				A1001A00000000000000001A /* SettingsView.swift in Sources */,
+				A1001B00000000000000001B /* APIKeyRowView.swift in Sources */,
+				A10024000000000000000024 /* APIKeyGuideView.swift in Sources */,
+				A1001C00000000000000001C /* ReadmeView.swift in Sources */,
+				A1001D00000000000000001D /* RecommendationsView.swift in Sources */,
+				A1001E00000000000000001E /* StatusIndicator.swift in Sources */,
+				A1001F00000000000000001F /* DividerLine.swift in Sources */,
+				A10020000000000000000020 /* RosinTheme.swift in Sources */,
+				A10021000000000000000021 /* ExportService.swift in Sources */,
+				A10022000000000000000022 /* ShareSheetRepresentable.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosin.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosin.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A80000000000000000000001 /* Build configuration list for PBXProject "Rosin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10000000000000000000001 /* Debug */,
+				B10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000000000000000000003 /* Build configuration list for PBXNativeTarget "Rosin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10000000000000000000003 /* Debug */,
+				B10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A90000000000000000000001 /* Project object */;
+}
