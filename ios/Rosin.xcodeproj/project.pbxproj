@@ -34,7 +34,6 @@
 		A10019000000000000000019 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20019000000000000000019 /* EmptyStateView.swift */; };
 		A1001A00000000000000001A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001A00000000000000001A /* SettingsView.swift */; };
 		A1001B00000000000000001B /* APIKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001B00000000000000001B /* APIKeyRowView.swift */; };
-		A10024000000000000000024 /* APIKeyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20024000000000000000024 /* APIKeyGuideView.swift */; };
 		A1001C00000000000000001C /* ReadmeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001C00000000000000001C /* ReadmeView.swift */; };
 		A1001D00000000000000001D /* RecommendationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001D00000000000000001D /* RecommendationsView.swift */; };
 		A1001E00000000000000001E /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001E00000000000000001E /* StatusIndicator.swift */; };
@@ -43,10 +42,10 @@
 		A10021000000000000000021 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20021000000000000000021 /* ExportService.swift */; };
 		A10022000000000000000022 /* ShareSheetRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20022000000000000000022 /* ShareSheetRepresentable.swift */; };
 		A10023000000000000000023 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20023000000000000000023 /* Assets.xcassets */; };
+		A10024000000000000000024 /* APIKeyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20024000000000000000024 /* APIKeyGuideView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20001000000000000000001 /* RosinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinApp.swift; sourceTree = "<group>"; };
 		A20002000000000000000002 /* LLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMProvider.swift; sourceTree = "<group>"; };
 		A20003000000000000000003 /* StageOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageOutput.swift; sourceTree = "<group>"; };
@@ -74,7 +73,6 @@
 		A20019000000000000000019 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		A2001A00000000000000001A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A2001B00000000000000001B /* APIKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyRowView.swift; sourceTree = "<group>"; };
-		A20024000000000000000024 /* APIKeyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyGuideView.swift; sourceTree = "<group>"; };
 		A2001C00000000000000001C /* ReadmeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadmeView.swift; sourceTree = "<group>"; };
 		A2001D00000000000000001D /* RecommendationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationsView.swift; sourceTree = "<group>"; };
 		A2001E00000000000000001E /* StatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIndicator.swift; sourceTree = "<group>"; };
@@ -83,6 +81,8 @@
 		A20021000000000000000021 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		A20022000000000000000022 /* ShareSheetRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetRepresentable.swift; sourceTree = "<group>"; };
 		A20023000000000000000023 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20024000000000000000024 /* APIKeyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyGuideView.swift; sourceTree = "<group>"; };
+		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,20 +96,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A50000000000000000000000 /* = */ = {
+		A50000000000000000000000 = {
 			isa = PBXGroup;
 			children = (
 				A50001000000000000000001 /* Rosin */,
 				A50002000000000000000002 /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		A50002000000000000000002 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A30000000000000000000000 /* Rosin.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		A50001000000000000000001 /* Rosin */ = {
@@ -125,6 +117,14 @@
 				A20023000000000000000023 /* Assets.xcassets */,
 			);
 			path = Rosin;
+			sourceTree = "<group>";
+		};
+		A50002000000000000000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A30000000000000000000000 /* Rosin.app */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		A50003000000000000000003 /* Models */ = {
@@ -496,8 +496,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 3DLV25C9VK;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rosin Ai";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -508,7 +510,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.rosin.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosinai.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -523,8 +525,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 3DLV25C9VK;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rosin Ai";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -535,7 +539,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.rosin.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rosinai.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
