@@ -20,14 +20,15 @@ struct TerminalOutputView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Query display
                 if !query.isEmpty && !stages.isEmpty {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Text("QUERY:")
                             .foregroundColor(RosinTheme.muted.opacity(0.6))
                         Text(query)
                     }
                     .font(RosinTheme.monoCaption)
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
                 }
 
                 // Stage blocks
@@ -37,19 +38,23 @@ struct TerminalOutputView: View {
 
                 // Verified output
                 if allComplete, let lastContent = stages.last?.content {
-                    VStack(alignment: .leading, spacing: 8) {
-                        DividerLine(thick: true)
+                    VStack(alignment: .leading, spacing: 14) {
                         Text("VERIFIED OUTPUT")
                             .font(RosinTheme.monoCaption)
                             .fontWeight(.medium)
-                        DividerLine(thick: true)
                         Text(lastContent)
                             .font(RosinTheme.monoCaption)
-                            .lineSpacing(4)
+                            .lineSpacing(5)
                             .textSelection(.enabled)
-                        DividerLine(thick: true)
+                            .padding(.vertical, 8)
                     }
-                    .padding(12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 28)
+                    .overlay(alignment: .top) {
+                        Rectangle()
+                            .fill(Color.primary.opacity(0.2))
+                            .frame(height: 2)
+                    }
                 }
 
                 // Summary
@@ -59,7 +64,7 @@ struct TerminalOutputView: View {
 
                 // Export buttons
                 if allComplete && !stages.isEmpty {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         Text("EXPORT:")
                             .font(RosinTheme.monoCaption2)
                             .foregroundColor(RosinTheme.muted.opacity(0.6))
@@ -72,8 +77,8 @@ struct TerminalOutputView: View {
                                     .font(RosinTheme.monoCaption2)
                             }
                             .foregroundColor(RosinTheme.muted)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
                             .overlay(
                                 Rectangle()
                                     .stroke(Color.primary.opacity(0.2), lineWidth: 1)
@@ -88,17 +93,17 @@ struct TerminalOutputView: View {
                                     .font(RosinTheme.monoCaption2)
                             }
                             .foregroundColor(RosinTheme.muted)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
                             .overlay(
                                 Rectangle()
                                     .stroke(Color.primary.opacity(0.2), lineWidth: 1)
                             )
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .padding(.bottom, 28)
                 }
             }
         }

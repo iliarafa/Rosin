@@ -29,7 +29,7 @@ export function StageBlock({ stage }: StageBlockProps) {
 
   return (
     <div
-      className={`space-y-2 ${isActive ? "bg-muted/30" : ""} p-3 -mx-3 transition-colors`}
+      className={`space-y-3 ${isActive ? "bg-muted/30" : ""} p-4 sm:p-5 border-b border-border/50 transition-colors`}
       data-testid={`stage-block-${stage.stage}`}
     >
       <div className="flex items-center gap-2 text-sm">
@@ -41,11 +41,7 @@ export function StageBlock({ stage }: StageBlockProps) {
         <StatusIcon status={stage.status} />
       </div>
 
-      <div className="text-xs text-muted-foreground opacity-60">
-        {"─".repeat(50)}
-      </div>
-
-      <div className="text-sm whitespace-pre-wrap leading-relaxed">
+      <div className="text-sm whitespace-pre-wrap leading-relaxed pt-1">
         {stage.content}
         {stage.status === "streaming" && (
           <span className="text-muted-foreground animate-pulse">_</span>
@@ -57,10 +53,6 @@ export function StageBlock({ stage }: StageBlockProps) {
           ERROR: {stage.error}
         </div>
       )}
-
-      <div className="text-xs text-muted-foreground opacity-60 pt-2">
-        {"─".repeat(50)}
-      </div>
     </div>
   );
 }

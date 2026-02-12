@@ -30,11 +30,11 @@ struct ModelSelectorView: View {
                     }
                 }
             } label: {
-                Text(selectedModel.model)
+                Text(selectedModel.provider.shortName)
                     .font(RosinTheme.monoCaption2)
                     .lineLimit(1)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
                     .overlay(
                         Rectangle()
                             .stroke(Color.primary.opacity(0.2), lineWidth: 1)

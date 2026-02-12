@@ -52,7 +52,7 @@ struct TerminalInputView: View {
                 .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
     }
 }

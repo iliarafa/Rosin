@@ -116,9 +116,9 @@ export function TerminalOutput({
   const lastStage = allComplete ? stages[stages.length - 1] : null;
 
   return (
-    <div className="space-y-6" data-testid="stages-container">
+    <div className="space-y-8" data-testid="stages-container">
       {query && stages.length > 0 && (
-        <div className="text-sm text-muted-foreground mb-4">
+        <div className="text-sm text-muted-foreground mb-6">
           <span className="opacity-60">QUERY: </span>
           <span className="text-foreground">{query}</span>
         </div>
@@ -129,19 +129,10 @@ export function TerminalOutput({
       ))}
 
       {allComplete && lastStage && (
-        <div className="mt-8 space-y-2" data-testid="verified-output">
-          <div className="text-xs text-muted-foreground">
-            {"=".repeat(50)}
-          </div>
+        <div className="mt-10 pt-6 border-t-2 border-foreground/20 space-y-3" data-testid="verified-output">
           <div className="text-sm font-medium text-foreground">VERIFIED OUTPUT</div>
-          <div className="text-xs text-muted-foreground">
-            {"=".repeat(50)}
-          </div>
-          <div className="text-sm whitespace-pre-wrap leading-relaxed py-2">
+          <div className="text-sm whitespace-pre-wrap leading-relaxed py-3">
             {lastStage.content}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {"=".repeat(50)}
           </div>
         </div>
       )}
@@ -151,7 +142,7 @@ export function TerminalOutput({
       )}
 
       {allComplete && stages.length > 0 && (
-        <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border" data-testid="export-buttons">
+        <div className="flex items-center gap-3 mt-8 pt-5 border-t border-border" data-testid="export-buttons">
           <span className="text-xs text-muted-foreground opacity-60">EXPORT:</span>
           <button
             onClick={() => exportToCSV(query, stages)}

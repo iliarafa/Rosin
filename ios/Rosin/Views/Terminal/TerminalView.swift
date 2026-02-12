@@ -77,7 +77,7 @@ struct TerminalView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 16) {
             // Top row: stage selector, nav buttons
             HStack {
                 StageCountSelectorView(
@@ -88,7 +88,7 @@ struct TerminalView: View {
 
                 Spacer()
 
-                HStack(spacing: 8) {
+                HStack(spacing: 14) {
                     Button { showRecommendations = true } label: {
                         Text("[REC]")
                             .font(RosinTheme.monoCaption2)
@@ -108,22 +108,23 @@ struct TerminalView: View {
             }
 
             // Model selectors row
-            HStack(spacing: 12) {
+            HStack {
                 ForEach(0..<viewModel.stageCount, id: \.self) { index in
                     if index < viewModel.chain.count {
+                        Spacer()
                         ModelSelectorView(
                             stageNumber: index + 1,
                             selectedModel: viewModel.chain[index],
                             onModelChange: { viewModel.updateModel(at: index, to: $0) },
                             disabled: viewModel.isProcessing
                         )
+                        Spacer()
                     }
                 }
-                Spacer()
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
         .background(.ultraThinMaterial)
         .overlay(alignment: .bottom) {
             Divider()

@@ -15,6 +15,14 @@ enum LLMProvider: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    var shortName: String {
+        switch self {
+        case .anthropic: return "Claude"
+        case .gemini: return "Gemini"
+        case .xai: return "Grok"
+        }
+    }
+
     var models: [String] {
         switch self {
         case .anthropic: return ["claude-sonnet-4-5", "claude-haiku-4-5", "claude-opus-4-5"]

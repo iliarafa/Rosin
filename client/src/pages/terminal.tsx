@@ -140,7 +140,7 @@ export default function Terminal() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground font-mono">
       <header
-        className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-3"
+        className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-4 py-3 sm:px-6 sm:py-4"
         data-testid="header-model-selection"
       >
         <div className="flex items-center justify-between mb-2 sm:hidden">
@@ -157,8 +157,8 @@ export default function Terminal() {
             [README]
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
-          <div className="hidden sm:flex sm:items-center sm:gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-6">
+          <div className="hidden sm:flex sm:items-center sm:gap-5">
             <StageCountSelector
               value={stageCount}
               onChange={setStageCount}
@@ -189,20 +189,22 @@ export default function Terminal() {
 
       <main
         ref={outputRef}
-        className="flex-1 overflow-auto px-3 py-3 sm:px-4 sm:py-4"
+        className="flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-8"
         data-testid="terminal-output-area"
       >
-        <TerminalOutput
-          query={query}
-          stages={stages}
-          summary={finalSummary}
-          isProcessing={verifyMutation.isPending}
-          expectedStageCount={stageCount}
-        />
+        <div className="max-w-4xl mx-auto">
+          <TerminalOutput
+            query={query}
+            stages={stages}
+            summary={finalSummary}
+            isProcessing={verifyMutation.isPending}
+            expectedStageCount={stageCount}
+          />
+        </div>
       </main>
 
       <footer
-        className="sticky bottom-0 z-50 border-t border-border bg-background/80 backdrop-blur-sm px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3"
+        className="sticky bottom-0 z-50 border-t border-border bg-background/80 backdrop-blur-sm px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-4"
         data-testid="footer-input"
       >
         <TerminalInput

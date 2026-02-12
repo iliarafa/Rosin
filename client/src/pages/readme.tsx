@@ -165,7 +165,7 @@ export default function ReadmePage() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground font-mono">
       <header
-        className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-3"
+        className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-4 py-3 sm:px-6 sm:py-4"
         data-testid="header-readme"
       >
         <div className="flex items-center justify-between">
@@ -189,8 +189,8 @@ export default function ReadmePage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto px-3 py-4 sm:px-6 sm:py-6" data-testid="readme-content">
-        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+      <main className="flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-8" data-testid="readme-content">
+        <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
           <section>
             <h2 className="text-xs sm:text-base font-medium mb-2 sm:mb-3 text-foreground">
               ═══════════════════════════════════════

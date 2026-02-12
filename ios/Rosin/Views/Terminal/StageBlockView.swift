@@ -6,7 +6,7 @@ struct StageBlockView: View {
     @State private var cursorVisible = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
             // Stage header
             HStack(spacing: 6) {
                 Text(">")
@@ -19,13 +19,11 @@ struct StageBlockView: View {
             }
             .font(RosinTheme.monoCaption)
 
-            DividerLine()
-
             // Content
             HStack(alignment: .bottom, spacing: 0) {
                 Text(stage.content)
                     .font(RosinTheme.monoCaption)
-                    .lineSpacing(4)
+                    .lineSpacing(5)
                     .textSelection(.enabled)
 
                 if stage.status == .streaming {
@@ -47,14 +45,16 @@ struct StageBlockView: View {
                     .font(RosinTheme.monoCaption)
                     .foregroundColor(RosinTheme.destructive)
             }
-
-            DividerLine()
         }
-        .padding(12)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 20)
         .background(
             stage.status == .streaming
                 ? Color.primary.opacity(0.03)
                 : Color.clear
         )
+        .overlay(alignment: .bottom) {
+            Divider().opacity(0.4)
+        }
     }
 }

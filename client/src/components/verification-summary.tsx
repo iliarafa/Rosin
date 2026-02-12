@@ -8,16 +8,10 @@ interface VerificationSummaryProps {
 
 export function VerificationSummary({ summary }: VerificationSummaryProps) {
   return (
-    <div className="mt-8 space-y-2" data-testid="verification-summary">
-      <div className="text-xs text-muted-foreground">
-        {"═".repeat(50)}
-      </div>
+    <div className="mt-10 pt-6 border-t-2 border-primary/30 space-y-3" data-testid="verification-summary">
       <div className="text-sm font-medium text-primary">VERIFICATION SUMMARY</div>
-      <div className="text-xs text-muted-foreground">
-        {"═".repeat(50)}
-      </div>
 
-      <div className="space-y-2 text-sm py-2">
+      <div className="space-y-3 text-sm py-3">
         <div className="flex gap-2">
           <span className="text-muted-foreground">Consistency:</span>
           <span className="text-foreground">{summary.consistency}</span>
@@ -30,10 +24,6 @@ export function VerificationSummary({ summary }: VerificationSummaryProps) {
           <span className="text-muted-foreground">Confidence:</span>
           <span className="text-foreground">{summary.confidence}</span>
         </div>
-      </div>
-
-      <div className="text-xs text-muted-foreground">
-        {"═".repeat(50)}
       </div>
     </div>
   );
