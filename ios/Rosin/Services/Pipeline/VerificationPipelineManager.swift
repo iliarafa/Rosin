@@ -20,6 +20,7 @@ final class VerificationPipelineManager {
     func run(
         query: String,
         chain: [LLMModel],
+        adversarialMode: Bool = false,
         onEvent: @escaping (PipelineEvent) -> Void
     ) {
         cancel()
@@ -27,6 +28,7 @@ final class VerificationPipelineManager {
         currentTask = Task {
             var completedStages: [(stage: Int, model: LLMModel, content: String)] = []
             let totalStages = chain.count
+            let lengthConfig = QueryComplexityClassifier.classify(query)
 
             do {
                 for (index, llmModel) in chain.enumerated() {
@@ -42,6 +44,8 @@ final class VerificationPipelineManager {
                         query: query,
                         completedStages: completedStages,
                         totalStages: totalStages,
+                        lengthConfig: lengthConfig,
+                        adversarialMode: adversarialMode,
                         onEvent: onEvent
                     )
 
@@ -92,6 +96,8 @@ final class VerificationPipelineManager {
         query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
         totalStages: Int,
+        lengthConfig: LengthConfig,
+        adversarialMode: Bool = false,
         onEvent: @escaping (PipelineEvent) -> Void
     ) async -> String? {
         guard let apiKey = apiKeyManager.apiKey(for: model.provider) else {
@@ -101,7 +107,9 @@ final class VerificationPipelineManager {
         let isLast = stageNum == totalStages
         let systemPrompt = StagePromptBuilder.systemPrompt(
             stageNumber: stageNum,
-            isLast: isLast
+            isLast: isLast,
+            lengthConfig: lengthConfig,
+            adversarialMode: adversarialMode
         )
         let userContent = StagePromptBuilder.userContent(
             query: query,
@@ -113,7 +121,8 @@ final class VerificationPipelineManager {
             model: model.model,
             systemPrompt: systemPrompt,
             userContent: userContent,
-            apiKey: apiKey
+            apiKey: apiKey,
+            maxTokens: lengthConfig.maxTokens
         )
 
         var stageContent = ""
@@ -140,6 +149,8 @@ final class VerificationPipelineManager {
         query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
         totalStages: Int,
+        lengthConfig: LengthConfig,
+        adversarialMode: Bool = false,
         onEvent: @escaping (PipelineEvent) -> Void
     ) async throws -> (content: String, model: LLMModel)? {
         // Emit stageStart once before first attempt
@@ -152,6 +163,8 @@ final class VerificationPipelineManager {
             query: query,
             completedStages: completedStages,
             totalStages: totalStages,
+            lengthConfig: lengthConfig,
+            adversarialMode: adversarialMode,
             onEvent: onEvent
         ) {
             onEvent(.stageComplete(stage: stageNum))
@@ -169,6 +182,8 @@ final class VerificationPipelineManager {
             query: query,
             completedStages: completedStages,
             totalStages: totalStages,
+            lengthConfig: lengthConfig,
+            adversarialMode: adversarialMode,
             onEvent: onEvent
         ) {
             onEvent(.stageComplete(stage: stageNum))
@@ -190,6 +205,8 @@ final class VerificationPipelineManager {
                 query: query,
                 completedStages: completedStages,
                 totalStages: totalStages,
+                lengthConfig: lengthConfig,
+                adversarialMode: adversarialMode,
                 onEvent: onEvent
             ) {
                 onEvent(.stageComplete(stage: stageNum))
@@ -282,7 +299,8 @@ final class VerificationPipelineManager {
             model: model.model,
             systemPrompt: systemPrompt,
             userContent: userContent,
-            apiKey: apiKey
+            apiKey: apiKey,
+            maxTokens: 1024
         )
 
         // Collect the full response (no streaming to UI)

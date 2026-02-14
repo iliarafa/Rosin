@@ -9,6 +9,7 @@ final class TerminalViewModel: ObservableObject {
     @Published var isProcessing = false
     @Published var stageCount = 3
     @Published var chain: [LLMModel] = LLMModel.defaultChain3
+    @Published var isAdversarialMode = false
 
     private var pipeline: VerificationPipelineManager?
 
@@ -57,7 +58,7 @@ final class TerminalViewModel: ObservableObject {
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.impactOccurred()
 
-        pipeline?.run(query: trimmed, chain: activeChain) { [weak self] event in
+        pipeline?.run(query: trimmed, chain: activeChain, adversarialMode: isAdversarialMode) { [weak self] event in
             guard let self else { return }
             self.handleEvent(event)
         }
@@ -124,6 +125,16 @@ final class TerminalViewModel: ObservableObject {
 
         case .done:
             isProcessing = false
+            if let summary, allComplete {
+                let historyItem = VerificationHistoryItem(
+                    query: query,
+                    chain: activeChain,
+                    stages: stages,
+                    summary: summary,
+                    adversarialMode: isAdversarialMode
+                )
+                HistoryManager.save(historyItem)
+            }
         }
     }
 }

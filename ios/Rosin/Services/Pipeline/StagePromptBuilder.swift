@@ -1,7 +1,7 @@
 import Foundation
 
 enum StagePromptBuilder {
-    static func systemPrompt(stageNumber: Int, isLast: Bool) -> String {
+    static func systemPrompt(stageNumber: Int, isLast: Bool, lengthConfig: LengthConfig, adversarialMode: Bool = false) -> String {
         if stageNumber == 1 {
             return """
             You are the first stage of a multi-LLM verification pipeline. \
@@ -9,6 +9,8 @@ enum StagePromptBuilder {
             Focus on accuracy and comprehensive coverage of the topic.
 
             Be factual and cite any assumptions you make. If you're uncertain about something, acknowledge it.
+
+            \(lengthConfig.promptInstruction)
             """
         }
 
@@ -26,6 +28,27 @@ enum StagePromptBuilder {
             6. Note any remaining caveats or areas of genuine uncertainty
 
             Produce the final verified response that best answers the user's original query.
+
+            \(lengthConfig.finalInstruction)
+            """
+        }
+
+        if adversarialMode {
+            return """
+            You are in ADVERSARIAL MODE. You are stage \(stageNumber) of a multi-LLM verification pipeline. \
+            Your job is to find flaws.
+
+            Your tasks:
+            1. Actively search for errors and weak claims in the previous response
+            2. Challenge every assumption \u{2014} demand evidence
+            3. Identify hallucinations and fabricated details
+            4. Cross-check facts rigorously against your knowledge
+            5. Flag misleading, vague, or unsubstantiated information
+            6. Provide a corrected and hardened version of the response
+
+            Be aggressive in your analysis. Do not give the benefit of the doubt.
+
+            \(lengthConfig.verifyInstruction)
             """
         }
 
@@ -43,6 +66,8 @@ enum StagePromptBuilder {
         7. Improve clarity where needed
 
         Provide a refined and verified version of the response.
+
+        \(lengthConfig.verifyInstruction)
         """
     }
 
