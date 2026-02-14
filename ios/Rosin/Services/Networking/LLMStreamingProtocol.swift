@@ -5,6 +5,7 @@ protocol LLMStreamingService {
         model: String,
         systemPrompt: String,
         userContent: String,
-        apiKey: String
+        apiKey: String,
+        maxTokens: Int
     ) -> AsyncThrowingStream<String, Error>
 }

@@ -5,7 +5,8 @@ struct XAIStreamingService: LLMStreamingService {
         model: String,
         systemPrompt: String,
         userContent: String,
-        apiKey: String
+        apiKey: String,
+        maxTokens: Int
     ) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
@@ -19,7 +20,7 @@ struct XAIStreamingService: LLMStreamingService {
                     let body: [String: Any] = [
                         "model": model,
                         "stream": true,
-                        "max_tokens": 2048,
+                        "max_tokens": maxTokens,
                         "messages": [
                             ["role": "system", "content": systemPrompt],
                             ["role": "user", "content": userContent]

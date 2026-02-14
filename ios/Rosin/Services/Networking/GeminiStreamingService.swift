@@ -5,7 +5,8 @@ struct GeminiStreamingService: LLMStreamingService {
         model: String,
         systemPrompt: String,
         userContent: String,
-        apiKey: String
+        apiKey: String,
+        maxTokens: Int
     ) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
@@ -28,6 +29,9 @@ struct GeminiStreamingService: LLMStreamingService {
                                 "role": "user",
                                 "parts": [["text": combinedContent]]
                             ]
+                        ],
+                        "generationConfig": [
+                            "maxOutputTokens": maxTokens
                         ]
                     ]
                     request.httpBody = try JSONSerialization.data(withJSONObject: body)
