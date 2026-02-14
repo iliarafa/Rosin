@@ -20,20 +20,20 @@ class AppearanceManager: ObservableObject {
         }
     }
     
-    func toggle() {
-        let effectiveScheme = colorScheme ?? (UITraitCollection.current.userInterfaceStyle == .dark ? ColorScheme.dark : ColorScheme.light)
+    func toggle(currentScheme: ColorScheme) {
+        let effectiveScheme = colorScheme ?? currentScheme
         colorScheme = effectiveScheme == .dark ? .light : .dark
         save()
     }
-    
+
     func setColorScheme(_ scheme: ColorScheme?) {
         colorScheme = scheme
         save()
     }
-    
-    var displayText: String {
-        let effectiveScheme = colorScheme ?? (UITraitCollection.current.userInterfaceStyle == .dark ? ColorScheme.dark : ColorScheme.light)
-        return effectiveScheme == .dark ? "[THEME:DRK]" : "[THEME:LHT]"
+
+    func isDark(currentScheme: ColorScheme) -> Bool {
+        let effectiveScheme = colorScheme ?? currentScheme
+        return effectiveScheme == .dark
     }
     
     private func save() {

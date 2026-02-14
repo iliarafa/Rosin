@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TerminalView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var apiKeyManager: APIKeyManager
     @EnvironmentObject private var appearanceManager: AppearanceManager
     @StateObject private var viewModel = TerminalViewModel()
@@ -8,6 +9,8 @@ struct TerminalView: View {
     @State private var showSettings = false
     @State private var showReadme = false
     @State private var showRecommendations = false
+    @State private var showHistory = false
+    @State private var showStats = false
     @State private var shareItem: ShareItem?
 
     var body: some View {
@@ -69,6 +72,12 @@ struct TerminalView: View {
         .sheet(isPresented: $showRecommendations) {
             RecommendationsView()
         }
+        .sheet(isPresented: $showHistory) {
+            HistoryView()
+        }
+        .sheet(isPresented: $showStats) {
+            DisagreementStatsView()
+        }
         .sheet(item: $shareItem) { item in
             ShareSheetRepresentable(items: item.items)
                 .presentationDetents([.medium, .large])
@@ -89,27 +98,41 @@ struct TerminalView: View {
 
                 Spacer()
 
-                HStack(spacing: 14) {
-                    Button { appearanceManager.toggle() } label: {
-                        Text(appearanceManager.displayText)
-                            .font(RosinTheme.monoCaption2)
-                            .foregroundColor(RosinTheme.muted)
+                Button { viewModel.isAdversarialMode.toggle() } label: {
+                    Text("[ADV]")
+                        .font(RosinTheme.monoCaption2)
+                        .foregroundColor(viewModel.isAdversarialMode ? RosinTheme.destructive : RosinTheme.muted)
+                }
+                .disabled(viewModel.isProcessing)
+
+                Menu {
+                    Button { showHistory = true } label: {
+                        Label("History", systemImage: "clock")
                     }
+                    Button { showStats = true } label: {
+                        Label("Stats", systemImage: "chart.bar")
+                    }
+                    Divider()
                     Button { showRecommendations = true } label: {
-                        Text("[REC]")
-                            .font(RosinTheme.monoCaption2)
-                            .foregroundColor(RosinTheme.muted)
+                        Label("Recommendations", systemImage: "lightbulb")
                     }
                     Button { showReadme = true } label: {
-                        Text("[README]")
-                            .font(RosinTheme.monoCaption2)
-                            .foregroundColor(RosinTheme.muted)
+                        Label("Readme", systemImage: "doc.text")
                     }
                     Button { showSettings = true } label: {
-                        Text("[KEYS]")
-                            .font(RosinTheme.monoCaption2)
-                            .foregroundColor(RosinTheme.muted)
+                        Label("API Keys", systemImage: "key")
                     }
+                    Divider()
+                    Button { appearanceManager.toggle(currentScheme: colorScheme) } label: {
+                        Label(
+                            appearanceManager.isDark(currentScheme: colorScheme) ? "Theme: Dark" : "Theme: Light",
+                            systemImage: appearanceManager.isDark(currentScheme: colorScheme) ? "moon" : "sun.max"
+                        )
+                    }
+                } label: {
+                    Text("[···]")
+                        .font(RosinTheme.monoCaption2)
+                        .foregroundColor(RosinTheme.muted)
                 }
             }
 
