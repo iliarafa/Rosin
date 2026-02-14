@@ -26,6 +26,9 @@ export default function Terminal() {
   const [query, setQuery] = useState("");
   const [stages, setStages] = useState<StageOutput[]>([]);
   const [finalSummary, setFinalSummary] = useState<VerificationSummary | null>(null);
+  const [adversarialMode, setAdversarialMode] = useState(false);
+  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
 
   const activeChain = chain.slice(0, stageCount);
@@ -91,6 +94,8 @@ export default function Terminal() {
                   : s
               )
             );
+          } else if (event.type === "verification_id") {
+            setVerificationId(event.id);
           } else if (event.type === "summary") {
             setFinalSummary(event.summary);
           }
@@ -102,7 +107,7 @@ export default function Terminal() {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ query, chain }: VerificationInput) => {
-      const response = await apiRequest("POST", "/api/verify", { query, chain });
+      const response = await apiRequest("POST", "/api/verify", { query, chain, adversarialMode });
       await processSSEStream(response, chain);
     },
     onSuccess: () => {
@@ -128,6 +133,7 @@ export default function Terminal() {
 
     setStages([]);
     setFinalSummary(null);
+    setVerificationId(null);
     verifyMutation.mutate({ query, chain: activeChain });
   };
 
@@ -149,13 +155,56 @@ export default function Terminal() {
             onChange={setStageCount}
             disabled={verifyMutation.isPending}
           />
-          <Link
-            href="/readme"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
-            data-testid="link-readme-mobile"
-          >
-            [README]
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setAdversarialMode((v) => !v)}
+              className={`text-xs transition-colors px-1.5 py-1 border rounded-none ${
+                adversarialMode
+                  ? "text-destructive border-destructive/50"
+                  : "text-muted-foreground border-border"
+              }`}
+              disabled={verifyMutation.isPending}
+            >
+              [ADV]
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1.5 py-1 border border-border rounded-none"
+              >
+                [···]
+              </button>
+              {mobileMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-50 border border-border bg-background py-1 min-w-[120px]">
+                    <Link
+                      href="/history"
+                      className="block text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      [HISTORY]
+                    </Link>
+                    <Link
+                      href="/heatmap"
+                      className="block text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      [STATS]
+                    </Link>
+                    <Link
+                      href="/readme"
+                      className="block text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
+                      onClick={() => setMobileMenuOpen(false)}
+                      data-testid="link-readme-mobile"
+                    >
+                      [README]
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-6">
           <div className="hidden sm:flex sm:items-center sm:gap-5">
@@ -175,7 +224,31 @@ export default function Terminal() {
               disabled={verifyMutation.isPending}
             />
           ))}
-          <div className="hidden sm:flex sm:items-center sm:ml-auto">
+          <div className="hidden sm:flex sm:items-center sm:ml-auto sm:gap-2">
+            <button
+              onClick={() => setAdversarialMode((v) => !v)}
+              className={`text-xs transition-colors px-2 py-1 border rounded-none ${
+                adversarialMode
+                  ? "text-destructive border-destructive/50"
+                  : "text-muted-foreground border-border"
+              } hover:text-foreground`}
+              disabled={verifyMutation.isPending}
+              data-testid="button-adversarial"
+            >
+              {adversarialMode ? "[ADV: ON]" : "[ADV: OFF]"}
+            </button>
+            <Link
+              href="/history"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+            >
+              [HISTORY]
+            </Link>
+            <Link
+              href="/heatmap"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+            >
+              [STATS]
+            </Link>
             <Link
               href="/readme"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
@@ -199,6 +272,7 @@ export default function Terminal() {
             summary={finalSummary}
             isProcessing={verifyMutation.isPending}
             expectedStageCount={stageCount}
+            verificationId={verificationId}
           />
         </div>
       </main>

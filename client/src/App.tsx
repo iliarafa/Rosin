@@ -7,6 +7,9 @@ import Landing from "@/pages/landing";
 import Terminal from "@/pages/terminal";
 import ReadmePage from "@/pages/readme";
 import RecommendationsPage from "@/pages/recommendations";
+import HistoryPage from "@/pages/history";
+import ReportPage from "@/pages/report";
+import HeatmapPage from "@/pages/heatmap";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +19,9 @@ function Router() {
       <Route path="/terminal" component={Terminal} />
       <Route path="/readme" component={ReadmePage} />
       <Route path="/recommendations" component={RecommendationsPage} />
+      <Route path="/history" component={HistoryPage} />
+      <Route path="/report/:id" component={ReportPage} />
+      <Route path="/heatmap" component={HeatmapPage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -22,6 +22,7 @@
 		A1000D00000000000000000D /* XAIStreamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000D00000000000000000D /* XAIStreamingService.swift */; };
 		A1000E00000000000000000E /* LLMServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000E00000000000000000E /* LLMServiceFactory.swift */; };
 		A1000F00000000000000000F /* StagePromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F00000000000000000F /* StagePromptBuilder.swift */; };
+		A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */; };
 		A10010000000000000000010 /* VerificationPipelineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20010000000000000000010 /* VerificationPipelineManager.swift */; };
 		A10011000000000000000011 /* TerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20011000000000000000011 /* TerminalViewModel.swift */; };
 		A10012000000000000000012 /* TerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20012000000000000000012 /* TerminalView.swift */; };
@@ -45,6 +46,11 @@
 		A10024000000000000000024 /* APIKeyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20024000000000000000024 /* APIKeyGuideView.swift */; };
 		A10025000000000000000025 /* AppearanceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20025000000000000000025 /* AppearanceManager.swift */; };
 		A10026000000000000000026 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20026000000000000000026 /* LandingView.swift */; };
+		A10027000000000000000027 /* VerificationHistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20027000000000000000027 /* VerificationHistoryItem.swift */; };
+		A10028000000000000000028 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20028000000000000000028 /* HistoryManager.swift */; };
+		A10029000000000000000029 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20029000000000000000029 /* HistoryView.swift */; };
+		A1002A00000000000000002A /* HistoryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2002A00000000000000002A /* HistoryDetailView.swift */; };
+		A1002B00000000000000002B /* DisagreementStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2002B00000000000000002B /* DisagreementStatsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +69,7 @@
 		A2000D00000000000000000D /* XAIStreamingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XAIStreamingService.swift; sourceTree = "<group>"; };
 		A2000E00000000000000000E /* LLMServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceFactory.swift; sourceTree = "<group>"; };
 		A2000F00000000000000000F /* StagePromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagePromptBuilder.swift; sourceTree = "<group>"; };
+		A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryComplexityClassifier.swift; sourceTree = "<group>"; };
 		A20010000000000000000010 /* VerificationPipelineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationPipelineManager.swift; sourceTree = "<group>"; };
 		A20011000000000000000011 /* TerminalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalViewModel.swift; sourceTree = "<group>"; };
 		A20012000000000000000012 /* TerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalView.swift; sourceTree = "<group>"; };
@@ -86,6 +93,11 @@
 		A20024000000000000000024 /* APIKeyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyGuideView.swift; sourceTree = "<group>"; };
 		A20025000000000000000025 /* AppearanceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceManager.swift; sourceTree = "<group>"; };
 		A20026000000000000000026 /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
+		A20027000000000000000027 /* VerificationHistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationHistoryItem.swift; sourceTree = "<group>"; };
+		A20028000000000000000028 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
+		A20029000000000000000029 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		A2002A00000000000000002A /* HistoryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailView.swift; sourceTree = "<group>"; };
+		A2002B00000000000000002B /* DisagreementStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisagreementStatsView.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -150,8 +162,18 @@
 				A50005000000000000000005 /* Keychain */,
 				A50006000000000000000006 /* Networking */,
 				A50007000000000000000007 /* Pipeline */,
+				A50010000000000000000010 /* History */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		A50010000000000000000010 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				A20027000000000000000027 /* VerificationHistoryItem.swift */,
+				A20028000000000000000028 /* HistoryManager.swift */,
+			);
+			path = History;
 			sourceTree = "<group>";
 		};
 		A50005000000000000000005 /* Keychain */ = {
@@ -179,6 +201,7 @@
 		A50007000000000000000007 /* Pipeline */ = {
 			isa = PBXGroup;
 			children = (
+				A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */,
 				A2000F00000000000000000F /* StagePromptBuilder.swift */,
 				A20010000000000000000010 /* VerificationPipelineManager.swift */,
 			);
@@ -201,8 +224,27 @@
 				A5000B00000000000000000B /* Settings */,
 				A5000C00000000000000000C /* Info */,
 				A5000D00000000000000000D /* Shared */,
+				A50011000000000000000011 /* History */,
+				A50012000000000000000012 /* Analytics */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A50011000000000000000011 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				A20029000000000000000029 /* HistoryView.swift */,
+				A2002A00000000000000002A /* HistoryDetailView.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		A50012000000000000000012 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				A2002B00000000000000002B /* DisagreementStatsView.swift */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 		A5000A00000000000000000A /* Terminal */ = {
@@ -349,6 +391,7 @@
 				A1000C00000000000000000C /* GeminiStreamingService.swift in Sources */,
 				A1000D00000000000000000D /* XAIStreamingService.swift in Sources */,
 				A1000E00000000000000000E /* LLMServiceFactory.swift in Sources */,
+				A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */,
 				A1000F00000000000000000F /* StagePromptBuilder.swift in Sources */,
 				A10010000000000000000010 /* VerificationPipelineManager.swift in Sources */,
 				A10011000000000000000011 /* TerminalViewModel.swift in Sources */,
@@ -372,6 +415,11 @@
 				A10022000000000000000022 /* ShareSheetRepresentable.swift in Sources */,
 				A10025000000000000000025 /* AppearanceManager.swift in Sources */,
 				A10026000000000000000026 /* LandingView.swift in Sources */,
+				A10027000000000000000027 /* VerificationHistoryItem.swift in Sources */,
+				A10028000000000000000028 /* HistoryManager.swift in Sources */,
+				A10029000000000000000029 /* HistoryView.swift in Sources */,
+				A1002A00000000000000002A /* HistoryDetailView.swift in Sources */,
+				A1002B00000000000000002B /* DisagreementStatsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
