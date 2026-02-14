@@ -6,12 +6,25 @@ struct APIKeyGuideView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Each LLM provider requires its own API key. Follow the steps below to obtain one.")
+                Text("Each LLM provider requires its own API key. The steps are the same for all three:")
+                    .font(RosinTheme.monoCaption2)
+                    .foregroundColor(RosinTheme.muted)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    step(1, "Create an account or sign in")
+                    step(2, "Navigate to the API keys page")
+                    step(3, "Create a new API key")
+                    step(4, "Copy the key and paste it in Settings")
+                }
+
+                DividerLine()
+
+                Text("Open a provider console to get started:")
                     .font(RosinTheme.monoCaption2)
                     .foregroundColor(RosinTheme.muted)
 
                 ForEach(LLMProvider.allCases) { provider in
-                    providerSection(provider)
+                    providerLink(provider)
                 }
             }
             .padding()
@@ -21,35 +34,27 @@ struct APIKeyGuideView: View {
         .font(RosinTheme.monoCaption)
     }
 
-    @ViewBuilder
-    private func providerSection(_ provider: LLMProvider) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DividerLine()
-
-            Text(provider.displayName)
-                .font(RosinTheme.monoCaption)
-                .fontWeight(.bold)
-
-            Text(providerDescription(provider))
-                .font(RosinTheme.monoCaption2)
-                .foregroundColor(RosinTheme.muted)
-
-            VStack(alignment: .leading, spacing: 4) {
-                step(1, "Create an account or sign in")
-                step(2, "Navigate to the API keys page")
-                step(3, "Create a new API key")
-                step(4, "Copy the key and paste it in Settings")
+    private func providerLink(_ provider: LLMProvider) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(provider.displayName)
+                    .font(RosinTheme.monoCaption)
+                    .fontWeight(.bold)
+                Text(providerDescription(provider))
+                    .font(RosinTheme.monoCaption2)
+                    .foregroundColor(RosinTheme.muted)
             }
+
+            Spacer()
 
             Button {
                 openURL(provider.apiKeyURL)
             } label: {
-                Text("[OPEN \(provider.displayName.uppercased()) CONSOLE]")
+                Text("[OPEN]")
                     .font(RosinTheme.monoCaption2)
                     .fontWeight(.medium)
                     .foregroundColor(RosinTheme.green)
             }
-            .padding(.top, 4)
         }
     }
 

@@ -18,11 +18,12 @@ enum StagePromptBuilder {
             You produce the definitive, verified response.
 
             Your tasks:
-            1. Final verification of all claims
-            2. Synthesize all previous stages into a clear, concise final answer
-            3. Remove any redundancy
-            4. Ensure the response is well-structured and easy to understand
-            5. Note any remaining caveats or areas of genuine uncertainty
+            1. Review all prior stage outputs for agreement and disagreement
+            2. Where stages disagreed, state the most well-supported conclusion
+            3. Synthesize all previous stages into a clear, concise final answer
+            4. Remove any redundancy
+            5. Ensure the response is well-structured and easy to understand
+            6. Note any remaining caveats or areas of genuine uncertainty
 
             Produce the final verified response that best answers the user's original query.
             """
@@ -30,24 +31,35 @@ enum StagePromptBuilder {
 
         return """
         You are stage \(stageNumber) of a multi-LLM verification pipeline. \
-        You are reviewing and verifying the previous output.
+        You are cross-checking all previous outputs.
 
         Your tasks:
-        1. Verify the factual accuracy of the previous response
-        2. Identify any potential errors, hallucinations, or unsupported claims
-        3. Correct any inaccuracies you find
-        4. Add any important information that was missed
-        5. Cross-check the information against your knowledge
-        6. Improve clarity where needed
+        1. Verify the factual accuracy of the previous responses
+        2. Compare outputs from all prior stages for consistency
+        3. Identify any potential errors, hallucinations, or unsupported claims
+        4. Correct any inaccuracies you find
+        5. Add any important information that was missed
+        6. Cross-check the information against your knowledge
+        7. Improve clarity where needed
 
         Provide a refined and verified version of the response.
         """
     }
 
-    static func userContent(query: String, previousOutput: String?, isFirst: Bool) -> String {
-        if isFirst {
+    static func userContent(
+        query: String,
+        allPriorOutputs: [(stage: Int, model: LLMModel, content: String)]
+    ) -> String {
+        if allPriorOutputs.isEmpty {
             return "Original Query: \(query)"
         }
-        return "Original Query: \(query)\n\nPrevious Response:\n\(previousOutput ?? "")"
+
+        var sections = "Original Query: \(query)\n"
+        for prior in allPriorOutputs {
+            sections += "\n\u{2500}\u{2500} Stage \(prior.stage) (\(prior.model.provider.shortName) / \(prior.model.model)) \u{2500}\u{2500}\n"
+            sections += prior.content
+            sections += "\n"
+        }
+        return sections
     }
 }

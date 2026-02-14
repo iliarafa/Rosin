@@ -5,11 +5,13 @@ enum StageStatus: String {
     case streaming
     case complete
     case error
+    case skipped
+    case retrying
 }
 
 struct StageOutput: Identifiable {
     let id: Int // stage number (1-based)
-    let model: LLMModel
+    var model: LLMModel
     var content: String
     var status: StageStatus
     var error: String?

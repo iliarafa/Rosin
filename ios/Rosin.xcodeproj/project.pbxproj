@@ -43,6 +43,8 @@
 		A10022000000000000000022 /* ShareSheetRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20022000000000000000022 /* ShareSheetRepresentable.swift */; };
 		A10023000000000000000023 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20023000000000000000023 /* Assets.xcassets */; };
 		A10024000000000000000024 /* APIKeyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20024000000000000000024 /* APIKeyGuideView.swift */; };
+		A10025000000000000000025 /* AppearanceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20025000000000000000025 /* AppearanceManager.swift */; };
+		A10026000000000000000026 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20026000000000000000026 /* LandingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,6 +84,8 @@
 		A20022000000000000000022 /* ShareSheetRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetRepresentable.swift; sourceTree = "<group>"; };
 		A20023000000000000000023 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20024000000000000000024 /* APIKeyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyGuideView.swift; sourceTree = "<group>"; };
+		A20025000000000000000025 /* AppearanceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceManager.swift; sourceTree = "<group>"; };
+		A20026000000000000000026 /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -108,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				A20001000000000000000001 /* RosinApp.swift */,
+				A20025000000000000000025 /* AppearanceManager.swift */,
 				A50003000000000000000003 /* Models */,
 				A50004000000000000000004 /* Services */,
 				A50008000000000000000008 /* ViewModels */,
@@ -191,6 +196,7 @@
 		A50009000000000000000009 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A20026000000000000000026 /* LandingView.swift */,
 				A5000A00000000000000000A /* Terminal */,
 				A5000B00000000000000000B /* Settings */,
 				A5000C00000000000000000C /* Info */,
@@ -364,6 +370,8 @@
 				A10020000000000000000020 /* RosinTheme.swift in Sources */,
 				A10021000000000000000021 /* ExportService.swift in Sources */,
 				A10022000000000000000022 /* ShareSheetRepresentable.swift in Sources */,
+				A10025000000000000000025 /* AppearanceManager.swift in Sources */,
+				A10026000000000000000026 /* LandingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

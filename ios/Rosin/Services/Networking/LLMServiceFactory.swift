@@ -29,4 +29,24 @@ enum LLMServiceFactory {
         case .xai: return XAIStreamingService()
         }
     }
+
+    /// Returns a cheap/fast fallback model from a provider other than `excluding`,
+    /// only if the user has an API key for that provider.
+    @MainActor
+    static func fallbackModel(excluding: LLMProvider, apiKeyManager: APIKeyManager) -> LLMModel? {
+        // Ordered by cost/speed — cheapest first
+        let candidates: [(provider: LLMProvider, model: String)] = [
+            (.gemini, "gemini-2.5-flash"),
+            (.xai, "grok-3-fast"),
+            (.anthropic, "claude-haiku-4-5"),
+        ]
+
+        for candidate in candidates {
+            if candidate.provider != excluding,
+               apiKeyManager.hasKey[candidate.provider] == true {
+                return LLMModel(provider: candidate.provider, model: candidate.model)
+            }
+        }
+        return nil
+    }
 }

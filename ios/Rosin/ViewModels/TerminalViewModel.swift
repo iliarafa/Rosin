@@ -17,7 +17,7 @@ final class TerminalViewModel: ObservableObject {
     }
 
     var allComplete: Bool {
-        stages.count == stageCount && stages.allSatisfy { $0.status == .complete }
+        stages.count == stageCount && stages.allSatisfy { $0.status == .complete || $0.status == .skipped }
     }
 
     var lastStageContent: String? {
@@ -89,6 +89,19 @@ final class TerminalViewModel: ObservableObject {
                 // Haptic on stage complete
                 let notification = UINotificationFeedbackGenerator()
                 notification.notificationOccurred(.success)
+            }
+
+        case .stageRetry(let stage, let model, _):
+            if let idx = stages.firstIndex(where: { $0.id == stage }) {
+                stages[idx].content = ""
+                stages[idx].model = model
+                stages[idx].status = .retrying
+            }
+
+        case .stageSkipped(let stage, let error):
+            if let idx = stages.firstIndex(where: { $0.id == stage }) {
+                stages[idx].status = .skipped
+                stages[idx].error = error
             }
 
         case .stageError(let stage, let error):

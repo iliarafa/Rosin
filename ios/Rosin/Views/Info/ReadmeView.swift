@@ -100,6 +100,15 @@ struct ReadmeView: View {
             using the export buttons below the verified output.
             """)
 
+            sectionTitle("HEADER CONTROLS")
+
+            bodyText("""
+            \u{2022} [THEME:SYS/LHT/DRK] \u{2013} Toggle between system, light, and dark theme
+            \u{2022} [REC] \u{2013} Recommended model chains and pairing strategies
+            \u{2022} [README] \u{2013} This page
+            \u{2022} [KEYS] \u{2013} Manage your API keys
+            """)
+
             sectionTitle("WHY \"ROSIN\"?")
 
             bodyText("""
@@ -128,6 +137,21 @@ struct ReadmeView: View {
             3. \u{0395}\u{03C0}\u{03B9}\u{03BB}\u{03AD}\u{03BE}\u{03C4}\u{03B5} \u{03BC}\u{03BF}\u{03BD}\u{03C4}\u{03AD}\u{03BB}\u{03BF} \u{03B3}\u{03B9}\u{03B1} \u{03BA}\u{03AC}\u{03B8}\u{03B5} \u{03C3}\u{03C4}\u{03AC}\u{03B4}\u{03B9}\u{03BF}
             4. \u{03A0}\u{03B1}\u{03C4}\u{03AE}\u{03C3}\u{03C4}\u{03B5} RUN
             5. \u{0397} \u{03C4}\u{03B5}\u{03BB}\u{03B9}\u{03BA}\u{03AE} \u{03AD}\u{03BE}\u{03BF}\u{03B4}\u{03BF}\u{03C2} \u{03B5}\u{03AF}\u{03BD}\u{03B1}\u{03B9} \u{03B7} \u{03B5}\u{03C0}\u{03B1}\u{03BB}\u{03B7}\u{03B8}\u{03B5}\u{03C5}\u{03BC}\u{03AD}\u{03BD}\u{03B7} \u{03B1}\u{03C0}\u{03AC}\u{03BD}\u{03C4}\u{03B7}\u{03C3}\u{03B7}
+            """)
+
+            sectionTitle("\u{039A}\u{039B}\u{0395}\u{0399}\u{0394}\u{0399}\u{0391} API")
+
+            bodyText("""
+            \u{03A4}\u{03B1} \u{03BA}\u{03BB}\u{03B5}\u{03B9}\u{03B4}\u{03B9}\u{03AC} API \u{03B1}\u{03C0}\u{03BF}\u{03B8}\u{03B7}\u{03BA}\u{03B5}\u{03CD}\u{03BF}\u{03BD}\u{03C4}\u{03B1}\u{03B9} \u{03BC}\u{03B5} \u{03B1}\u{03C3}\u{03C6}\u{03AC}\u{03BB}\u{03B5}\u{03B9}\u{03B1} \u{03C3}\u{03C4}\u{03BF} iOS Keychain. \
+            \u{0394}\u{03B5}\u{03BD} \u{03C6}\u{03B5}\u{03CD}\u{03B3}\u{03BF}\u{03C5}\u{03BD} \u{03C0}\u{03BF}\u{03C4}\u{03AD} \u{03B1}\u{03C0}\u{03CC} \u{03C4}\u{03B7} \u{03C3}\u{03C5}\u{03C3}\u{03BA}\u{03B5}\u{03C5}\u{03AE} \u{03C3}\u{03B1}\u{03C2} \u{03BA}\u{03B1}\u{03B9} \u{03B4}\u{03B5}\u{03BD} \u{03C3}\u{03C5}\u{03BC}\u{03C0}\u{03B5}\u{03C1}\u{03B9}\u{03BB}\u{03B1}\u{03BC}\u{03B2}\u{03AC}\u{03BD}\u{03BF}\u{03BD}\u{03C4}\u{03B1}\u{03B9} \u{03C3}\u{03C4}\u{03B1} \u{03B1}\u{03BD}\u{03C4}\u{03AF}\u{03B3}\u{03C1}\u{03B1}\u{03C6}\u{03B1} \u{03B1}\u{03C3}\u{03C6}\u{03B1}\u{03BB}\u{03B5}\u{03AF}\u{03B1}\u{03C2}.
+
+            \u{03A0}\u{03B1}\u{03C4}\u{03AE}\u{03C3}\u{03C4}\u{03B5} [KEYS] \u{03B3}\u{03B9}\u{03B1} \u{03B4}\u{03B9}\u{03B1}\u{03C7}\u{03B5}\u{03AF}\u{03C1}\u{03B9}\u{03C3}\u{03B7} \u{03C4}\u{03C9}\u{03BD} \u{03BA}\u{03BB}\u{03B5}\u{03B9}\u{03B4}\u{03B9}\u{03CE}\u{03BD} \u{03C3}\u{03B1}\u{03C2}.
+            """)
+
+            sectionTitle("\u{0395}\u{039E}\u{0391}\u{0393}\u{03A9}\u{0393}\u{0397}")
+
+            bodyText("""
+            \u{039C}\u{03B5}\u{03C4}\u{03AC} \u{03C4}\u{03B7}\u{03BD} \u{03B5}\u{03C0}\u{03B1}\u{03BB}\u{03AE}\u{03B8}\u{03B5}\u{03C5}\u{03C3}\u{03B7}, \u{03BC}\u{03C0}\u{03BF}\u{03C1}\u{03B5}\u{03AF}\u{03C4}\u{03B5} \u{03BD}\u{03B1} \u{03B5}\u{03BE}\u{03AC}\u{03B3}\u{03B5}\u{03C4}\u{03B5} \u{03C4}\u{03B1} \u{03B1}\u{03C0}\u{03BF}\u{03C4}\u{03B5}\u{03BB}\u{03AD}\u{03C3}\u{03BC}\u{03B1}\u{03C4}\u{03B1} \u{03C3}\u{03B5} CSV \u{03AE} PDF.
             """)
 
             sectionTitle("\u{0393}\u{0399}\u{0391}\u{03A4}\u{0399} \"ROSIN\";")

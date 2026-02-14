@@ -5,21 +5,29 @@ struct StatusIndicator: View {
 
     @State private var isPulsing = false
 
+    private var shouldPulse: Bool {
+        status == .streaming || status == .retrying
+    }
+
     var body: some View {
         Text(label)
             .font(RosinTheme.monoCaption)
             .foregroundColor(color)
-            .opacity(status == .streaming ? (isPulsing ? 1.0 : 0.4) : 1.0)
+            .opacity(shouldPulse ? (isPulsing ? 1.0 : 0.4) : 1.0)
             .onAppear {
-                if status == .streaming {
+                if shouldPulse {
                     withAnimation(RosinTheme.pulseAnimation) {
                         isPulsing = true
                     }
                 }
             }
             .onChange(of: status) { _, newValue in
-                if newValue != .streaming {
+                if newValue != .streaming && newValue != .retrying {
                     isPulsing = false
+                } else if !isPulsing {
+                    withAnimation(RosinTheme.pulseAnimation) {
+                        isPulsing = true
+                    }
                 }
             }
     }
@@ -30,6 +38,8 @@ struct StatusIndicator: View {
         case .streaming: return "[RUN]"
         case .complete: return "[OK]"
         case .error: return "[ERR]"
+        case .skipped: return "[SKIP]"
+        case .retrying: return "[RETRY]"
         }
     }
 
@@ -39,6 +49,8 @@ struct StatusIndicator: View {
         case .streaming: return RosinTheme.muted
         case .complete: return .primary
         case .error: return RosinTheme.destructive
+        case .skipped: return RosinTheme.muted
+        case .retrying: return RosinTheme.green
         }
     }
 }

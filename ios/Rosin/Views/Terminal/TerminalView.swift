@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TerminalView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
+    @EnvironmentObject private var appearanceManager: AppearanceManager
     @StateObject private var viewModel = TerminalViewModel()
 
     @State private var showSettings = false
@@ -89,6 +90,11 @@ struct TerminalView: View {
                 Spacer()
 
                 HStack(spacing: 14) {
+                    Button { appearanceManager.toggle() } label: {
+                        Text(appearanceManager.displayText)
+                            .font(RosinTheme.monoCaption2)
+                            .foregroundColor(RosinTheme.muted)
+                    }
                     Button { showRecommendations = true } label: {
                         Text("[REC]")
                             .font(RosinTheme.monoCaption2)

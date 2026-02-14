@@ -32,7 +32,7 @@ struct RecommendationsView: View {
                     chainCard(
                         name: "Maximum Accuracy",
                         chain: "Claude Opus 4.5 \u{2192} Gemini 2.5 Pro \u{2192} Grok 3",
-                        description: "Uses the most capable model from each provider. Best for complex or high-stakes queries."
+                        description: "Upgrades stage 1 to Opus for deeper initial reasoning. Best for complex or high-stakes queries."
                     )
 
                     sectionTitle("RECOMMENDED 2-STAGE CHAINS")
@@ -52,7 +52,6 @@ struct RecommendationsView: View {
                     sectionTitle("TIPS")
 
                     bodyText("""
-                    \u{2022} Always use models from different providers for best results
                     \u{2022} 3 stages provides a "tiebreaker" effect \u{2013} if two models agree, the answer is likely correct
                     \u{2022} 2 stages is faster but provides less confidence
                     \u{2022} Faster models (Haiku, Flash, Grok Fast) work well for simple factual queries
