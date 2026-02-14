@@ -21,14 +21,8 @@ class AppearanceManager: ObservableObject {
     }
     
     func toggle() {
-        switch colorScheme {
-        case .none:
-            colorScheme = .light
-        case .light:
-            colorScheme = .dark
-        case .dark:
-            colorScheme = nil
-        }
+        let effectiveScheme = colorScheme ?? (UITraitCollection.current.userInterfaceStyle == .dark ? ColorScheme.dark : ColorScheme.light)
+        colorScheme = effectiveScheme == .dark ? .light : .dark
         save()
     }
     
@@ -38,14 +32,8 @@ class AppearanceManager: ObservableObject {
     }
     
     var displayText: String {
-        switch colorScheme {
-        case .none:
-            return "[THEME:SYS]"
-        case .light:
-            return "[THEME:LHT]"
-        case .dark:
-            return "[THEME:DRK]"
-        }
+        let effectiveScheme = colorScheme ?? (UITraitCollection.current.userInterfaceStyle == .dark ? ColorScheme.dark : ColorScheme.light)
+        return effectiveScheme == .dark ? "[THEME:DRK]" : "[THEME:LHT]"
     }
     
     private func save() {
