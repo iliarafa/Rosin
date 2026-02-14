@@ -11,7 +11,7 @@ struct EmptyStateView: View {
                 .font(RosinTheme.monoCaption)
                 .foregroundColor(.primary.opacity(0.6))
 
-            Text("Enter a query below. It will pass through multiple LLMs in sequence. Each model verifies and refines the previous output to distill truth and detect hallucinations.")
+            Text("Launch a query through multiple LLMs. Verify, refine and detect hallucinations.")
                 .font(RosinTheme.monoCaption2)
                 .foregroundColor(RosinTheme.muted.opacity(0.6))
                 .multilineTextAlignment(.center)
