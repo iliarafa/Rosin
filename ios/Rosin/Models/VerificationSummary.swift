@@ -1,11 +1,19 @@
 import Foundation
 
-struct Contradiction: Identifiable {
-    let id = UUID()
+struct Contradiction: Identifiable, Codable {
+    let id: UUID
     let topic: String
     let stageA: Int
     let stageB: Int
     let description: String
+
+    init(topic: String, stageA: Int, stageB: Int, description: String) {
+        self.id = UUID()
+        self.topic = topic
+        self.stageA = stageA
+        self.stageB = stageB
+        self.description = description
+    }
 }
 
 struct AnalysisResponse: Decodable {
@@ -23,7 +31,7 @@ struct AnalysisResponse: Decodable {
     }
 }
 
-struct VerificationSummary {
+struct VerificationSummary: Codable {
     let consistency: String
     let hallucinations: String
     let confidence: String

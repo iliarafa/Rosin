@@ -51,10 +51,34 @@ export const stageOutputSchema = z.object({
 
 export type StageOutput = z.infer<typeof stageOutputSchema>;
 
+export const contradictionSchema = z.object({
+  topic: z.string(),
+  stageA: z.number(),
+  stageB: z.number(),
+  description: z.string(),
+});
+
+export type Contradiction = z.infer<typeof contradictionSchema>;
+
 export const verificationSummarySchema = z.object({
   consistency: z.string(),
   hallucinations: z.string(),
   confidence: z.string(),
+  contradictions: z.array(contradictionSchema).optional(),
+  confidenceScore: z.number().min(0).max(1).optional(),
+  isAnalyzed: z.boolean().optional(),
 });
 
 export type VerificationSummary = z.infer<typeof verificationSummarySchema>;
+
+export const verificationRunSchema = z.object({
+  id: z.string(),
+  query: z.string(),
+  chain: z.array(llmModelSchema),
+  stages: z.array(stageOutputSchema),
+  summary: verificationSummarySchema.nullable(),
+  adversarialMode: z.boolean().default(false),
+  createdAt: z.string(),
+});
+
+export type VerificationRun = z.infer<typeof verificationRunSchema>;

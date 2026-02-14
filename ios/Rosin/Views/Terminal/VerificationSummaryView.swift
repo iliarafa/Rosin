@@ -22,12 +22,27 @@ struct VerificationSummaryView: View {
                 summaryRow(label: "Consistency:", value: summary.consistency)
                 summaryRow(label: "Hallucinations:", value: summary.hallucinations)
                 summaryRow(label: "Confidence:", value: summary.confidence)
+
+                if let score = summary.confidenceScore {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Rectangle()
+                                .fill(Color.primary.opacity(0.1))
+                                .frame(height: 6)
+                            Rectangle()
+                                .fill(confidenceColor(score))
+                                .frame(width: geo.size.width * score, height: 6)
+                        }
+                    }
+                    .frame(height: 6)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                }
             }
             .padding(.vertical, 8)
 
             if !summary.contradictions.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("CONTRADICTIONS")
+                    Text("DISAGREEMENTS DETECTED")
                         .font(RosinTheme.monoCaption)
                         .fontWeight(.medium)
                         .foregroundColor(RosinTheme.destructive)
@@ -62,5 +77,11 @@ struct VerificationSummaryView: View {
             Text(value)
                 .font(RosinTheme.monoCaption)
         }
+    }
+
+    private func confidenceColor(_ score: Double) -> Color {
+        if score >= 0.8 { return RosinTheme.green }
+        if score >= 0.5 { return .yellow }
+        return RosinTheme.destructive
     }
 }

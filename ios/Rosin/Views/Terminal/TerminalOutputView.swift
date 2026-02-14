@@ -36,6 +36,40 @@ struct TerminalOutputView: View {
                     StageBlockView(stage: stage)
                 }
 
+                // Contradictions (before verified output)
+                if allComplete, let summary, !summary.contradictions.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("DISAGREEMENTS DETECTED (\(summary.contradictions.count))")
+                            .font(RosinTheme.monoCaption)
+                            .fontWeight(.medium)
+                            .foregroundColor(RosinTheme.destructive)
+
+                        ForEach(summary.contradictions) { contradiction in
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 6) {
+                                    Text(contradiction.topic)
+                                        .font(RosinTheme.monoCaption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(RosinTheme.destructive.opacity(0.8))
+                                    Text("Stage \(contradiction.stageA) vs \(contradiction.stageB)")
+                                        .font(RosinTheme.monoCaption2)
+                                        .foregroundColor(RosinTheme.muted)
+                                }
+                                Text(contradiction.description)
+                                    .font(RosinTheme.monoCaption2)
+                                    .foregroundColor(RosinTheme.muted)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 28)
+                    .overlay(alignment: .top) {
+                        Rectangle()
+                            .fill(RosinTheme.destructive.opacity(0.3))
+                            .frame(height: 2)
+                    }
+                }
+
                 // Verified output
                 if allComplete, let lastContent = stages.last?.content {
                     VStack(alignment: .leading, spacing: 14) {

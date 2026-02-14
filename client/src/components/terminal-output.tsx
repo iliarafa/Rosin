@@ -1,7 +1,8 @@
 import { type StageOutput, type VerificationSummary as VerificationSummaryType } from "@shared/schema";
 import { StageBlock } from "./stage-block";
 import { VerificationSummary } from "./verification-summary";
-import { Download } from "lucide-react";
+import { ContradictionsView } from "./contradictions-view";
+import { Download, Share2 } from "lucide-react";
 
 interface TerminalOutputProps {
   query: string;
@@ -9,6 +10,7 @@ interface TerminalOutputProps {
   summary: VerificationSummaryType | null;
   isProcessing: boolean;
   expectedStageCount: number;
+  verificationId?: string | null;
 }
 
 function exportToCSV(query: string, stages: StageOutput[]) {
@@ -86,12 +88,20 @@ function exportToPDF(query: string, stages: StageOutput[]) {
   }
 }
 
+function getConfidenceBorderColor(score?: number): string {
+  if (score === undefined) return "border-foreground/20";
+  if (score >= 0.8) return "border-green-500";
+  if (score >= 0.5) return "border-yellow-500";
+  return "border-red-500";
+}
+
 export function TerminalOutput({
   query,
   stages,
   summary,
   isProcessing,
   expectedStageCount,
+  verificationId,
 }: TerminalOutputProps) {
   if (stages.length === 0 && !isProcessing) {
     return (
@@ -128,8 +138,15 @@ export function TerminalOutput({
         <StageBlock key={stage.stage} stage={stage} />
       ))}
 
+      {allComplete && summary?.contradictions && summary.contradictions.length > 0 && (
+        <ContradictionsView contradictions={summary.contradictions} />
+      )}
+
       {allComplete && lastStage && (
-        <div className="mt-10 pt-6 border-t-2 border-foreground/20 space-y-3" data-testid="verified-output">
+        <div
+          className={`mt-10 pt-6 border-t-2 ${getConfidenceBorderColor(summary?.confidenceScore)} space-y-3 border-l-4 pl-4`}
+          data-testid="verified-output"
+        >
           <div className="text-sm font-medium text-foreground">VERIFIED OUTPUT</div>
           <div className="text-sm whitespace-pre-wrap leading-relaxed py-3">
             {lastStage.content}
@@ -160,6 +177,19 @@ export function TerminalOutput({
             <Download className="w-3 h-3" />
             [PDF]
           </button>
+          {verificationId && (
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/report/${verificationId}`;
+                navigator.clipboard.writeText(url);
+              }}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 border border-border rounded-none"
+              data-testid="button-share"
+            >
+              <Share2 className="w-3 h-3" />
+              [SHARE]
+            </button>
+          )}
         </div>
       )}
     </div>

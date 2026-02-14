@@ -1,6 +1,6 @@
 import Foundation
 
-enum StageStatus: String {
+enum StageStatus: String, Codable {
     case pending
     case streaming
     case complete
@@ -9,7 +9,7 @@ enum StageStatus: String {
     case retrying
 }
 
-struct StageOutput: Identifiable {
+struct StageOutput: Identifiable, Codable {
     let id: Int // stage number (1-based)
     var model: LLMModel
     var content: String
