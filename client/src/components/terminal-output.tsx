@@ -1,7 +1,8 @@
-import { type StageOutput, type VerificationSummary as VerificationSummaryType } from "@shared/schema";
+import { type StageOutput, type VerificationSummary as VerificationSummaryType, type ResearchStatus } from "@shared/schema";
 import { StageBlock } from "./stage-block";
 import { VerificationSummary } from "./verification-summary";
 import { ContradictionsView } from "./contradictions-view";
+import { FinalVerifiedAnswer } from "./final-verified-answer";
 import { Download, Share2 } from "lucide-react";
 
 interface TerminalOutputProps {
@@ -11,6 +12,7 @@ interface TerminalOutputProps {
   isProcessing: boolean;
   expectedStageCount: number;
   verificationId?: string | null;
+  researchStatus?: ResearchStatus | null;
 }
 
 function exportToCSV(query: string, stages: StageOutput[]) {
@@ -88,13 +90,6 @@ function exportToPDF(query: string, stages: StageOutput[]) {
   }
 }
 
-function getConfidenceBorderColor(score?: number): string {
-  if (score === undefined) return "border-foreground/20";
-  if (score >= 0.8) return "border-green-500";
-  if (score >= 0.5) return "border-yellow-500";
-  return "border-red-500";
-}
-
 export function TerminalOutput({
   query,
   stages,
@@ -102,8 +97,9 @@ export function TerminalOutput({
   isProcessing,
   expectedStageCount,
   verificationId,
+  researchStatus,
 }: TerminalOutputProps) {
-  if (stages.length === 0 && !isProcessing) {
+  if (stages.length === 0 && !isProcessing && !researchStatus) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <div className="text-center space-y-4">
@@ -127,10 +123,41 @@ export function TerminalOutput({
 
   return (
     <div className="space-y-8" data-testid="stages-container">
-      {query && stages.length > 0 && (
+      {query && (stages.length > 0 || researchStatus) && (
         <div className="text-sm text-muted-foreground mb-6">
           <span className="opacity-60">QUERY: </span>
           <span className="text-foreground">{query}</span>
+        </div>
+      )}
+
+      {researchStatus && (
+        <div className="p-4 sm:p-5 border-b border-border/50 space-y-2" data-testid="research-block">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">{">"}</span>
+            <span className="font-medium text-primary">LIVE RESEARCH</span>
+            {researchStatus.status === "searching" && (
+              <span className="text-muted-foreground animate-pulse">[RUN]</span>
+            )}
+            {researchStatus.status === "complete" && (
+              <span className="text-foreground">[OK]</span>
+            )}
+            {researchStatus.status === "error" && (
+              <span className="text-destructive">[ERR]</span>
+            )}
+          </div>
+          {researchStatus.status === "searching" && (
+            <div className="text-sm text-muted-foreground pt-1">
+              Searching the web for current information<span className="animate-pulse">...</span>
+            </div>
+          )}
+          {researchStatus.status === "complete" && (
+            <div className="text-sm text-muted-foreground pt-1 whitespace-pre-wrap">
+              Found {researchStatus.sourceCount} source{researchStatus.sourceCount !== 1 ? "s" : ""}:{"\n"}{researchStatus.sources}
+            </div>
+          )}
+          {researchStatus.status === "error" && (
+            <div className="text-sm text-destructive/80 pt-1">{researchStatus.error}</div>
+          )}
         </div>
       )}
 
@@ -143,15 +170,10 @@ export function TerminalOutput({
       )}
 
       {allComplete && lastStage && (
-        <div
-          className={`mt-10 pt-6 border-t-2 ${getConfidenceBorderColor(summary?.confidenceScore)} space-y-3 border-l-4 pl-4`}
-          data-testid="verified-output"
-        >
-          <div className="text-sm font-medium text-foreground">VERIFIED OUTPUT</div>
-          <div className="text-sm whitespace-pre-wrap leading-relaxed py-3">
-            {lastStage.content}
-          </div>
-        </div>
+        <FinalVerifiedAnswer
+          content={lastStage.content}
+          confidenceScore={summary?.confidenceScore}
+        />
       )}
 
       {summary && allComplete && (

@@ -82,3 +82,9 @@ export const verificationRunSchema = z.object({
 });
 
 export type VerificationRun = z.infer<typeof verificationRunSchema>;
+
+// Live Research status for the UI
+export type ResearchStatus =
+  | { status: "searching" }
+  | { status: "complete"; sourceCount: number; sources: string }
+  | { status: "error"; error: string };

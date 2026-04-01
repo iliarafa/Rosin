@@ -39,11 +39,13 @@ struct APIKeyRowView: View {
 
             if isEditing {
                 VStack(alignment: .leading, spacing: 6) {
-                    SecureField("Paste API key...", text: $keyInput)
+                    TextField("Enter API key...", text: $keyInput)
                         .font(RosinTheme.monoCaption2)
                         .textFieldStyle(.roundedBorder)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
+                        .textContentType(.none)
+                        .keyboardType(.asciiCapable)
 
                     HStack(spacing: 12) {
                         Button("Save") { saveKey() }

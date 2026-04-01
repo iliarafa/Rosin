@@ -6,7 +6,7 @@ import { ModelSelector } from "@/components/model-selector";
 import { StageCountSelector } from "@/components/stage-count-selector";
 import { TerminalOutput } from "@/components/terminal-output";
 import { TerminalInput } from "@/components/terminal-input";
-import { type LLMModel, type StageOutput, type VerificationSummary } from "@shared/schema";
+import { type LLMModel, type StageOutput, type VerificationSummary, type ResearchStatus } from "@shared/schema";
 
 const allModels: LLMModel[] = [
   { provider: "openai", model: "gpt-4o" },
@@ -27,6 +27,8 @@ export default function Terminal() {
   const [stages, setStages] = useState<StageOutput[]>([]);
   const [finalSummary, setFinalSummary] = useState<VerificationSummary | null>(null);
   const [adversarialMode, setAdversarialMode] = useState(false);
+  const [liveResearch, setLiveResearch] = useState(false);
+  const [researchStatus, setResearchStatus] = useState<ResearchStatus | null>(null);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -62,7 +64,18 @@ export default function Terminal() {
         try {
           const event = JSON.parse(line.slice(6));
           
-          if (event.type === "stage_start") {
+          // Live Research events — shown before pipeline stages
+          if (event.type === "research_start") {
+            setResearchStatus({ status: "searching" });
+          } else if (event.type === "research_complete") {
+            setResearchStatus({
+              status: "complete",
+              sourceCount: event.sourceCount,
+              sources: event.sources,
+            });
+          } else if (event.type === "research_error") {
+            setResearchStatus({ status: "error", error: event.error });
+          } else if (event.type === "stage_start") {
             setStages((prev) => [
               ...prev,
               {
@@ -107,7 +120,7 @@ export default function Terminal() {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ query, chain }: VerificationInput) => {
-      const response = await apiRequest("POST", "/api/verify", { query, chain, adversarialMode });
+      const response = await apiRequest("POST", "/api/verify", { query, chain, adversarialMode, liveResearch });
       await processSSEStream(response, chain);
     },
     onSuccess: () => {
@@ -133,6 +146,7 @@ export default function Terminal() {
 
     setStages([]);
     setFinalSummary(null);
+    setResearchStatus(null);
     setVerificationId(null);
     verifyMutation.mutate({ query, chain: activeChain });
   };
@@ -156,6 +170,17 @@ export default function Terminal() {
             disabled={verifyMutation.isPending}
           />
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setLiveResearch((v) => !v)}
+              className={`text-xs transition-colors px-1.5 py-1 border rounded-none ${
+                liveResearch
+                  ? "text-primary border-primary/50"
+                  : "text-muted-foreground border-border"
+              }`}
+              disabled={verifyMutation.isPending}
+            >
+              [LIVE]
+            </button>
             <button
               onClick={() => setAdversarialMode((v) => !v)}
               className={`text-xs transition-colors px-1.5 py-1 border rounded-none ${
@@ -226,6 +251,18 @@ export default function Terminal() {
           ))}
           <div className="hidden sm:flex sm:items-center sm:ml-auto sm:gap-2">
             <button
+              onClick={() => setLiveResearch((v) => !v)}
+              className={`text-xs transition-colors px-2 py-1 border rounded-none ${
+                liveResearch
+                  ? "text-primary border-primary/50"
+                  : "text-muted-foreground border-border"
+              } hover:text-foreground`}
+              disabled={verifyMutation.isPending}
+              data-testid="button-live-research"
+            >
+              {liveResearch ? "[LIVE: ON]" : "[LIVE: OFF]"}
+            </button>
+            <button
               onClick={() => setAdversarialMode((v) => !v)}
               className={`text-xs transition-colors px-2 py-1 border rounded-none ${
                 adversarialMode
@@ -273,6 +310,7 @@ export default function Terminal() {
             isProcessing={verifyMutation.isPending}
             expectedStageCount={stageCount}
             verificationId={verificationId}
+            researchStatus={researchStatus}
           />
         </div>
       </main>

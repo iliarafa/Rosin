@@ -1,16 +1,22 @@
-# Multi-LLM Verification Terminal
+# Rosin AI — Pure Output
 
-A terminal-style web application that verifies LLM outputs by running queries through multiple AI models in sequence. The system implements a multi-stage verification pipeline to detect hallucinations and distill truth from AI responses.
+A terminal-style web application that combats AI hallucinations by running queries through multiple language models in sequence. Each stage verifies and refines the previous output to distill truth from AI responses.
 
 ## Features
 
-- **Multi-Stage Verification**: Run queries through 2-4 LLMs in sequence
+- **Multi-Stage Verification**: Run queries through 2-4 LLMs in sequence, each cross-checking the last
 - **4 AI Providers**: OpenAI, Anthropic, Google Gemini, and xAI/Grok
+- **Live Research**: Real-time web search via Tavily to ground answers with current information
+- **Adversarial Mode**: Middle stages aggressively challenge claims and demand evidence
+- **Final Verified Answer**: Prominent, visually distinct card with toggle between full answer and concise bullet summary
 - **Real-time Streaming**: Watch responses stream in via Server-Sent Events
+- **Verification Summary**: Automated consistency analysis, hallucination risk scoring, and contradiction detection
 - **Configurable Pipeline**: Choose which models to use at each stage
+- **Export & Share**: Download results as CSV/PDF or share via link
+- **Verification History**: Browse past verifications and disagreement heatmap
 - **Terminal Aesthetic**: Clean CLI-style interface with monospace typography
 - **Mobile Optimized**: Fully responsive with iOS safe area support
-- **Bilingual README**: In-app documentation in English and Greek
+- **Native iOS App**: SwiftUI companion app calling LLM APIs directly from device
 
 ## Available Models
 
@@ -51,6 +57,7 @@ AI_INTEGRATIONS_OPENAI_API_KEY=sk-...
 AI_INTEGRATIONS_ANTHROPIC_API_KEY=sk-ant-...
 AI_INTEGRATIONS_GEMINI_API_KEY=...
 XAI_API_KEY=xai-...
+TAVILY_API_KEY=tvly-...          # optional — enables Live Research
 DATABASE_URL=postgresql://...
 SESSION_SECRET=your-secret-key
 ```
@@ -74,9 +81,27 @@ The app will be available at `http://localhost:5000`
 1. Enter your query in the terminal input
 2. Select the number of verification stages (2-4)
 3. Choose which model to use at each stage
-4. Press RUN or hit Enter
-5. Watch as each model processes and verifies the previous output
-6. Get a final synthesized response with confidence assessment
+4. Optionally enable **[LIVE]** for web-grounded answers or **[ADV]** for adversarial verification
+5. Press RUN or hit Enter
+6. Watch as each model processes and verifies the previous output
+7. Get a **Final Verified Answer** card with confidence assessment and a concise summary toggle
+
+## Live Research (Web Grounding)
+
+LLMs have a knowledge cutoff — they don't know about events after their training date. The **Live Research** toggle solves this by searching the web in real-time before verification begins.
+
+### How it works
+1. Toggle **[LIVE: ON]** in the header bar
+2. When you run a query, Rosin first searches the web via [Tavily](https://tavily.com) (up to 5 sources)
+3. The search results are injected as context into the first pipeline stage
+4. All subsequent verification stages benefit from grounded, current information
+
+### Setup
+1. Sign up for a free Tavily API key at [tavily.com](https://tavily.com)
+2. Add `TAVILY_API_KEY=tvly-...` to your `.env` file
+3. The [LIVE] toggle appears automatically — if no key is set, it falls back gracefully with a warning
+
+The free tier provides 1,000 searches/month, which is plenty for most users.
 
 ## Recommended Configurations
 
@@ -114,6 +139,7 @@ The app will be available at `http://localhost:5000`
 - **Backend**: Node.js, Express, TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
 - **AI SDKs**: OpenAI, Anthropic, Google GenAI
+- **Web Search**: Tavily (optional)
 
 ## License
 

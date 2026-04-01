@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
+import { tavily } from "@tavily/core";
 import { insertVerificationRequestSchema, type LLMModel, type VerificationSummary } from "@shared/schema";
 import { z } from "zod";
 import { storage } from "./storage";
@@ -39,6 +40,24 @@ function getXAIClient(): OpenAI {
     });
   }
   return xai;
+}
+
+// Tavily search client for live web research (initialized lazily)
+let tavilyClient: ReturnType<typeof tavily> | null = null;
+function getTavilyClient(): ReturnType<typeof tavily> | null {
+  if (!process.env.TAVILY_API_KEY) return null;
+  if (!tavilyClient) {
+    tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
+  }
+  return tavilyClient;
+}
+
+/** Format Tavily search results into a context block for LLM prompts */
+function formatSearchContext(results: { title: string; url: string; content: string }[]): string {
+  const lines = results.map((r, i) =>
+    `[${i + 1}] ${r.title}\n    ${r.url}\n    ${r.content}`
+  );
+  return `You have access to the following live web search results. Use them to ground your answer with current, up-to-date facts. Always prefer this information over your training data when they conflict.\n\nSources:\n${lines.join("\n\n")}`;
 }
 
 function sendSSE(res: Response, data: Record<string, unknown>) {
@@ -472,13 +491,14 @@ export async function registerRoutes(
     try {
       const extendedSchema = insertVerificationRequestSchema.extend({
         adversarialMode: z.boolean().optional().default(false),
+        liveResearch: z.boolean().optional().default(false),
       });
       const parsed = extendedSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
       }
 
-      const { query, chain, adversarialMode } = parsed.data;
+      const { query, chain, adversarialMode, liveResearch } = parsed.data;
 
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
@@ -494,6 +514,45 @@ export async function registerRoutes(
 
       const totalStages = chain.length;
       const lengthConfig = classifyComplexity(query);
+
+      // Live Research: run Tavily search before the verification pipeline
+      let searchContext = "";
+      if (liveResearch) {
+        const client = getTavilyClient();
+        if (client) {
+          // Emit a research_start event so the UI shows a search indicator
+          sendSSE(res, { type: "research_start" });
+          try {
+            const searchResponse = await client.search(query, {
+              maxResults: 5,
+              searchDepth: "basic",
+              includeAnswer: true,
+            });
+            const results = searchResponse.results.map((r) => ({
+              title: r.title,
+              url: r.url,
+              content: r.content,
+            }));
+            searchContext = formatSearchContext(results);
+
+            // Stream a brief summary of sources found
+            const sourceSummary = results
+              .map((r, i) => `  [${i + 1}] ${r.title} — ${r.url}`)
+              .join("\n");
+            sendSSE(res, {
+              type: "research_complete",
+              sourceCount: results.length,
+              sources: sourceSummary,
+            });
+          } catch (searchError) {
+            console.error("Tavily search failed, continuing without web context:", searchError);
+            sendSSE(res, { type: "research_error", error: "Web search unavailable — proceeding without live data" });
+          }
+        } else {
+          // No Tavily key configured — warn and proceed
+          sendSSE(res, { type: "research_error", error: "TAVILY_API_KEY not configured — proceeding without live data" });
+        }
+      }
 
       const getStagePrompt = (stageNum: number, isLast: boolean): string => {
         if (stageNum === 1) {
@@ -565,8 +624,12 @@ ${lengthConfig.verifyInstruction}`;
 
         console.log(`Starting stage ${stageNum}/${totalStages}, provider: ${chain[i].provider}, model: ${chain[i].model}`);
 
+        // Inject live web search context into the first stage so all subsequent
+        // stages benefit from grounded information flowing through the pipeline
         const userContent = isFirst
-          ? `Original Query: ${query}`
+          ? searchContext
+            ? `Original Query: ${query}\n\n── Live Web Research ──\n${searchContext}`
+            : `Original Query: ${query}`
           : `Original Query: ${query}\n\nPrevious Response:\n${previousOutput}`;
 
         try {
@@ -653,6 +716,38 @@ ${lengthConfig.verifyInstruction}`;
       res.json(run);
     } catch (error) {
       res.status(500).json({ error: "Failed to load report" });
+    }
+  });
+
+  // Generate a concise bullet-point summary of the final verified answer
+  app.post("/api/summarize", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== "string") {
+        return res.status(400).json({ error: "Missing 'text' field" });
+      }
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        max_tokens: 512,
+        temperature: 0.3,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a precise summarizer. Given a verified answer, produce a concise summary as 3-6 bullet points. " +
+              "Each bullet should capture one key fact or conclusion. Use plain language. " +
+              "Start each bullet with '•'. Do not add any preamble or closing — just the bullets.",
+          },
+          { role: "user", content: text },
+        ],
+      });
+
+      const summary = completion.choices[0]?.message?.content?.trim() || "Unable to generate summary.";
+      res.json({ summary });
+    } catch (error) {
+      console.error("Summarize error:", error);
+      res.status(500).json({ error: "Failed to generate summary" });
     }
   });
 

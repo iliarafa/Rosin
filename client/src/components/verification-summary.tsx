@@ -21,22 +21,18 @@ export function VerificationSummary({ summary }: VerificationSummaryProps) {
         )}
       </div>
 
-      <div className="space-y-3 text-sm py-3">
-        <div className="flex gap-2">
-          <span className="text-muted-foreground">Consistency:</span>
-          <span className="text-foreground">{summary.consistency}</span>
-        </div>
-        <div className="flex gap-2">
-          <span className="text-muted-foreground">Hallucinations:</span>
-          <span className="text-foreground">{summary.hallucinations}</span>
-        </div>
-        <div className="flex gap-2">
-          <span className="text-muted-foreground">Confidence:</span>
-          <span className="text-foreground">{summary.confidence}</span>
-        </div>
+      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 text-sm py-3">
+        <span className="text-muted-foreground whitespace-nowrap">Consistency:</span>
+        <span className="text-foreground">{summary.consistency}</span>
+
+        <span className="text-muted-foreground whitespace-nowrap">Hallucinations:</span>
+        <span className="text-foreground">{summary.hallucinations}</span>
+
+        <span className="text-muted-foreground whitespace-nowrap">Confidence:</span>
+        <span className="text-foreground">{summary.confidence}</span>
 
         {summary.confidenceScore !== undefined && (
-          <div className="mt-1">
+          <div className="mt-1 col-span-2">
             <div className="h-1.5 bg-muted rounded-sm overflow-hidden">
               <div
                 className={`h-full ${getConfidenceBarColor(summary.confidenceScore)} transition-all duration-500`}
