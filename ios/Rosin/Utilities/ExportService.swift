@@ -39,19 +39,19 @@ enum ExportService {
 
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedSystemFont(ofSize: 14, weight: .bold),
-            .foregroundColor: UIColor.label
+            .foregroundColor: UIColor.black
         ]
         let headerAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedSystemFont(ofSize: 11, weight: .bold),
-            .foregroundColor: UIColor.label
+            .foregroundColor: UIColor.black
         ]
         let bodyAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedSystemFont(ofSize: 10, weight: .regular),
-            .foregroundColor: UIColor.label
+            .foregroundColor: UIColor.black
         ]
         let mutedAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedSystemFont(ofSize: 10, weight: .regular),
-            .foregroundColor: UIColor.secondaryLabel
+            .foregroundColor: UIColor.darkGray
         ]
 
         let renderer = UIGraphicsPDFRenderer(

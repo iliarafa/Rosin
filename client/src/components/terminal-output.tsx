@@ -94,6 +94,14 @@ function exportToCSV(query: string, stages: StageOutput[]) {
   URL.revokeObjectURL(link.href);
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function exportToPDF(query: string, stages: StageOutput[]) {
   const htmlContent = `
     <!DOCTYPE html>
@@ -113,17 +121,17 @@ function exportToPDF(query: string, stages: StageOutput[]) {
     </head>
     <body>
       <h1>MULTI-LLM VERIFICATION RESULTS</h1>
-      <div class="query"><strong>QUERY:</strong> ${query}</div>
+      <div class="query"><strong>QUERY:</strong> ${escapeHtml(query)}</div>
       ${stages.map((stage) => `
         <div class="stage">
-          <div class="stage-header">STAGE ${stage.stage}: ${stage.model.provider.toUpperCase()} / ${stage.model.model}</div>
-          <div class="stage-content">${stage.content}</div>
+          <div class="stage-header">STAGE ${stage.stage}: ${escapeHtml(stage.model.provider.toUpperCase())} / ${escapeHtml(stage.model.model)}</div>
+          <div class="stage-content">${escapeHtml(stage.content)}</div>
         </div>
       `).join("")}
       ${stages.length > 0 ? `
         <div class="verified">
           <strong>VERIFIED OUTPUT</strong>
-          <div class="stage-content" style="margin-top: 10px;">${stages[stages.length - 1].content}</div>
+          <div class="stage-content" style="margin-top: 10px;">${escapeHtml(stages[stages.length - 1].content)}</div>
         </div>
       ` : ""}
     </body>
@@ -134,7 +142,7 @@ function exportToPDF(query: string, stages: StageOutput[]) {
   if (printWindow) {
     printWindow.document.write(htmlContent);
     printWindow.document.close();
-    printWindow.print();
+    printWindow.onload = () => printWindow.print();
   }
 }
 
