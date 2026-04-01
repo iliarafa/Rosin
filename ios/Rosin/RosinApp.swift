@@ -4,6 +4,7 @@ import SwiftUI
 struct RosinApp: App {
     @StateObject private var apiKeyManager = APIKeyManager()
     @StateObject private var appearanceManager = AppearanceManager()
+    @StateObject private var fontSizeManager = FontSizeManager()
     @State private var showTerminal = false
 
     var body: some Scene {
@@ -19,6 +20,7 @@ struct RosinApp: App {
                 }
             }
             .environmentObject(appearanceManager)
+            .environmentObject(fontSizeManager)
             .preferredColorScheme(appearanceManager.colorScheme)
         }
     }

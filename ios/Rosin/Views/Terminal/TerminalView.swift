@@ -12,6 +12,7 @@ struct TerminalView: View {
     @State private var showHistory = false
     @State private var showStats = false
     @State private var shareItem: ShareItem?
+    @State private var showMenu = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,6 +62,41 @@ struct TerminalView: View {
             }
             .background(.ultraThinMaterial)
         }
+        .overlay {
+            if showMenu {
+                // Dismiss backdrop
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.15)) { showMenu = false }
+                    }
+
+                // Dropdown menu
+                VStack(alignment: .leading, spacing: 0) {
+                    menuItem(icon: "clock", label: "History") { showHistory = true }
+                    menuItem(icon: "chart.bar", label: "Stats") { showStats = true }
+                    menuDivider
+                    menuItem(icon: "lightbulb", label: "Recommendations") { showRecommendations = true }
+                    menuItem(icon: "doc.text", label: "Readme") { showReadme = true }
+                    menuItem(icon: "gearshape", label: "Settings") { showSettings = true }
+                    menuDivider
+                    menuItem(
+                        icon: appearanceManager.isDark(currentScheme: colorScheme) ? "moon" : "sun.max",
+                        label: appearanceManager.isDark(currentScheme: colorScheme) ? "Theme: Dark" : "Theme: Light"
+                    ) {
+                        appearanceManager.toggle(currentScheme: colorScheme)
+                    }
+                }
+                .padding(.vertical, 6)
+                .frame(width: 180)
+                .modifier(LiquidGlassModifier())
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(.top, 52)
+                .padding(.trailing, 20)
+                .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .topTrailing)))
+            }
+        }
+        .animation(.easeOut(duration: 0.15), value: showMenu)
         .background(RosinTheme.background)
         .onAppear {
             viewModel.setup(apiKeyManager: apiKeyManager)
@@ -114,34 +150,10 @@ struct TerminalView: View {
                 }
                 .disabled(viewModel.isProcessing)
 
-                Menu {
-                    Button { showHistory = true } label: {
-                        Label("History", systemImage: "clock")
-                    }
-                    Button { showStats = true } label: {
-                        Label("Stats", systemImage: "chart.bar")
-                    }
-                    Divider()
-                    Button { showRecommendations = true } label: {
-                        Label("Recommendations", systemImage: "lightbulb")
-                    }
-                    Button { showReadme = true } label: {
-                        Label("Readme", systemImage: "doc.text")
-                    }
-                    Button { showSettings = true } label: {
-                        Label("API Keys", systemImage: "key")
-                    }
-                    Divider()
-                    Button { appearanceManager.toggle(currentScheme: colorScheme) } label: {
-                        Label(
-                            appearanceManager.isDark(currentScheme: colorScheme) ? "Theme: Dark" : "Theme: Light",
-                            systemImage: appearanceManager.isDark(currentScheme: colorScheme) ? "moon" : "sun.max"
-                        )
-                    }
-                } label: {
+                Button { withAnimation(.easeOut(duration: 0.15)) { showMenu.toggle() } } label: {
                     Text("[···]")
                         .font(RosinTheme.monoCaption2)
-                        .foregroundColor(RosinTheme.muted)
+                        .foregroundColor(showMenu ? RosinTheme.green : RosinTheme.muted)
                 }
             }
 
@@ -173,6 +185,38 @@ struct TerminalView: View {
         }
     }
 
+    // MARK: - Menu Helpers
+
+    private func menuItem(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.15)) { showMenu = false }
+            action()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 11, design: .monospaced))
+                    .frame(width: 16)
+                    .foregroundColor(RosinTheme.muted)
+                Text(label)
+                    .font(RosinTheme.monoCaption2)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var menuDivider: some View {
+        Rectangle()
+            .fill(Color.primary.opacity(0.1))
+            .frame(height: 1)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 2)
+    }
+
     // MARK: - Export
 
     private func exportCSV() {
@@ -201,4 +245,17 @@ struct TerminalView: View {
 struct ShareItem: Identifiable {
     let id = UUID()
     let items: [Any]
+}
+
+private struct LiquidGlassModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.regular, in: .rect(cornerRadius: 12))
+        } else {
+            content
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
 }

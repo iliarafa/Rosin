@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
+    @EnvironmentObject private var fontSizeManager: FontSizeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
@@ -74,11 +75,58 @@ struct SettingsView: View {
                             .background(cardBackground)
                             .cornerRadius(10)
                     }
+
+                    // Response font size
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Response Font Size")
+                            .font(RosinTheme.monoCaption2)
+                            .foregroundColor(RosinTheme.muted)
+                            .textCase(.uppercase)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+
+                        VStack(spacing: 12) {
+                            HStack(spacing: 0) {
+                                ForEach(FontSizeCategory.allCases) { size in
+                                    Button {
+                                        fontSizeManager.sizeCategory = size
+                                    } label: {
+                                        Text(size.label)
+                                            .font(RosinTheme.monoCaption)
+                                            .fontWeight(fontSizeManager.sizeCategory == size ? .bold : .regular)
+                                            .foregroundColor(fontSizeManager.sizeCategory == size ? RosinTheme.green : RosinTheme.muted)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                fontSizeManager.sizeCategory == size
+                                                    ? RosinTheme.green.opacity(0.1)
+                                                    : Color.clear
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .overlay(
+                                Rectangle()
+                                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                            )
+
+                            // Preview
+                            Text("The quick brown fox jumps over the lazy dog.")
+                                .font(RosinTheme.responseFont(for: fontSizeManager.sizeCategory))
+                                .lineSpacing(fontSizeManager.sizeCategory.lineSpacing)
+                                .foregroundColor(RosinTheme.muted)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(16)
+                        .background(cardBackground)
+                        .cornerRadius(10)
+                    }
                 }
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("API Keys")
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

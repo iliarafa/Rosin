@@ -3,7 +3,12 @@ import SwiftUI
 struct StageBlockView: View {
     let stage: StageOutput
 
+    @EnvironmentObject private var fontSizeManager: FontSizeManager
     @State private var cursorVisible = true
+
+    private var responseFont: Font {
+        RosinTheme.responseFont(for: fontSizeManager.sizeCategory)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -22,13 +27,13 @@ struct StageBlockView: View {
             // Content
             HStack(alignment: .bottom, spacing: 0) {
                 Text(stage.content)
-                    .font(RosinTheme.monoCaption)
-                    .lineSpacing(5)
+                    .font(responseFont)
+                    .lineSpacing(fontSizeManager.sizeCategory.lineSpacing)
                     .textSelection(.enabled)
 
                 if stage.status == .streaming {
                     Text("_")
-                        .font(RosinTheme.monoCaption)
+                        .font(responseFont)
                         .foregroundColor(RosinTheme.muted)
                         .opacity(cursorVisible ? 1 : 0)
                         .onAppear {

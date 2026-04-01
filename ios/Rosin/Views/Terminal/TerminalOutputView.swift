@@ -8,6 +8,7 @@ struct TerminalOutputView: View {
     let expectedStageCount: Int
     let onExportCSV: () -> Void
     let onExportPDF: () -> Void
+    @EnvironmentObject private var fontSizeManager: FontSizeManager
     /// Callback when user taps an example query on the idle screen
     var onQuerySelect: ((String) -> Void)?
     var researchStatus: ResearchStatus?
@@ -85,8 +86,8 @@ struct TerminalOutputView: View {
                             .font(RosinTheme.monoCaption)
                             .fontWeight(.medium)
                         Text(lastContent)
-                            .font(RosinTheme.monoCaption)
-                            .lineSpacing(5)
+                            .font(RosinTheme.responseFont(for: fontSizeManager.sizeCategory))
+                            .lineSpacing(fontSizeManager.sizeCategory.lineSpacing)
                             .textSelection(.enabled)
                             .padding(.vertical, 8)
                     }

@@ -90,7 +90,7 @@ struct ReadmeView: View {
             restrictive access policy (kSecAttrAccessibleWhenUnlockedThisDeviceOnly). \
             Keys never leave your device and are not included in backups.
 
-            Tap [KEYS] in the header to manage your API keys.
+            Tap [\u{00B7}\u{00B7}\u{00B7}] \u{2192} Settings to manage your API keys.
             """)
 
             sectionTitle("EXPORT")
@@ -100,13 +100,31 @@ struct ReadmeView: View {
             using the export buttons below the verified output.
             """)
 
+            sectionTitle("LIVE RESEARCH")
+
+            bodyText("""
+            LLMs have a knowledge cutoff \u{2013} they cannot access current information on \
+            their own. ROSIN solves this with Live Research, powered by Tavily, a search \
+            API purpose-built for AI applications.
+
+            When [LIVE] is enabled, ROSIN searches the web for real-time results before \
+            the verification pipeline begins. These results are injected into Stage 1, \
+            grounding the response in current facts. Subsequent stages then verify the \
+            web-grounded information against their own knowledge \u{2013} giving you multi-LLM \
+            verification of fresh, up-to-date data.
+
+            To enable Live Research:
+            1. Get a free Tavily API key at tavily.com
+            2. Add it in [\u{00B7}\u{00B7}\u{00B7}] \u{2192} Settings \u{2192} Web Search
+            3. Toggle [LIVE] in the header before running a query
+            """)
+
             sectionTitle("HEADER CONTROLS")
 
             bodyText("""
-            \u{2022} [THEME:SYS/LHT/DRK] \u{2013} Toggle between system, light, and dark theme
-            \u{2022} [REC] \u{2013} Recommended model chains and pairing strategies
-            \u{2022} [README] \u{2013} This page
-            \u{2022} [KEYS] \u{2013} Manage your API keys
+            \u{2022} [LIVE] \u{2013} Toggle live web search (Tavily) for current information
+            \u{2022} [ADV] \u{2013} Adversarial mode \u{2013} stages aggressively challenge prior output
+            \u{2022} [\u{00B7}\u{00B7}\u{00B7}] \u{2013} Menu: History, Stats, Recommendations, Readme, Settings, Theme
             """)
 
             sectionTitle("WHY \"ROSIN\"?")
@@ -145,13 +163,32 @@ struct ReadmeView: View {
             \u{03A4}\u{03B1} \u{03BA}\u{03BB}\u{03B5}\u{03B9}\u{03B4}\u{03B9}\u{03AC} API \u{03B1}\u{03C0}\u{03BF}\u{03B8}\u{03B7}\u{03BA}\u{03B5}\u{03CD}\u{03BF}\u{03BD}\u{03C4}\u{03B1}\u{03B9} \u{03BC}\u{03B5} \u{03B1}\u{03C3}\u{03C6}\u{03AC}\u{03BB}\u{03B5}\u{03B9}\u{03B1} \u{03C3}\u{03C4}\u{03BF} iOS Keychain. \
             \u{0394}\u{03B5}\u{03BD} \u{03C6}\u{03B5}\u{03CD}\u{03B3}\u{03BF}\u{03C5}\u{03BD} \u{03C0}\u{03BF}\u{03C4}\u{03AD} \u{03B1}\u{03C0}\u{03CC} \u{03C4}\u{03B7} \u{03C3}\u{03C5}\u{03C3}\u{03BA}\u{03B5}\u{03C5}\u{03AE} \u{03C3}\u{03B1}\u{03C2} \u{03BA}\u{03B1}\u{03B9} \u{03B4}\u{03B5}\u{03BD} \u{03C3}\u{03C5}\u{03BC}\u{03C0}\u{03B5}\u{03C1}\u{03B9}\u{03BB}\u{03B1}\u{03BC}\u{03B2}\u{03AC}\u{03BD}\u{03BF}\u{03BD}\u{03C4}\u{03B1}\u{03B9} \u{03C3}\u{03C4}\u{03B1} \u{03B1}\u{03BD}\u{03C4}\u{03AF}\u{03B3}\u{03C1}\u{03B1}\u{03C6}\u{03B1} \u{03B1}\u{03C3}\u{03C6}\u{03B1}\u{03BB}\u{03B5}\u{03AF}\u{03B1}\u{03C2}.
 
-            \u{03A0}\u{03B1}\u{03C4}\u{03AE}\u{03C3}\u{03C4}\u{03B5} [KEYS] \u{03B3}\u{03B9}\u{03B1} \u{03B4}\u{03B9}\u{03B1}\u{03C7}\u{03B5}\u{03AF}\u{03C1}\u{03B9}\u{03C3}\u{03B7} \u{03C4}\u{03C9}\u{03BD} \u{03BA}\u{03BB}\u{03B5}\u{03B9}\u{03B4}\u{03B9}\u{03CE}\u{03BD} \u{03C3}\u{03B1}\u{03C2}.
+            \u{03A0}\u{03B1}\u{03C4}\u{03AE}\u{03C3}\u{03C4}\u{03B5} [\u{00B7}\u{00B7}\u{00B7}] \u{2192} Settings \u{03B3}\u{03B9}\u{03B1} \u{03B4}\u{03B9}\u{03B1}\u{03C7}\u{03B5}\u{03AF}\u{03C1}\u{03B9}\u{03C3}\u{03B7} \u{03C4}\u{03C9}\u{03BD} \u{03BA}\u{03BB}\u{03B5}\u{03B9}\u{03B4}\u{03B9}\u{03CE}\u{03BD} \u{03C3}\u{03B1}\u{03C2}.
             """)
 
             sectionTitle("\u{0395}\u{039E}\u{0391}\u{0393}\u{03A9}\u{0393}\u{0397}")
 
             bodyText("""
             \u{039C}\u{03B5}\u{03C4}\u{03AC} \u{03C4}\u{03B7}\u{03BD} \u{03B5}\u{03C0}\u{03B1}\u{03BB}\u{03AE}\u{03B8}\u{03B5}\u{03C5}\u{03C3}\u{03B7}, \u{03BC}\u{03C0}\u{03BF}\u{03C1}\u{03B5}\u{03AF}\u{03C4}\u{03B5} \u{03BD}\u{03B1} \u{03B5}\u{03BE}\u{03AC}\u{03B3}\u{03B5}\u{03C4}\u{03B5} \u{03C4}\u{03B1} \u{03B1}\u{03C0}\u{03BF}\u{03C4}\u{03B5}\u{03BB}\u{03AD}\u{03C3}\u{03BC}\u{03B1}\u{03C4}\u{03B1} \u{03C3}\u{03B5} CSV \u{03AE} PDF.
+            """)
+
+            sectionTitle("\u{0391}\u{039D}\u{0391}\u{0396}\u{0397}\u{03A4}\u{0397}\u{03A3}\u{0397} \u{0396}\u{03A9}\u{039D}\u{03A4}\u{0391}\u{039D}\u{0397}")
+
+            bodyText("""
+            \u{03A4}\u{03B1} \u{03B3}\u{03BB}\u{03C9}\u{03C3}\u{03C3}\u{03B9}\u{03BA}\u{03AC} \u{03BC}\u{03BF}\u{03BD}\u{03C4}\u{03AD}\u{03BB}\u{03B1} \u{03AD}\u{03C7}\u{03BF}\u{03C5}\u{03BD} \u{03B7}\u{03BC}\u{03B5}\u{03C1}\u{03BF}\u{03BC}\u{03B7}\u{03BD}\u{03AF}\u{03B1} \u{03BB}\u{03AE}\u{03BE}\u{03B7}\u{03C2} \u{03B3}\u{03BD}\u{03CE}\u{03C3}\u{03B7}\u{03C2} \u{2013} \u{03B4}\u{03B5}\u{03BD} \u{03BC}\u{03C0}\u{03BF}\u{03C1}\u{03BF}\u{03CD}\u{03BD} \u{03BD}\u{03B1} \u{03C0}\u{03C1}\u{03BF}\u{03C3}\u{03C0}\u{03B5}\u{03BB}\u{03AC}\u{03C3}\u{03BF}\u{03C5}\u{03BD} \
+            \u{03C4}\u{03C1}\u{03AD}\u{03C7}\u{03BF}\u{03C5}\u{03C3}\u{03B5}\u{03C2} \u{03C0}\u{03BB}\u{03B7}\u{03C1}\u{03BF}\u{03C6}\u{03BF}\u{03C1}\u{03AF}\u{03B5}\u{03C2} \u{03B1}\u{03C0}\u{03CC} \u{03BC}\u{03CC}\u{03BD}\u{03B1} \u{03C4}\u{03BF}\u{03C5}\u{03C2}. \u{03A4}\u{03BF} ROSIN \u{03BB}\u{03CD}\u{03BD}\u{03B5}\u{03B9} \u{03B1}\u{03C5}\u{03C4}\u{03CC} \u{03C4}\u{03BF} \u{03C0}\u{03C1}\u{03CC}\u{03B2}\u{03BB}\u{03B7}\u{03BC}\u{03B1} \u{03BC}\u{03B5} \u{03C4}\u{03B7}\u{03BD} \
+            \u{0391}\u{03BD}\u{03B1}\u{03B6}\u{03AE}\u{03C4}\u{03B7}\u{03C3}\u{03B7} \u{0396}\u{03C9}\u{03BD}\u{03C4}\u{03B1}\u{03BD}\u{03AC}, \u{03BC}\u{03B5} \u{03C4}\u{03B7} \u{03C7}\u{03C1}\u{03AE}\u{03C3}\u{03B7} \u{03C4}\u{03BF}\u{03C5} Tavily \u{2013} \u{03B5}\u{03BD}\u{03CC}\u{03C2} API \u{03B1}\u{03BD}\u{03B1}\u{03B6}\u{03AE}\u{03C4}\u{03B7}\u{03C3}\u{03B7}\u{03C2} \
+            \u{03C3}\u{03C7}\u{03B5}\u{03B4}\u{03B9}\u{03B1}\u{03C3}\u{03BC}\u{03AD}\u{03BD}\u{03BF}\u{03C5} \u{03B5}\u{03B9}\u{03B4}\u{03B9}\u{03BA}\u{03AC} \u{03B3}\u{03B9}\u{03B1} \u{03B5}\u{03C6}\u{03B1}\u{03C1}\u{03BC}\u{03BF}\u{03B3}\u{03AD}\u{03C2} AI.
+
+            \u{038C}\u{03C4}\u{03B1}\u{03BD} \u{03C4}\u{03BF} [LIVE] \u{03B5}\u{03AF}\u{03BD}\u{03B1}\u{03B9} \u{03B5}\u{03BD}\u{03B5}\u{03C1}\u{03B3}\u{03CC}, \u{03C4}\u{03BF} ROSIN \u{03B1}\u{03BD}\u{03B1}\u{03B6}\u{03B7}\u{03C4}\u{03AC} \u{03C3}\u{03C4}\u{03BF} \u{03B4}\u{03B9}\u{03B1}\u{03B4}\u{03AF}\u{03BA}\u{03C4}\u{03C5}\u{03BF} \u{03C0}\u{03C1}\u{03B9}\u{03BD} \u{03BE}\u{03B5}\u{03BA}\u{03B9}\u{03BD}\u{03AE}\u{03C3}\u{03B5}\u{03B9} \
+            \u{03B7} \u{03B5}\u{03C0}\u{03B1}\u{03BB}\u{03AE}\u{03B8}\u{03B5}\u{03C5}\u{03C3}\u{03B7}. \u{03A4}\u{03B1} \u{03B1}\u{03C0}\u{03BF}\u{03C4}\u{03B5}\u{03BB}\u{03AD}\u{03C3}\u{03BC}\u{03B1}\u{03C4}\u{03B1} \u{03B5}\u{03B9}\u{03C3}\u{03AC}\u{03B3}\u{03BF}\u{03BD}\u{03C4}\u{03B1}\u{03B9} \u{03C3}\u{03C4}\u{03BF} \u{03A3}\u{03C4}\u{03AC}\u{03B4}\u{03B9}\u{03BF} 1, \u{03B8}\u{03B5}\u{03BC}\u{03B5}\u{03BB}\u{03B9}\u{03CE}\u{03BD}\u{03BF}\u{03BD}\u{03C4}\u{03B1}\u{03C2} \
+            \u{03C4}\u{03B7}\u{03BD} \u{03B1}\u{03C0}\u{03AC}\u{03BD}\u{03C4}\u{03B7}\u{03C3}\u{03B7} \u{03C3}\u{03B5} \u{03C4}\u{03C1}\u{03AD}\u{03C7}\u{03BF}\u{03BD}\u{03C4}\u{03B1} \u{03B4}\u{03B5}\u{03B4}\u{03BF}\u{03BC}\u{03AD}\u{03BD}\u{03B1}. \u{03A4}\u{03B1} \u{03B5}\u{03C0}\u{03CC}\u{03BC}\u{03B5}\u{03BD}\u{03B1} \u{03C3}\u{03C4}\u{03AC}\u{03B4}\u{03B9}\u{03B1} \u{03B5}\u{03C0}\u{03B1}\u{03BB}\u{03B7}\u{03B8}\u{03B5}\u{03CD}\u{03BF}\u{03C5}\u{03BD} \
+            \u{03C4}\u{03B9}\u{03C2} \u{03C0}\u{03BB}\u{03B7}\u{03C1}\u{03BF}\u{03C6}\u{03BF}\u{03C1}\u{03AF}\u{03B5}\u{03C2} \u{03B1}\u{03C0}\u{03CC} \u{03C4}\u{03BF} \u{03B4}\u{03B9}\u{03B1}\u{03B4}\u{03AF}\u{03BA}\u{03C4}\u{03C5}\u{03BF}.
+
+            \u{0393}\u{03B9}\u{03B1} \u{03B5}\u{03BD}\u{03B5}\u{03C1}\u{03B3}\u{03BF}\u{03C0}\u{03BF}\u{03AF}\u{03B7}\u{03C3}\u{03B7}:
+            1. \u{0391}\u{03C0}\u{03BF}\u{03BA}\u{03C4}\u{03AE}\u{03C3}\u{03C4}\u{03B5} \u{03B4}\u{03C9}\u{03C1}\u{03B5}\u{03AC}\u{03BD} \u{03BA}\u{03BB}\u{03B5}\u{03B9}\u{03B4}\u{03AF} Tavily API \u{03B1}\u{03C0}\u{03CC} \u{03C4}\u{03BF} tavily.com
+            2. \u{03A0}\u{03C1}\u{03BF}\u{03C3}\u{03B8}\u{03AD}\u{03C3}\u{03C4}\u{03B5} \u{03C4}\u{03BF} \u{03C3}\u{03C4}\u{03BF} [\u{00B7}\u{00B7}\u{00B7}] \u{2192} Settings \u{2192} Web Search
+            3. \u{0395}\u{03BD}\u{03B5}\u{03C1}\u{03B3}\u{03BF}\u{03C0}\u{03BF}\u{03B9}\u{03AE}\u{03C3}\u{03C4}\u{03B5} \u{03C4}\u{03BF} [LIVE] \u{03C0}\u{03C1}\u{03B9}\u{03BD} \u{03C4}\u{03B7}\u{03BD} \u{03B1}\u{03BD}\u{03B1}\u{03B6}\u{03AE}\u{03C4}\u{03B7}\u{03C3}\u{03B7}
             """)
 
             sectionTitle("\u{0393}\u{0399}\u{0391}\u{03A4}\u{0399} \"ROSIN\";")

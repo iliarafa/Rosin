@@ -15,6 +15,11 @@ enum RosinTheme {
     static let monoSubheadline = Font.system(.subheadline, design: .monospaced)
     static let monoHeadline = Font.system(.headline, design: .monospaced)
 
+    /// Scaled monospace font for response content only
+    static func responseFont(for size: FontSizeCategory) -> Font {
+        .system(size: size.pointSize, design: .monospaced)
+    }
+
     // MARK: - Divider strings
     static let thinDivider = String(repeating: "\u{2500}", count: 50)
     static let thickDivider = String(repeating: "\u{2550}", count: 50)

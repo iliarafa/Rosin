@@ -55,6 +55,7 @@
 		A1002D00000000000000002D /* ResearchStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2002D00000000000000002D /* ResearchStatus.swift */; };
 		A1002E00000000000000002E /* ResearchStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2002E00000000000000002E /* ResearchStatusView.swift */; };
 		A1002F00000000000000002F /* TavilyKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2002F00000000000000002F /* TavilyKeyRowView.swift */; };
+		A10030000000000000000030 /* FontSizeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20030000000000000000030 /* FontSizeManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -106,6 +107,7 @@
 		A2002D00000000000000002D /* ResearchStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchStatus.swift; sourceTree = "<group>"; };
 		A2002E00000000000000002E /* ResearchStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchStatusView.swift; sourceTree = "<group>"; };
 		A2002F00000000000000002F /* TavilyKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TavilyKeyRowView.swift; sourceTree = "<group>"; };
+		A20030000000000000000030 /* FontSizeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeManager.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -133,6 +135,7 @@
 			children = (
 				A20001000000000000000001 /* RosinApp.swift */,
 				A20025000000000000000025 /* AppearanceManager.swift */,
+				A20030000000000000000030 /* FontSizeManager.swift */,
 				A50003000000000000000003 /* Models */,
 				A50004000000000000000004 /* Services */,
 				A50008000000000000000008 /* ViewModels */,
@@ -436,6 +439,7 @@
 				A1002D00000000000000002D /* ResearchStatus.swift in Sources */,
 				A1002E00000000000000002E /* ResearchStatusView.swift in Sources */,
 				A1002F00000000000000002F /* TavilyKeyRowView.swift in Sources */,
+				A10030000000000000000030 /* FontSizeManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
