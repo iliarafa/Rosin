@@ -10,16 +10,22 @@ struct TerminalOutputView: View {
     let onExportPDF: () -> Void
     /// Callback when user taps an example query on the idle screen
     var onQuerySelect: ((String) -> Void)?
+    var researchStatus: ResearchStatus?
 
     private var allComplete: Bool {
         stages.count == expectedStageCount && stages.allSatisfy { $0.status == .complete }
     }
 
     var body: some View {
-        if stages.isEmpty && !isProcessing {
+        if stages.isEmpty && !isProcessing && researchStatus == nil {
             EmptyStateView(onQuerySelect: onQuerySelect)
         } else {
             VStack(alignment: .leading, spacing: 0) {
+                // Research status
+                if let researchStatus {
+                    ResearchStatusView(status: researchStatus)
+                }
+
                 // Query display
                 if !query.isEmpty && !stages.isEmpty {
                     HStack(spacing: 6) {

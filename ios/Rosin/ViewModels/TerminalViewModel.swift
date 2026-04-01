@@ -10,6 +10,8 @@ final class TerminalViewModel: ObservableObject {
     @Published var stageCount = 3
     @Published var chain: [LLMModel] = LLMModel.defaultChain3
     @Published var isAdversarialMode = false
+    @Published var isLiveResearch = false
+    @Published var researchStatus: ResearchStatus?
 
     private var pipeline: VerificationPipelineManager?
 
@@ -52,13 +54,14 @@ final class TerminalViewModel: ObservableObject {
 
         stages = []
         summary = nil
+        researchStatus = nil
         isProcessing = true
 
         // Haptic feedback
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.impactOccurred()
 
-        pipeline?.run(query: trimmed, chain: activeChain, adversarialMode: isAdversarialMode) { [weak self] event in
+        pipeline?.run(query: trimmed, chain: activeChain, adversarialMode: isAdversarialMode, liveResearch: isLiveResearch) { [weak self] event in
             guard let self else { return }
             self.handleEvent(event)
         }
@@ -71,6 +74,15 @@ final class TerminalViewModel: ObservableObject {
 
     private func handleEvent(_ event: PipelineEvent) {
         switch event {
+        case .researchStart:
+            researchStatus = .searching
+
+        case .researchComplete(let sourceCount, let sources):
+            researchStatus = .complete(sourceCount: sourceCount, sources: sources)
+
+        case .researchError(let error):
+            researchStatus = .error(error)
+
         case .stageStart(let stage, let model):
             stages.append(StageOutput(
                 id: stage,

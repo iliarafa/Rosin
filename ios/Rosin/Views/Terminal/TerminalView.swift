@@ -29,7 +29,8 @@ struct TerminalView: View {
                         expectedStageCount: viewModel.stageCount,
                         onExportCSV: exportCSV,
                         onExportPDF: exportPDF,
-                        onQuerySelect: { viewModel.query = $0 }
+                        onQuerySelect: { viewModel.query = $0 },
+                        researchStatus: viewModel.researchStatus
                     )
                     .id("output")
 
@@ -98,6 +99,13 @@ struct TerminalView: View {
                 )
 
                 Spacer()
+
+                Button { viewModel.isLiveResearch.toggle() } label: {
+                    Text("[LIVE]")
+                        .font(RosinTheme.monoCaption2)
+                        .foregroundColor(viewModel.isLiveResearch ? RosinTheme.green : RosinTheme.muted)
+                }
+                .disabled(viewModel.isProcessing)
 
                 Button { viewModel.isAdversarialMode.toggle() } label: {
                     Text("[ADV]")

@@ -1,18 +1,36 @@
 import Foundation
 
 enum StagePromptBuilder {
-    static func systemPrompt(stageNumber: Int, isLast: Bool, lengthConfig: LengthConfig, adversarialMode: Bool = false) -> String {
+    static func systemPrompt(stageNumber: Int, isLast: Bool, lengthConfig: LengthConfig, adversarialMode: Bool = false, hasWebResearch: Bool = false) -> String {
         if stageNumber == 1 {
+            let webDirective = hasWebResearch ? """
+
+
+            IMPORTANT: You have been provided with live web search results alongside the user's query. \
+            These results contain current, real-time information retrieved just now. You MUST:
+            - Use the web search results as your primary source for current events, recent developments, and time-sensitive information
+            - Cite sources by their number (e.g. [1], [2]) when referencing information from the search results
+            - Do NOT disclaim knowledge cutoffs or say you lack access to current information — the search results ARE your access to current information
+            - If the search results conflict with your training data, prefer the search results as they are more recent
+            """ : ""
             return """
             You are the first stage of a multi-LLM verification pipeline. \
             Your task is to provide an initial, thorough response to the user's query. \
             Focus on accuracy and comprehensive coverage of the topic.
 
-            Be factual and cite any assumptions you make. If you're uncertain about something, acknowledge it.
+            Be factual and cite any assumptions you make. If you're uncertain about something, acknowledge it.\(webDirective)
 
             \(lengthConfig.promptInstruction)
             """
         }
+
+        let webGroundingNote = hasWebResearch ? """
+
+        Note: The first stage was provided with live web search results. \
+        Information about current events and recent developments in the previous response \
+        is grounded in real-time web data — treat it as sourced information, not speculation. \
+        Do not dismiss it as beyond your knowledge cutoff.
+        """ : ""
 
         if isLast {
             return """
@@ -27,7 +45,7 @@ enum StagePromptBuilder {
             5. Ensure the response is well-structured and easy to understand
             6. Note any remaining caveats or areas of genuine uncertainty
 
-            Produce the final verified response that best answers the user's original query.
+            Produce the final verified response that best answers the user's original query.\(webGroundingNote)
 
             \(lengthConfig.finalInstruction)
             """
@@ -46,7 +64,7 @@ enum StagePromptBuilder {
             5. Flag misleading, vague, or unsubstantiated information
             6. Provide a corrected and hardened version of the response
 
-            Be aggressive in your analysis. Do not give the benefit of the doubt.
+            Be aggressive in your analysis. Do not give the benefit of the doubt.\(webGroundingNote)
 
             \(lengthConfig.verifyInstruction)
             """
@@ -65,7 +83,7 @@ enum StagePromptBuilder {
         6. Cross-check the information against your knowledge
         7. Improve clarity where needed
 
-        Provide a refined and verified version of the response.
+        Provide a refined and verified version of the response.\(webGroundingNote)
 
         \(lengthConfig.verifyInstruction)
         """
@@ -73,9 +91,13 @@ enum StagePromptBuilder {
 
     static func userContent(
         query: String,
-        allPriorOutputs: [(stage: Int, model: LLMModel, content: String)]
+        allPriorOutputs: [(stage: Int, model: LLMModel, content: String)],
+        searchContext: String = ""
     ) -> String {
         if allPriorOutputs.isEmpty {
+            if !searchContext.isEmpty {
+                return "Original Query: \(query)\n\n\u{2500}\u{2500} Live Web Research \u{2500}\u{2500}\n\(searchContext)"
+            }
             return "Original Query: \(query)"
         }
 

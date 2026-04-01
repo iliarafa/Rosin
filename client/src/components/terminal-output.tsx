@@ -10,16 +10,16 @@ import { Download, Share2 } from "lucide-react";
 /* ── Example queries shown on the idle screen ── */
 const EXAMPLE_QUERIES = [
   {
-    label: "SCIENCE",
-    query: "Is it true that we only use 10% of our brain?",
+    label: "FRONTIER",
+    query: "What are the latest breakthroughs in nuclear fusion energy in 2026?",
   },
   {
-    label: "HISTORY",
-    query: "Did Napoleon Bonaparte actually lose the Battle of Waterloo due to bad weather?",
+    label: "POLICY",
+    query: "Analyze the current state of worldwide AI regulation",
   },
   {
-    label: "HEALTH",
-    query: "Does cracking your knuckles cause arthritis?",
+    label: "VERIFY",
+    query: "What is the most reliable information on Grok 4 capabilities right now?",
   },
 ];
 
@@ -151,6 +151,7 @@ export function TerminalOutput({
   /* ── Boot sequence state — runs once on first mount ── */
   const [booted, setBooted] = useState(false);
   const [bootLines, setBootLines] = useState<string[]>([]);
+  const [showSkipHint, setShowSkipHint] = useState(false);
 
   const BOOT_MESSAGES = [
     "> ROSIN v1.0 — multi-LLM verification engine",
@@ -158,6 +159,13 @@ export function TerminalOutput({
     "> Anthropic ✓  Gemini ✓  xAI ✓  OpenAI ✓",
     "> Pipeline ready. Awaiting query.",
   ];
+
+  const skipBoot = useCallback(() => {
+    if (!booted) {
+      setBootLines(BOOT_MESSAGES);
+      setBooted(true);
+    }
+  }, [booted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (booted) return;
@@ -168,17 +176,21 @@ export function TerminalOutput({
         i++;
       } else {
         clearInterval(interval);
-        setTimeout(() => setBooted(true), 300);
+        setTimeout(() => setBooted(true), 150);
       }
-    }, 280);
-    return () => clearInterval(interval);
+    }, 170);
+    const skipHintTimeout = setTimeout(() => setShowSkipHint(true), 400);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(skipHintTimeout);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Typing animation for the title ── */
   const { displayed: typedTitle, done: titleDone } = useTypingAnimation(
     "ROSIN — PURE OUTPUT",
-    55,
-    booted ? 0 : 1500
+    40,
+    booted ? 0 : 1000
   );
 
   const handleExampleClick = useCallback(
@@ -190,14 +202,17 @@ export function TerminalOutput({
 
   if (stages.length === 0 && !isProcessing && !researchStatus) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-muted-foreground crt-scanlines">
+      <div
+        className="flex flex-col items-center justify-center h-full text-muted-foreground crt-scanlines"
+        onClick={skipBoot}
+      >
         {/* ── Boot sequence overlay ── */}
         <AnimatePresence>
           {!booted && (
             <motion.div
-              className="absolute inset-0 flex flex-col items-start justify-center px-8 sm:px-16 z-10"
+              className="absolute inset-0 flex flex-col items-start justify-center px-8 sm:px-16 z-10 cursor-pointer"
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.3 }}
             >
               {bootLines.map((line, i) => (
                 <div
@@ -208,6 +223,16 @@ export function TerminalOutput({
                   {line}
                 </div>
               ))}
+              {showSkipHint && (
+                <motion.div
+                  className="absolute bottom-8 left-0 right-0 text-center text-[10px] text-muted-foreground/40 tracking-wider"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  TAP ANYWHERE TO SKIP
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

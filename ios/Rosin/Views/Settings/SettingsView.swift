@@ -58,6 +58,22 @@ struct SettingsView: View {
                         .background(cardBackground)
                         .cornerRadius(10)
                     }
+
+                    // Web Search section
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Web Search")
+                            .font(RosinTheme.monoCaption2)
+                            .foregroundColor(RosinTheme.muted)
+                            .textCase(.uppercase)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+
+                        TavilyKeyRowView()
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 4)
+                            .background(cardBackground)
+                            .cornerRadius(10)
+                    }
                 }
                 .padding()
             }

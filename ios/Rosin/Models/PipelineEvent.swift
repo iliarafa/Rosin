@@ -1,6 +1,9 @@
 import Foundation
 
 enum PipelineEvent {
+    case researchStart
+    case researchComplete(sourceCount: Int, sources: String)
+    case researchError(error: String)
     case stageStart(stage: Int, model: LLMModel)
     case content(stage: Int, text: String)
     case stageComplete(stage: Int)

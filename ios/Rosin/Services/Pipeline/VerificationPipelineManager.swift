@@ -21,6 +21,7 @@ final class VerificationPipelineManager {
         query: String,
         chain: [LLMModel],
         adversarialMode: Bool = false,
+        liveResearch: Bool = false,
         onEvent: @escaping (PipelineEvent) -> Void
     ) {
         cancel()
@@ -29,6 +30,28 @@ final class VerificationPipelineManager {
             var completedStages: [(stage: Int, model: LLMModel, content: String)] = []
             let totalStages = chain.count
             let lengthConfig = QueryComplexityClassifier.classify(query)
+
+            // Live Research: run Tavily search before the verification pipeline
+            var searchContext = ""
+            if liveResearch {
+                if let tavilyKey = apiKeyManager.tavilyKey {
+                    onEvent(.researchStart)
+                    do {
+                        let searchResponse = try await TavilySearchService.search(query: query, apiKey: tavilyKey)
+                        searchContext = searchResponse.formattedContext
+                        onEvent(.researchComplete(
+                            sourceCount: searchResponse.results.count,
+                            sources: searchResponse.sourceSummary
+                        ))
+                    } catch {
+                        onEvent(.researchError(error: "Web search failed — proceeding without live data"))
+                    }
+                } else {
+                    onEvent(.researchError(error: "Tavily API key not configured — add it in Settings"))
+                }
+            }
+
+            let hasWebResearch = !searchContext.isEmpty
 
             do {
                 for (index, llmModel) in chain.enumerated() {
@@ -46,6 +69,8 @@ final class VerificationPipelineManager {
                         totalStages: totalStages,
                         lengthConfig: lengthConfig,
                         adversarialMode: adversarialMode,
+                        hasWebResearch: hasWebResearch,
+                        searchContext: searchContext,
                         onEvent: onEvent
                     )
 
@@ -98,6 +123,8 @@ final class VerificationPipelineManager {
         totalStages: Int,
         lengthConfig: LengthConfig,
         adversarialMode: Bool = false,
+        hasWebResearch: Bool = false,
+        searchContext: String = "",
         onEvent: @escaping (PipelineEvent) -> Void
     ) async -> String? {
         guard let apiKey = apiKeyManager.apiKey(for: model.provider) else {
@@ -109,11 +136,14 @@ final class VerificationPipelineManager {
             stageNumber: stageNum,
             isLast: isLast,
             lengthConfig: lengthConfig,
-            adversarialMode: adversarialMode
+            adversarialMode: adversarialMode,
+            hasWebResearch: hasWebResearch
         )
+        // Inject search context only into Stage 1
         let userContent = StagePromptBuilder.userContent(
             query: query,
-            allPriorOutputs: completedStages
+            allPriorOutputs: completedStages,
+            searchContext: stageNum == 1 ? searchContext : ""
         )
 
         let service = LLMServiceFactory.service(for: model.provider)
@@ -151,6 +181,8 @@ final class VerificationPipelineManager {
         totalStages: Int,
         lengthConfig: LengthConfig,
         adversarialMode: Bool = false,
+        hasWebResearch: Bool = false,
+        searchContext: String = "",
         onEvent: @escaping (PipelineEvent) -> Void
     ) async throws -> (content: String, model: LLMModel)? {
         // Emit stageStart once before first attempt
@@ -165,6 +197,8 @@ final class VerificationPipelineManager {
             totalStages: totalStages,
             lengthConfig: lengthConfig,
             adversarialMode: adversarialMode,
+            hasWebResearch: hasWebResearch,
+            searchContext: searchContext,
             onEvent: onEvent
         ) {
             onEvent(.stageComplete(stage: stageNum))
@@ -184,6 +218,8 @@ final class VerificationPipelineManager {
             totalStages: totalStages,
             lengthConfig: lengthConfig,
             adversarialMode: adversarialMode,
+            hasWebResearch: hasWebResearch,
+            searchContext: searchContext,
             onEvent: onEvent
         ) {
             onEvent(.stageComplete(stage: stageNum))
@@ -207,6 +243,8 @@ final class VerificationPipelineManager {
                 totalStages: totalStages,
                 lengthConfig: lengthConfig,
                 adversarialMode: adversarialMode,
+                hasWebResearch: hasWebResearch,
+                searchContext: searchContext,
                 onEvent: onEvent
             ) {
                 onEvent(.stageComplete(stage: stageNum))
