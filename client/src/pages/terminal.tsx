@@ -9,10 +9,10 @@ import { TerminalInput } from "@/components/terminal-input";
 import { type LLMModel, type StageOutput, type VerificationSummary, type ResearchStatus } from "@shared/schema";
 
 const allModels: LLMModel[] = [
-  { provider: "openai", model: "gpt-4o" },
   { provider: "anthropic", model: "claude-sonnet-4-5" },
   { provider: "gemini", model: "gemini-2.5-flash" },
   { provider: "xai", model: "grok-3" },
+  { provider: "anthropic", model: "claude-opus-4-5" },
 ];
 
 interface VerificationInput {
@@ -240,15 +240,21 @@ export default function Terminal() {
             />
             <span className="text-muted-foreground opacity-40">|</span>
           </div>
-          {activeChain.map((model, index) => (
-            <ModelSelector
-              key={index}
-              stageNumber={index + 1}
-              selectedModel={model}
-              onModelChange={(m) => updateModel(index, m)}
-              disabled={verifyMutation.isPending}
-            />
-          ))}
+          {activeChain.map((model, index) => {
+            /* Highlight the model pill for the currently streaming stage */
+            const stageData = stages.find((s) => s.stage === index + 1);
+            const isActive = stageData?.status === "streaming";
+            return (
+              <ModelSelector
+                key={index}
+                stageNumber={index + 1}
+                selectedModel={model}
+                onModelChange={(m) => updateModel(index, m)}
+                disabled={verifyMutation.isPending}
+                isActive={isActive}
+              />
+            );
+          })}
           <div className="hidden sm:flex sm:items-center sm:ml-auto sm:gap-2">
             <button
               onClick={() => setLiveResearch((v) => !v)}
@@ -299,7 +305,7 @@ export default function Terminal() {
 
       <main
         ref={outputRef}
-        className="flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-8"
+        className="flex-1 overflow-auto px-4 py-6 sm:px-8 sm:py-8 crt-scanlines"
         data-testid="terminal-output-area"
       >
         <div className="max-w-4xl mx-auto">
@@ -311,6 +317,7 @@ export default function Terminal() {
             expectedStageCount={stageCount}
             verificationId={verificationId}
             researchStatus={researchStatus}
+            onQuerySelect={(q) => setQuery(q)}
           />
         </div>
       </main>

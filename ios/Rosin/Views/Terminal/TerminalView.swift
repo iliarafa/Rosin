@@ -18,7 +18,7 @@ struct TerminalView: View {
             // Header
             header
 
-            // Scrollable output
+            // Scrollable output with subtle CRT scanlines
             ScrollViewReader { proxy in
                 ScrollView {
                     TerminalOutputView(
@@ -28,7 +28,8 @@ struct TerminalView: View {
                         isProcessing: viewModel.isProcessing,
                         expectedStageCount: viewModel.stageCount,
                         onExportCSV: exportCSV,
-                        onExportPDF: exportPDF
+                        onExportPDF: exportPDF,
+                        onQuerySelect: { viewModel.query = $0 }
                     )
                     .id("output")
 
@@ -140,12 +141,16 @@ struct TerminalView: View {
             HStack {
                 ForEach(0..<viewModel.stageCount, id: \.self) { index in
                     if index < viewModel.chain.count {
+                        // Highlight the model pill for the currently streaming stage
+                        let stageData = viewModel.stages.first { $0.id == index + 1 }
+                        let isActive = stageData?.status == .streaming
                         Spacer()
                         ModelSelectorView(
                             stageNumber: index + 1,
                             selectedModel: viewModel.chain[index],
                             onModelChange: { viewModel.updateModel(at: index, to: $0) },
-                            disabled: viewModel.isProcessing
+                            disabled: viewModel.isProcessing,
+                            isActive: isActive
                         )
                         Spacer()
                     }

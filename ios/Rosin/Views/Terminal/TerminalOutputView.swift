@@ -8,6 +8,8 @@ struct TerminalOutputView: View {
     let expectedStageCount: Int
     let onExportCSV: () -> Void
     let onExportPDF: () -> Void
+    /// Callback when user taps an example query on the idle screen
+    var onQuerySelect: ((String) -> Void)?
 
     private var allComplete: Bool {
         stages.count == expectedStageCount && stages.allSatisfy { $0.status == .complete }
@@ -15,7 +17,7 @@ struct TerminalOutputView: View {
 
     var body: some View {
         if stages.isEmpty && !isProcessing {
-            EmptyStateView()
+            EmptyStateView(onQuerySelect: onQuerySelect)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 // Query display

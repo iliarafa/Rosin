@@ -12,20 +12,46 @@ interface ModelSelectorProps {
   selectedModel: LLMModel;
   onModelChange: (model: LLMModel) => void;
   disabled?: boolean;
+  isActive?: boolean;
 }
 
 const providerLabels: Record<LLMProvider, string> = {
-  openai: "OpenAI",
   anthropic: "Anthropic",
   gemini: "Gemini",
   xai: "xAI/Grok",
 };
+
+/* ── Tiny SVG icons for each provider (14x14) ── */
+function ProviderIcon({ provider }: { provider: LLMProvider }) {
+  const cls = "w-3.5 h-3.5 shrink-0 opacity-70";
+  switch (provider) {
+    case "anthropic":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.304 3.541l-5.304 16.359-5.304-16.359h-3.396l7.2 20.459h3l7.2-20.459z" />
+        </svg>
+      );
+    case "gemini":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 24A14.304 14.304 0 000 12 14.304 14.304 0 0012 0a14.304 14.304 0 0012 12 14.304 14.304 0 00-12 12z" />
+        </svg>
+      );
+    case "xai":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.2 2l7.5 10.5L2 22h1.7l6.9-8.5L17.2 22H22l-7.8-11L21.7 2H20l-6.6 8.1L7 2z" />
+        </svg>
+      );
+  }
+}
 
 export function ModelSelector({
   stageNumber,
   selectedModel,
   onModelChange,
   disabled,
+  isActive,
 }: ModelSelectorProps) {
   const allModels = llmProviders.flatMap((provider) =>
     llmModels[provider].map((model) => ({
@@ -38,8 +64,17 @@ export function ModelSelector({
   const currentValue = `${selectedModel.provider}:${selectedModel.model}`;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2" data-testid={`model-selector-stage-${stageNumber}`}>
+    <div
+      className={`flex items-center gap-1 sm:gap-2 transition-all duration-300 ${
+        isActive
+          ? "ring-1 ring-primary/40 shadow-[0_0_8px_hsl(var(--primary)/0.2)]"
+          : ""
+      }`}
+      data-testid={`model-selector-stage-${stageNumber}`}
+    >
       <span className="text-xs text-muted-foreground opacity-80">[{stageNumber}]</span>
+      {/* Provider icon */}
+      <ProviderIcon provider={selectedModel.provider} />
       <Select
         value={currentValue}
         onValueChange={(val) => {
@@ -63,7 +98,10 @@ export function ModelSelector({
               className="text-xs rounded-none"
               data-testid={`select-option-${m.provider}-${m.model}`}
             >
-              {m.label}
+              <span className="inline-flex items-center gap-1.5">
+                <ProviderIcon provider={m.provider} />
+                {m.label}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

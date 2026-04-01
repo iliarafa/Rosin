@@ -10,9 +10,10 @@ struct TerminalInputView: View {
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            Text("$")
-                .font(RosinTheme.monoCaption)
-                .foregroundColor(RosinTheme.muted)
+            // Command-line style > prompt with green tint
+            Text(">")
+                .font(RosinTheme.monoCaption.bold())
+                .foregroundColor(RosinTheme.green.opacity(0.7))
                 .padding(.bottom, 8)
 
             TextField("Enter your query...", text: $query, axis: .vertical)
@@ -38,21 +39,42 @@ struct TerminalInputView: View {
                         )
                 }
             } else {
+                // EXECUTE button with green glow on enabled state
+                let isEmpty = query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 Button(action: onSubmit) {
-                    Text("RUN")
+                    Text("EXECUTE")
                         .font(RosinTheme.monoCaption)
-                        .foregroundColor(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? RosinTheme.muted : .primary)
+                        .tracking(1)
+                        .foregroundColor(isEmpty ? RosinTheme.muted : RosinTheme.green)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .overlay(
                             Rectangle()
-                                .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                                .stroke(
+                                    isEmpty ? Color.primary.opacity(0.3) : RosinTheme.green.opacity(0.5),
+                                    lineWidth: 1
+                                )
+                        )
+                        // Subtle glow when enabled
+                        .shadow(
+                            color: isEmpty ? .clear : RosinTheme.green.opacity(0.2),
+                            radius: isEmpty ? 0 : 6
                         )
                 }
-                .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(isEmpty)
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
+        // Green glow border when input is focused
+        .overlay(
+            Rectangle()
+                .stroke(
+                    isFocused ? RosinTheme.green.opacity(0.3) : Color.clear,
+                    lineWidth: 1
+                )
+                .shadow(color: isFocused ? RosinTheme.green.opacity(0.15) : .clear, radius: 8)
+        )
+        .animation(.easeInOut(duration: 0.3), value: isFocused)
     }
 }

@@ -9,11 +9,6 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { randomUUID } from "crypto";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
-
 const anthropic = new Anthropic({
   apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY!,
   baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
@@ -138,37 +133,6 @@ function classifyComplexity(query: string): LengthConfig {
   };
 }
 
-async function streamOpenAI(
-  model: string,
-  systemPrompt: string,
-  userContent: string,
-  res: Response,
-  stage: number,
-  maxTokens: number
-): Promise<string> {
-  let fullResponse = "";
-
-  const stream = await openai.chat.completions.create({
-    model,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userContent },
-    ],
-    stream: true,
-    max_completion_tokens: maxTokens,
-  });
-
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || "";
-    if (content) {
-      fullResponse += content;
-      sendSSE(res, { type: "stage_content", stage, content });
-    }
-  }
-
-  return fullResponse;
-}
-
 async function streamAnthropic(
   model: string,
   systemPrompt: string,
@@ -279,9 +243,6 @@ async function runStage(
     let result: string;
 
     switch (model.provider) {
-      case "openai":
-        result = await streamOpenAI(model.model, systemPrompt, userContent, res, stage, maxTokens);
-        break;
       case "anthropic":
         result = await streamAnthropic(model.model, systemPrompt, userContent, res, stage, maxTokens);
         break;
@@ -313,17 +274,6 @@ async function callLLM(
   maxTokens: number
 ): Promise<string> {
   switch (provider) {
-    case "openai": {
-      const completion = await openai.chat.completions.create({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        max_completion_tokens: maxTokens,
-      });
-      return completion.choices[0]?.message?.content || "";
-    }
     case "anthropic": {
       const msg = await anthropic.messages.create({
         model,
@@ -727,23 +677,17 @@ ${lengthConfig.verifyInstruction}`;
         return res.status(400).json({ error: "Missing 'text' field" });
       }
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+      const msg = await anthropic.messages.create({
+        model: "claude-haiku-4-5",
         max_tokens: 512,
-        temperature: 0.3,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a precise summarizer. Given a verified answer, produce a concise summary as 3-6 bullet points. " +
-              "Each bullet should capture one key fact or conclusion. Use plain language. " +
-              "Start each bullet with '•'. Do not add any preamble or closing — just the bullets.",
-          },
-          { role: "user", content: text },
-        ],
+        system:
+          "You are a precise summarizer. Given a verified answer, produce a concise summary as 3-6 bullet points. " +
+          "Each bullet should capture one key fact or conclusion. Use plain language. " +
+          "Start each bullet with '•'. Do not add any preamble or closing — just the bullets.",
+        messages: [{ role: "user", content: text }],
       });
 
-      const summary = completion.choices[0]?.message?.content?.trim() || "Unable to generate summary.";
+      const summary = (msg.content[0] as { type: string; text: string }).text?.trim() || "Unable to generate summary.";
       res.json({ summary });
     } catch (error) {
       console.error("Summarize error:", error);

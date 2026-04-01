@@ -24,7 +24,6 @@ const content = {
     },
     models: {
       title: "> AVAILABLE MODELS",
-      openai: "gpt-4o, gpt-4o-mini, gpt-4-turbo",
       anthropic: "claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5",
       gemini: "gemini-2.5-flash, gemini-2.5-pro",
       xai: "grok-3, grok-3-fast",
@@ -33,7 +32,7 @@ const content = {
       title: "> USAGE INSTRUCTIONS",
       steps: [
         { step: "Step 1:", text: "Select the number of verification stages (2-4) using the STAGES dropdown." },
-        { step: "Step 2:", text: "Choose which LLM to use at each stage. Mixing different providers (e.g., OpenAI → Anthropic → Gemini) provides better cross-validation." },
+        { step: "Step 2:", text: "Choose which LLM to use at each stage. Mixing different providers (e.g., Anthropic → Gemini → xAI) provides better cross-validation." },
         { step: "Step 3:", text: "Enter your query in the input field at the bottom." },
         { step: "Step 4:", text: "Press Enter or click RUN to start the verification pipeline." },
         { step: "Step 5:", text: "Watch as each stage processes and streams its response in real-time." },
@@ -78,7 +77,7 @@ const content = {
         { highlight: "Shift+Enter", after: " allows multi-line input in the query field." },
       ],
     },
-    footer: "Built with OpenAI, Anthropic, Google Gemini, and xAI APIs",
+    footer: "Built with Anthropic, Google Gemini, and xAI APIs",
   },
   gr: {
     title: "ΤΕΡΜΑΤΙΚΟ ΕΠΑΛΗΘΕΥΣΗΣ ΠΟΛΛΑΠΛΩΝ LLM",
@@ -100,7 +99,6 @@ const content = {
     },
     models: {
       title: "> ΔΙΑΘΕΣΙΜΑ ΜΟΝΤΕΛΑ",
-      openai: "gpt-4o, gpt-4o-mini, gpt-4-turbo",
       anthropic: "claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5",
       gemini: "gemini-2.5-flash, gemini-2.5-pro",
       xai: "grok-3, grok-3-fast",
@@ -109,7 +107,7 @@ const content = {
       title: "> ΟΔΗΓΙΕΣ ΧΡΗΣΗΣ",
       steps: [
         { step: "Βήμα 1:", text: "Επιλέξτε τον αριθμό σταδίων επαλήθευσης (2-4) χρησιμοποιώντας το αναπτυσσόμενο μενού ΣΤΑΔΙΑ." },
-        { step: "Βήμα 2:", text: "Επιλέξτε ποιο LLM θα χρησιμοποιήσετε σε κάθε στάδιο. Η ανάμειξη διαφορετικών παρόχων (π.χ., OpenAI → Anthropic → Gemini) παρέχει καλύτερη διασταυρούμενη επικύρωση." },
+        { step: "Βήμα 2:", text: "Επιλέξτε ποιο LLM θα χρησιμοποιήσετε σε κάθε στάδιο. Η ανάμειξη διαφορετικών παρόχων (π.χ., Anthropic → Gemini → xAI) παρέχει καλύτερη διασταυρούμενη επικύρωση." },
         { step: "Βήμα 3:", text: "Εισάγετε το ερώτημά σας στο πεδίο εισόδου στο κάτω μέρος." },
         { step: "Βήμα 4:", text: "Πατήστε Enter ή κάντε κλικ στο ΕΚΤΕΛΕΣΗ για να ξεκινήσει η διαδικασία επαλήθευσης." },
         { step: "Βήμα 5:", text: "Παρακολουθήστε καθώς κάθε στάδιο επεξεργάζεται και μεταδίδει την απάντησή του σε πραγματικό χρόνο." },
@@ -154,7 +152,7 @@ const content = {
         { highlight: "Shift+Enter", after: " επιτρέπει εισαγωγή πολλαπλών γραμμών στο πεδίο ερωτήματος." },
       ],
     },
-    footer: "Κατασκευασμένο με OpenAI, Anthropic, Google Gemini και xAI APIs",
+    footer: "Κατασκευασμένο με Anthropic, Google Gemini και xAI APIs",
   },
 };
 
@@ -237,7 +235,6 @@ export default function ReadmePage() {
           <section>
             <h3 className="text-xs sm:text-sm font-medium mb-2 text-foreground">{t.models.title}</h3>
             <div className="text-xs sm:text-sm text-muted-foreground space-y-2 pl-3 sm:pl-4 border-l border-border">
-              <p><span className="text-foreground">OpenAI:</span> {t.models.openai}</p>
               <p><span className="text-foreground">Anthropic:</span> {t.models.anthropic}</p>
               <p><span className="text-foreground">Gemini:</span> {t.models.gemini}</p>
               <p><span className="text-foreground">xAI/Grok:</span> {t.models.xai}</p>

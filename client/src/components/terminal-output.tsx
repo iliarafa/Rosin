@@ -1,9 +1,56 @@
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { type StageOutput, type VerificationSummary as VerificationSummaryType, type ResearchStatus } from "@shared/schema";
 import { StageBlock } from "./stage-block";
 import { VerificationSummary } from "./verification-summary";
 import { ContradictionsView } from "./contradictions-view";
 import { FinalVerifiedAnswer } from "./final-verified-answer";
 import { Download, Share2 } from "lucide-react";
+
+/* ── Example queries shown on the idle screen ── */
+const EXAMPLE_QUERIES = [
+  {
+    label: "SCIENCE",
+    query: "Is it true that we only use 10% of our brain?",
+  },
+  {
+    label: "HISTORY",
+    query: "Did Napoleon Bonaparte actually lose the Battle of Waterloo due to bad weather?",
+  },
+  {
+    label: "HEALTH",
+    query: "Does cracking your knuckles cause arthritis?",
+  },
+];
+
+/* ── Typing animation hook ── */
+function useTypingAnimation(text: string, speed = 60, startDelay = 400) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    let i = 0;
+    let timeout: ReturnType<typeof setTimeout>;
+    const startTimeout = setTimeout(() => {
+      const tick = () => {
+        if (i < text.length) {
+          setDisplayed(text.slice(0, i + 1));
+          i++;
+          timeout = setTimeout(tick, speed);
+        } else {
+          setDone(true);
+        }
+      };
+      tick();
+    }, startDelay);
+    return () => {
+      clearTimeout(startTimeout);
+      clearTimeout(timeout);
+    };
+  }, [text, speed, startDelay]);
+
+  return { displayed, done };
+}
 
 interface TerminalOutputProps {
   query: string;
@@ -13,6 +60,7 @@ interface TerminalOutputProps {
   expectedStageCount: number;
   verificationId?: string | null;
   researchStatus?: ResearchStatus | null;
+  onQuerySelect?: (query: string) => void;
 }
 
 function exportToCSV(query: string, stages: StageOutput[]) {
@@ -98,22 +146,132 @@ export function TerminalOutput({
   expectedStageCount,
   verificationId,
   researchStatus,
+  onQuerySelect,
 }: TerminalOutputProps) {
+  /* ── Boot sequence state — runs once on first mount ── */
+  const [booted, setBooted] = useState(false);
+  const [bootLines, setBootLines] = useState<string[]>([]);
+
+  const BOOT_MESSAGES = [
+    "> ROSIN v1.0 — multi-LLM verification engine",
+    "> Loading provider modules...",
+    "> Anthropic ✓  Gemini ✓  xAI ✓  OpenAI ✓",
+    "> Pipeline ready. Awaiting query.",
+  ];
+
+  useEffect(() => {
+    if (booted) return;
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < BOOT_MESSAGES.length) {
+        setBootLines((prev) => [...prev, BOOT_MESSAGES[i]]);
+        i++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => setBooted(true), 300);
+      }
+    }, 280);
+    return () => clearInterval(interval);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Typing animation for the title ── */
+  const { displayed: typedTitle, done: titleDone } = useTypingAnimation(
+    "ROSIN — PURE OUTPUT",
+    55,
+    booted ? 0 : 1500
+  );
+
+  const handleExampleClick = useCallback(
+    (q: string) => {
+      onQuerySelect?.(q);
+    },
+    [onQuerySelect]
+  );
+
   if (stages.length === 0 && !isProcessing && !researchStatus) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-        <div className="text-center space-y-4">
-          <div className="text-sm opacity-60 text-[#000000]">ROSIN - PURE OUTPUT</div>
-          <div className="text-xs opacity-40 max-w-md">
-            Enter a query below. It will pass through multiple LLMs in sequence.
-            Each model verifies and refines the previous output to distill truth
-            and detect hallucinations.
-          </div>
-          <div className="text-xs opacity-30 pt-4">
-            <span className="opacity-60">$ </span>
-            <span className="animate-pulse">_</span>
-          </div>
-        </div>
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground crt-scanlines">
+        {/* ── Boot sequence overlay ── */}
+        <AnimatePresence>
+          {!booted && (
+            <motion.div
+              className="absolute inset-0 flex flex-col items-start justify-center px-8 sm:px-16 z-10"
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {bootLines.map((line, i) => (
+                <div
+                  key={i}
+                  className="boot-line text-xs text-primary/70 mb-1"
+                  style={{ animationDelay: `${i * 50}ms` }}
+                >
+                  {line}
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Main idle content (visible after boot) ── */}
+        <AnimatePresence>
+          {booted && (
+            <motion.div
+              className="text-center space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* Title with typing animation + neon glow */}
+              <div className="text-sm text-foreground tracking-wider">
+                <span className="neon-glow">{typedTitle.split("—")[0]}</span>
+                {typedTitle.includes("—") && (
+                  <span className="opacity-60">— {typedTitle.split("—")[1]}</span>
+                )}
+                {!titleDone && <span className="terminal-cursor">▎</span>}
+              </div>
+
+              {/* Subtitle */}
+              <motion.div
+                className="text-xs opacity-40 max-w-md"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                Launch a query through multiple LLMs. Verify, refine
+                and detect hallucinations.
+              </motion.div>
+
+              {/* Pulsing cursor */}
+              <div className="text-xs pt-4">
+                <span className="text-primary/50">{">"} </span>
+                <span className="terminal-cursor">_</span>
+              </div>
+
+              {/* ── Example query cards ── */}
+              <motion.div
+                className="flex flex-col sm:flex-row gap-3 pt-6 max-w-2xl mx-auto"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.4, duration: 0.5 }}
+              >
+                {EXAMPLE_QUERIES.map((ex, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleExampleClick(ex.query)}
+                    className="example-card flex-1 text-left p-3 border border-border rounded-none"
+                  >
+                    <div className="text-[10px] text-primary/70 mb-1.5 tracking-widest">
+                      [{ex.label}]
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      {ex.query}
+                    </div>
+                  </button>
+                ))}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
