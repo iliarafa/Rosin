@@ -26,8 +26,8 @@ A terminal-style web application that verifies LLM outputs by running queries th
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/multi-llm-verification.git
-cd multi-llm-verification
+git clone https://github.com/iliarafa/Rosin.git
+cd Rosin
 ```
 
 ### 2. Install dependencies
