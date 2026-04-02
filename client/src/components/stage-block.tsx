@@ -38,7 +38,7 @@ function severityColor(severity: string): string {
   return "text-muted-foreground";
 }
 
-/** Color for provenance change type badges */
+/** Color class for provenance change type text */
 function changeTypeColor(changeType: string): string {
   switch (changeType) {
     case "added": return "text-green-500";
@@ -46,6 +46,17 @@ function changeTypeColor(changeType: string): string {
     case "corrected": return "text-yellow-500";
     case "flagged": return "text-red-500";
     default: return "text-muted-foreground";
+  }
+}
+
+/** Icon glyph for each provenance change type */
+function changeTypeIcon(changeType: string): string {
+  switch (changeType) {
+    case "added": return "+";
+    case "modified": return "↔";
+    case "corrected": return "✓";
+    case "flagged": return "⚠";
+    default: return "·";
   }
 }
 
@@ -104,33 +115,60 @@ export function StageBlock({ stage }: StageBlockProps) {
 
           {showDetails && (
             <div className="mt-2 space-y-2 text-xs border-l-2 border-border pl-3">
-              {/* Key claims with confidence + provenance trail */}
+              {/* Key claims with confidence + collapsible provenance history */}
               {analysis.claims.length > 0 && (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {analysis.claims.map((c, i) => (
-                    <div key={i} className="space-y-1">
+                    <div key={i} className="space-y-1.5">
+                      {/* Claim text with confidence badge */}
                       <div className="flex items-start gap-2">
                         <span className={`shrink-0 tabular-nums ${c.confidence >= 80 ? "text-green-500" : c.confidence >= 50 ? "text-yellow-500" : "text-red-500"}`}>
                           [{c.confidence}]
                         </span>
                         <span className="text-muted-foreground">{c.text}</span>
                       </div>
-                      {/* Provenance trail — shows which model added/modified/corrected this claim */}
+
+                      {/* Provenance — collapsed-by-default "Change History" accordion.
+                          Uses <details>/<summary> for native collapse without extra state. */}
                       {c.provenance && c.provenance.length > 0 && (
-                        <div className="ml-10 space-y-0.5">
-                          {c.provenance.map((p, j) => (
-                            <div key={j} className="flex items-start gap-1.5 text-[10px] leading-tight">
-                              <span className={`shrink-0 ${changeTypeColor(p.changeType)}`}>
-                                S{p.stage}
-                              </span>
-                              <span className="text-foreground/60">{p.model}</span>
-                              <span className={`shrink-0 ${changeTypeColor(p.changeType)}`}>
-                                {p.changeType.toUpperCase()}
-                              </span>
-                              <span className="text-muted-foreground/60">{p.reason}</span>
-                            </div>
-                          ))}
-                        </div>
+                        <details className="ml-8 group">
+                          <summary className="text-[11px] text-muted-foreground/50 hover:text-muted-foreground cursor-pointer select-none transition-colors list-none">
+                            <span className="group-open:hidden">[+] {c.provenance.length} change{c.provenance.length > 1 ? "s" : ""}</span>
+                            <span className="hidden group-open:inline">[-] Change History</span>
+                          </summary>
+
+                          <div className="mt-2 space-y-2.5 border-l border-border/40 pl-3">
+                            {c.provenance.map((p, j) => (
+                              <div key={j} className="space-y-0.5">
+                                {/* Header row: icon + model badge + stage */}
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className={`${changeTypeColor(p.changeType)} font-mono`} title={p.changeType}>
+                                    {changeTypeIcon(p.changeType)}
+                                  </span>
+                                  <span className={`px-1.5 py-px border rounded-none text-[11px] tabular-nums ${changeTypeColor(p.changeType)} border-current/30`}>
+                                    S{p.stage} {p.model}
+                                  </span>
+                                  <span className={`text-[11px] font-medium uppercase tracking-wide ${changeTypeColor(p.changeType)}`}>
+                                    {p.changeType}
+                                  </span>
+                                </div>
+
+                                {/* Before → after diff (shown when originalText exists) */}
+                                {p.originalText && (
+                                  <div className="text-xs leading-relaxed pl-5 space-y-0.5">
+                                    <div className="text-muted-foreground/40 line-through">{p.originalText}</div>
+                                    <div className="text-green-500/80">{p.newText}</div>
+                                  </div>
+                                )}
+
+                                {/* Reason in italics */}
+                                <div className="text-xs text-muted-foreground/50 italic pl-5">
+                                  {p.reason}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                       )}
                     </div>
                   ))}

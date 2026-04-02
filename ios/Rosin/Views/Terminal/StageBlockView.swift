@@ -80,10 +80,11 @@ struct StageBlockView: View {
                     .buttonStyle(.plain)
 
                     if showDetails {
-                        VStack(alignment: .leading, spacing: 8) {
-                            // Key claims with confidence + provenance trail
+                        VStack(alignment: .leading, spacing: 10) {
+                            // Key claims with confidence + collapsible provenance history
                             ForEach(Array(analysis.claims.enumerated()), id: \.offset) { _, claim in
-                                VStack(alignment: .leading, spacing: 3) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    // Claim text with confidence badge
                                     HStack(alignment: .top, spacing: 6) {
                                         Text("[\(claim.confidence)]")
                                             .font(RosinTheme.monoCaption2)
@@ -94,25 +95,10 @@ struct StageBlockView: View {
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
 
-                                    // Provenance trail — shows which model added/modified/corrected this claim
+                                    // Provenance — collapsed-by-default "Change History" accordion
                                     if let provenance = claim.provenance, !provenance.isEmpty {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            ForEach(Array(provenance.enumerated()), id: \.offset) { _, entry in
-                                                HStack(spacing: 4) {
-                                                    Text("S\(entry.stage)")
-                                                        .foregroundColor(changeTypeColor(entry.changeType))
-                                                    Text(entry.model)
-                                                        .foregroundColor(.primary.opacity(0.5))
-                                                    Text(entry.changeType.rawValue.uppercased())
-                                                        .foregroundColor(changeTypeColor(entry.changeType))
-                                                    Text(entry.reason)
-                                                        .foregroundColor(RosinTheme.muted.opacity(0.6))
-                                                        .lineLimit(1)
-                                                }
-                                                .font(.system(size: 9, design: .monospaced))
-                                            }
-                                        }
-                                        .padding(.leading, 30)
+                                        ProvenanceDisclosure(provenance: provenance)
+                                            .padding(.leading, 24)
                                     }
                                 }
                             }
@@ -189,6 +175,106 @@ struct StageBlockView: View {
     }
 
     /// Color for provenance change type badges
+    private func changeTypeColor(_ changeType: ProvenanceEntry.ChangeType) -> Color {
+        switch changeType {
+        case .added: return RosinTheme.green
+        case .modified: return .blue
+        case .corrected: return .yellow
+        case .flagged: return RosinTheme.destructive
+        }
+    }
+}
+
+// MARK: - Provenance Change History (collapsed-by-default DisclosureGroup)
+
+/// A self-contained disclosure view for a claim's provenance trail.
+/// Uses DisclosureGroup for native collapse/expand, matching the terminal aesthetic.
+private struct ProvenanceDisclosure: View {
+    let provenance: [ProvenanceEntry]
+    @State private var isExpanded = false
+
+    var body: some View {
+        DisclosureGroup(isExpanded: $isExpanded) {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(provenance.enumerated()), id: \.offset) { _, entry in
+                    VStack(alignment: .leading, spacing: 3) {
+                        // Header: icon + model badge + change type
+                        HStack(spacing: 6) {
+                            Text(changeTypeIcon(entry.changeType))
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundColor(changeTypeColor(entry.changeType))
+
+                            // Model + stage badge
+                            Text("S\(entry.stage) \(entry.model)")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundColor(changeTypeColor(entry.changeType))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1)
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(changeTypeColor(entry.changeType).opacity(0.3), lineWidth: 1)
+                                )
+
+                            Text(entry.changeType.rawValue.uppercased())
+                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .foregroundColor(changeTypeColor(entry.changeType))
+                                .tracking(0.5)
+                        }
+
+                        // Before → after diff (shown when originalText exists)
+                        if let original = entry.originalText, !original.isEmpty {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(original)
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .strikethrough()
+                                    .foregroundColor(RosinTheme.muted.opacity(0.35))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(entry.newText)
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundColor(RosinTheme.green.opacity(0.8))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.leading, 20)
+                        }
+
+                        // Reason in italics
+                        Text(entry.reason)
+                            .font(.system(size: 11, design: .monospaced))
+                            .italic()
+                            .foregroundColor(RosinTheme.muted.opacity(0.45))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.leading, 20)
+                    }
+                }
+            }
+            .padding(.top, 6)
+            .padding(.leading, 4)
+            .overlay(alignment: .leading) {
+                Rectangle()
+                    .fill(Color.primary.opacity(0.1))
+                    .frame(width: 1)
+            }
+        } label: {
+            Text(isExpanded
+                 ? "[-] Change History"
+                 : "[+] \(provenance.count) change\(provenance.count > 1 ? "s" : "")")
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(RosinTheme.muted.opacity(0.45))
+        }
+        .accentColor(RosinTheme.muted.opacity(0.3))
+    }
+
+    /// Icon glyph for each provenance change type
+    private func changeTypeIcon(_ changeType: ProvenanceEntry.ChangeType) -> String {
+        switch changeType {
+        case .added: return "+"
+        case .modified: return "↔"
+        case .corrected: return "✓"
+        case .flagged: return "⚠"
+        }
+    }
+
+    /// Color for provenance change type
     private func changeTypeColor(_ changeType: ProvenanceEntry.ChangeType) -> Color {
         switch changeType {
         case .added: return RosinTheme.green
