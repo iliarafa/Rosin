@@ -132,6 +132,12 @@ final class TerminalViewModel: ObservableObject {
             }
             isProcessing = false
 
+        case .stageAnalysis(let stage, let analysis):
+            // Attach the Judge's per-stage analysis to the matching stage
+            if let idx = stages.firstIndex(where: { $0.id == stage }) {
+                stages[idx].analysis = analysis
+            }
+
         case .summary(let s):
             summary = s
 

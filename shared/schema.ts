@@ -40,12 +40,54 @@ export const insertVerificationRequestSchema = z.object({
 
 export type InsertVerificationRequest = z.infer<typeof insertVerificationRequestSchema>;
 
+// ── Structured scoring schemas (Judge pipeline) ──────────────────────
+
+/** A single factual claim extracted from a stage's output */
+export const claimSchema = z.object({
+  text: z.string(),
+  confidence: z.number().min(0).max(100),
+  sources: z.array(z.string()).optional(),
+});
+export type Claim = z.infer<typeof claimSchema>;
+
+/** A potential hallucination flagged by the Judge */
+export const hallucinationFlagSchema = z.object({
+  claim: z.string(),
+  reason: z.string(),
+  severity: z.enum(["low", "medium", "high"]),
+});
+export type HallucinationFlag = z.infer<typeof hallucinationFlagSchema>;
+
+/** Per-stage structured analysis produced by the Judge */
+export const stageAnalysisSchema = z.object({
+  stage: z.number(),
+  agreementScore: z.number().min(0).max(100),
+  claims: z.array(claimSchema),
+  hallucinationFlags: z.array(hallucinationFlagSchema),
+  corrections: z.array(z.string()),
+});
+export type StageAnalysis = z.infer<typeof stageAnalysisSchema>;
+
+/** The Judge's comprehensive verdict across all stages */
+export const judgeVerdictSchema = z.object({
+  verdict: z.string(),
+  overallScore: z.number().min(0).max(100),
+  confidence: z.enum(["high", "moderate", "low"]),
+  keyFindings: z.array(z.string()),
+  stageAnalyses: z.array(stageAnalysisSchema),
+});
+export type JudgeVerdict = z.infer<typeof judgeVerdictSchema>;
+
+// ── Stage output (now includes optional Judge analysis) ──────────────
+
 export const stageOutputSchema = z.object({
   stage: z.number(),
   model: llmModelSchema,
   content: z.string(),
   status: z.enum(["pending", "streaming", "complete", "error"]),
   error: z.string().optional(),
+  /** Per-stage analysis populated after the Judge runs */
+  analysis: stageAnalysisSchema.optional(),
 });
 
 export type StageOutput = z.infer<typeof stageOutputSchema>;
@@ -59,6 +101,8 @@ export const contradictionSchema = z.object({
 
 export type Contradiction = z.infer<typeof contradictionSchema>;
 
+// ── Verification summary (enhanced with Judge verdict) ───────────────
+
 export const verificationSummarySchema = z.object({
   consistency: z.string(),
   hallucinations: z.string(),
@@ -66,8 +110,9 @@ export const verificationSummarySchema = z.object({
   contradictions: z.array(contradictionSchema).optional(),
   confidenceScore: z.number().min(0).max(1).optional(),
   isAnalyzed: z.boolean().optional(),
-  // Dynamic analyst-style bullet points generated from pipeline results
   analysisBullets: z.array(z.string()).optional(),
+  /** Structured Judge verdict — present when the Judge stage completes */
+  judgeVerdict: judgeVerdictSchema.optional(),
 });
 
 export type VerificationSummary = z.infer<typeof verificationSummarySchema>;

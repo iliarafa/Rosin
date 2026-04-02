@@ -109,6 +109,15 @@ export default function Terminal() {
             );
           } else if (event.type === "verification_id") {
             setVerificationId(event.id);
+          } else if (event.type === "stage_analysis") {
+            // Judge has produced per-stage analysis — attach it to the matching stage
+            setStages((prev) =>
+              prev.map((s) =>
+                s.stage === event.stage
+                  ? { ...s, analysis: event.analysis }
+                  : s
+              )
+            );
           } else if (event.type === "summary") {
             setFinalSummary(event.summary);
           }

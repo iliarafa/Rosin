@@ -15,6 +15,8 @@ struct StageOutput: Identifiable, Codable {
     var content: String
     var status: StageStatus
     var error: String?
+    /// Per-stage structured analysis from the Judge (populated after judge completes)
+    var analysis: StageAnalysis?
 
     var stage: Int { id }
 }

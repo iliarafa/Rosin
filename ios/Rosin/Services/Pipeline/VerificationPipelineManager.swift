@@ -93,7 +93,9 @@ final class VerificationPipelineManager {
 
             if Task.isCancelled { return }
 
-            let summary = await computeVerificationSummary(
+            // ── Judge Stage ──
+            // Run the dedicated Judge to produce structured per-stage analysis + overall verdict
+            let summary = await runJudge(
                 query: query,
                 completedStages: completedStages,
                 totalStages: totalStages,
@@ -266,9 +268,42 @@ final class VerificationPipelineManager {
         return nil
     }
 
-    // MARK: - Verification Summary
+    // MARK: - Judge Stage
+    // The Judge is a dedicated analysis stage that runs after all verification stages.
+    // It produces a comprehensive structured verdict (JudgeVerdict) with per-stage
+    // agreement scores, claim extraction, hallucination flags, and overall scoring.
+    // The Judge output is decoded as JudgeVerdict and used to build the VerificationSummary.
 
-    func computeVerificationSummary(
+    /// Pick the strongest available model for the Judge call
+    private func pickJudgeModel() -> (model: LLMModel, apiKey: String)? {
+        // Prefer strong models — the Judge needs the best reasoning
+        let candidates: [(provider: LLMProvider, model: String)] = [
+            (.anthropic, "claude-sonnet-4-5"),
+            (.gemini, "gemini-2.5-flash"),
+            (.xai, "grok-3"),
+        ]
+        for candidate in candidates {
+            if let key = apiKeyManager.apiKey(for: candidate.provider) {
+                return (LLMModel(provider: candidate.provider, model: candidate.model), key)
+            }
+        }
+        return nil
+    }
+
+    /// Parse raw LLM text as JSON, stripping markdown fences if needed
+    private func parseJudgeJSON(_ text: String) -> Data? {
+        if let data = text.data(using: .utf8),
+           let _ = try? JSONSerialization.jsonObject(with: data) {
+            return data
+        }
+        let cleaned = text
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.data(using: .utf8)
+    }
+
+    func runJudge(
         query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
         totalStages: Int,
@@ -279,28 +314,14 @@ final class VerificationPipelineManager {
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
-        // Pick cheapest available model for analysis
-        let candidates: [(provider: LLMProvider, model: String)] = [
-            (.gemini, "gemini-2.5-flash"),
-            (.xai, "grok-3-fast"),
-            (.anthropic, "claude-haiku-4-5"),
-        ]
-
-        var analysisModel: LLMModel?
-        var analysisKey: String?
-        for candidate in candidates {
-            if let key = apiKeyManager.apiKey(for: candidate.provider) {
-                analysisModel = LLMModel(provider: candidate.provider, model: candidate.model)
-                analysisKey = key
-                break
-            }
-        }
-
-        guard let model = analysisModel, let apiKey = analysisKey else {
+        guard let judgeConfig = pickJudgeModel() else {
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
-        // Build analysis prompt with all stage outputs
+        // Build the stage outputs text for the Judge
+        let modelNames = completedStages.map { "\($0.model.provider.shortName) (\($0.model.model))" }.joined(separator: ", ")
+        let liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1 with real-time data." : ""
+
         var stageOutputsText = ""
         for stage in completedStages {
             stageOutputsText += "── Stage \(stage.stage) (\(stage.model.provider.shortName) / \(stage.model.model)) ──\n"
@@ -308,61 +329,63 @@ final class VerificationPipelineManager {
             stageOutputsText += "\n\n"
         }
 
-        // Build model names list for the prompt so the LLM can reference them by name
-        let modelNames = completedStages.map { "\($0.model.provider.shortName) (\($0.model.model))" }.joined(separator: ", ")
-        let liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1." : ""
-
+        // The Judge prompt requests the full JudgeVerdict JSON structure
         let systemPrompt = """
-        You are an expert verification analyst. You will receive a query and multiple LLM outputs from a multi-stage verification pipeline. \
+        You are the JUDGE — the final authority in a multi-LLM verification pipeline. \
         The models used were: \(modelNames).\(liveResearchNote)
 
-        Analyze consistency, hallucination risk, and contradictions. Then write 3-4 concise analyst-style bullet points that:
-        - Reference the actual query topic (e.g. "Nuclear fusion claims…", not "the query")
-        - Name specific models by their short name (Claude, Gemini, Grok) when describing agreement or disagreement
-        - Mention live web research grounding if it was used
-        - Justify the confidence level based on what the models actually said
+        You will receive the original query and all stage outputs. Produce a comprehensive structured verdict.
 
         Respond with ONLY valid JSON (no markdown, no code fences):
         {
-          "consistencySummary": "Brief description of consistency across models",
-          "hallucinationRisk": "Low/Medium/High with brief explanation",
-          "confidenceLevel": "High/Moderate/Low",
-          "confidenceScore": 0.85,
-          "contradictions": [
-            {
-              "topic": "Specific topic of disagreement",
-              "stageA": 1,
-              "stageB": 2,
-              "description": "Brief description of the contradiction"
-            }
+          "verdict": "2-3 sentence expert verdict summarizing the verification result, referencing the actual topic",
+          "overallScore": 87,
+          "confidence": "high",
+          "keyFindings": [
+            "Finding 1 — topic-specific, referencing models by short name (Claude/Gemini/Grok)",
+            "Finding 2 — note consensus or disagreements between specific models",
+            "Finding 3 — confidence justification tied to the query content",
+            "Finding 4 — mention live web research if used, or note data currency"
           ],
-          "analysisBullets": [
-            "First expert verdict bullet — topic-specific, referencing models by name",
-            "Second bullet — about consensus, corrections, or disagreements found",
-            "Third bullet — confidence justification tied to the query content",
-            "Optional fourth bullet — live research note or additional insight"
+          "stageAnalyses": [
+            {
+              "stage": 1,
+              "agreementScore": 92,
+              "claims": [
+                { "text": "Key claim extracted from this stage", "confidence": 85, "sources": [] }
+              ],
+              "hallucinationFlags": [
+                { "claim": "Specific claim that may be hallucinated", "reason": "Why suspect", "severity": "low" }
+              ],
+              "corrections": ["Corrections this stage made to previous output"]
+            }
           ]
         }
 
         Rules:
-        - analysisBullets must have 3-4 items, each under 120 characters
-        - Each bullet must feel unique to THIS specific query, never generic
-        - If there are no contradictions, return an empty array
-        - confidenceScore: 0.0 to 1.0
+        - verdict: 2-3 sentences, never generic — reference the actual query topic
+        - overallScore: 0-100 representing cross-model agreement and factual confidence
+        - confidence: "high" (score >= 80), "moderate" (50-79), "low" (< 50)
+        - keyFindings: 3-5 items, each under 120 chars, referencing models by name
+        - stageAnalyses: one entry per stage with agreementScore 0-100
+          - claims: 2-5 key factual claims per stage with confidence 0-100
+          - hallucinationFlags: only include if genuinely suspect (empty array if none)
+          - corrections: list corrections this stage made (empty for stage 1)
+        - Be specific — never say "the query" or "the topic", say what it actually is
         """
 
         let userContent = "Original Query: \(query)\n\n\(stageOutputsText)"
 
-        let service = LLMServiceFactory.service(for: model.provider)
+        let service = LLMServiceFactory.service(for: judgeConfig.model.provider)
         let stream = service.streamCompletion(
-            model: model.model,
+            model: judgeConfig.model.model,
             systemPrompt: systemPrompt,
             userContent: userContent,
-            apiKey: apiKey,
-            maxTokens: 1024
+            apiKey: judgeConfig.apiKey,
+            maxTokens: 2048
         )
 
-        // Collect the full response (no streaming to UI)
+        // Collect the full Judge response (no streaming to UI — runs behind the scenes)
         var responseText = ""
         do {
             for try await text in stream {
@@ -373,83 +396,68 @@ final class VerificationPipelineManager {
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
-        // Parse JSON response
-        guard let data = responseText.data(using: .utf8) else {
+        // Parse the Judge's JSON response
+        guard let data = parseJudgeJSON(responseText) else {
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
         do {
-            let analysis = try JSONDecoder().decode(AnalysisResponse.self, from: data)
+            let judgeVerdict = try JSONDecoder().decode(JudgeVerdict.self, from: data)
 
-            let contradictions = analysis.contradictions.map { c in
-                Contradiction(
-                    topic: c.topic,
-                    stageA: c.stageA,
-                    stageB: c.stageB,
-                    description: c.description
-                )
+            // Emit per-stage analysis events so the ViewModel can attach scores to stages
+            for sa in judgeVerdict.stageAnalyses {
+                onEvent(.stageAnalysis(stage: sa.stage, analysis: sa))
             }
 
-            let confidenceText: String
-            if let score = analysis.confidenceScore {
-                let pct = Int(score * 100)
-                confidenceText = "\(analysis.confidenceLevel) (\(pct)%)"
+            // Build VerificationSummary from the Judge verdict
+            let confidenceScore = Double(judgeVerdict.overallScore) / 100.0
+            let confidenceText = "\(judgeVerdict.confidence.capitalized) (\(judgeVerdict.overallScore)%)"
+
+            // Extract high-severity flags as contradictions for the existing UI
+            let contradictions = judgeVerdict.stageAnalyses.flatMap { sa in
+                sa.hallucinationFlags
+                    .filter { $0.severity == .high }
+                    .map { flag in
+                        Contradiction(
+                            topic: flag.claim,
+                            stageA: sa.stage,
+                            stageB: 0,
+                            description: flag.reason
+                        )
+                    }
+            }
+
+            // Hallucination summary text
+            let totalFlags = judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.hallucinationFlags.count }
+            let hallucinationText: String
+            if totalFlags == 0 {
+                hallucinationText = "No hallucinations detected across any stage"
             } else {
-                confidenceText = analysis.confidenceLevel
+                let flaggedStages = judgeVerdict.stageAnalyses.filter { !$0.hallucinationFlags.isEmpty }.count
+                hallucinationText = "\(totalFlags) potential issue\(totalFlags > 1 ? "s" : "") flagged across \(flaggedStages) stage\(flaggedStages > 1 ? "s" : "")"
             }
+
+            // Consistency from agreement scores
+            let avgAgreement = judgeVerdict.stageAnalyses.isEmpty ? 0 :
+                judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.agreementScore } / judgeVerdict.stageAnalyses.count
+            let consistencyText = "\(avgAgreement)% average agreement across \(completedStages.count) stages"
 
             return VerificationSummary(
-                consistency: analysis.consistencySummary,
-                hallucinations: analysis.hallucinationRisk,
+                consistency: consistencyText,
+                hallucinations: hallucinationText,
                 confidence: confidenceText,
                 contradictions: contradictions,
-                confidenceScore: analysis.confidenceScore,
+                confidenceScore: confidenceScore,
                 isAnalyzed: true,
-                analysisBullets: analysis.analysisBullets ?? []
+                analysisBullets: judgeVerdict.keyFindings,
+                judgeVerdict: judgeVerdict
             )
         } catch {
-            // JSON parsing failed — try to strip markdown fences and retry
-            let cleaned = responseText
-                .replacingOccurrences(of: "```json", with: "")
-                .replacingOccurrences(of: "```", with: "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-
-            if let cleanedData = cleaned.data(using: .utf8),
-               let analysis = try? JSONDecoder().decode(AnalysisResponse.self, from: cleanedData) {
-                let contradictions = analysis.contradictions.map { c in
-                    Contradiction(
-                        topic: c.topic,
-                        stageA: c.stageA,
-                        stageB: c.stageB,
-                        description: c.description
-                    )
-                }
-
-                let confidenceText: String
-                if let score = analysis.confidenceScore {
-                    let pct = Int(score * 100)
-                    confidenceText = "\(analysis.confidenceLevel) (\(pct)%)"
-                } else {
-                    confidenceText = analysis.confidenceLevel
-                }
-
-                return VerificationSummary(
-                    consistency: analysis.consistencySummary,
-                    hallucinations: analysis.hallucinationRisk,
-                    confidence: confidenceText,
-                    contradictions: contradictions,
-                    confidenceScore: analysis.confidenceScore,
-                    isAnalyzed: true,
-                    analysisBullets: analysis.analysisBullets ?? []
-                )
-            }
-
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
     }
 
-    /// Generates a contextual fallback summary using pipeline metadata when LLM analysis is unavailable.
-    /// Builds dynamic bullet points from the query topic, model names, and live research status.
+    /// Generates a contextual fallback summary using pipeline metadata when the Judge is unavailable.
     func fallbackSummary(
         query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
@@ -484,7 +492,6 @@ final class VerificationPipelineManager {
             hallucinations = "Checked at each stage \u{2013} potential issues flagged"
         }
 
-        // Generate contextual fallback bullets from available pipeline metadata
         let bullets = Self.buildFallbackBullets(
             query: query,
             completedStages: completedStages,
@@ -503,8 +510,7 @@ final class VerificationPipelineManager {
         )
     }
 
-    /// Builds contextual bullet points from pipeline metadata when no LLM analysis is available.
-    /// Extracts a topic snippet from the query and references actual model names used.
+    /// Builds contextual bullet points from pipeline metadata when the Judge is unavailable.
     private static func buildFallbackBullets(
         query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
@@ -513,7 +519,6 @@ final class VerificationPipelineManager {
     ) -> [String] {
         var bullets: [String] = []
 
-        // Extract a short topic from the query (first ~60 chars, breaking at word boundary)
         let topicSnippet: String = {
             let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.count <= 60 { return trimmed }
@@ -524,12 +529,10 @@ final class VerificationPipelineManager {
             return prefix + "…"
         }()
 
-        // Bullet 1: Model names used for this query
         let modelShortNames = completedStages.map { $0.model.provider.shortName }
         let uniqueNames = NSOrderedSet(array: modelShortNames).array as! [String]
         bullets.append("Queried \"\(topicSnippet)\" through \(uniqueNames.joined(separator: ", "))")
 
-        // Bullet 2: Pipeline completion status
         let completed = completedStages.count
         if completed == totalStages {
             bullets.append("All \(completed) verification stages completed successfully")
@@ -537,7 +540,6 @@ final class VerificationPipelineManager {
             bullets.append("\(completed) of \(totalStages) stages completed — partial coverage")
         }
 
-        // Bullet 3: Live research note or general grounding note
         if liveResearchUsed {
             bullets.append("Grounded with live web data via Tavily search")
         } else {

@@ -4,7 +4,7 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import { tavily } from "@tavily/core";
-import { insertVerificationRequestSchema, type LLMModel, type VerificationSummary } from "@shared/schema";
+import { insertVerificationRequestSchema, type LLMModel, type VerificationSummary, type JudgeVerdict, type StageAnalysis, judgeVerdictSchema } from "@shared/schema";
 import { z } from "zod";
 import { storage } from "./storage";
 import { randomUUID } from "crypto";
@@ -265,13 +265,18 @@ async function runStage(
   }
 }
 
-// Non-streaming LLM calls for analysis
+// Non-streaming LLM calls for analysis.
+// When jsonMode is true, providers that support it will enforce JSON output
+// at the API level (Gemini via responseMimeType, xAI/OpenAI via response_format).
+// Anthropic relies on the system prompt instruction since its Messages API
+// does not have a dedicated JSON mode flag.
 async function callLLM(
   provider: string,
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number
+  maxTokens: number,
+  jsonMode: boolean = false
 ): Promise<string> {
   switch (provider) {
     case "anthropic": {
@@ -287,23 +292,31 @@ async function callLLM(
         .join("");
     }
     case "gemini": {
+      const config: Record<string, unknown> = { maxOutputTokens: maxTokens };
+      if (jsonMode) {
+        config.responseMimeType = "application/json";
+      }
       const result = await gemini.models.generateContent({
         model,
         contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n${userContent}` }] }],
-        config: { maxOutputTokens: maxTokens },
+        config,
       });
       return result.text || "";
     }
     case "xai": {
       const client = getXAIClient();
-      const completion = await client.chat.completions.create({
+      const params: Record<string, unknown> = {
         model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
         ],
         max_tokens: maxTokens,
-      });
+      };
+      if (jsonMode) {
+        params.response_format = { type: "json_object" };
+      }
+      const completion = await client.chat.completions.create(params as any);
       return completion.choices[0]?.message?.content || "";
     }
     default:
@@ -395,7 +408,39 @@ function fallbackSummary(
   return { consistency, hallucinations, confidence, contradictions: [], isAnalyzed: false, analysisBullets };
 }
 
-async function computeVerificationSummary(
+// ── Judge Stage ──────────────────────────────────────────────────────
+// The Judge is a dedicated analysis stage that runs after all verification
+// stages complete. It produces a comprehensive structured verdict with:
+// - Per-stage agreement scores (0–100), key claims, hallucination flags
+// - Overall score, confidence, and expert-style key findings
+// The Judge output is validated against the JudgeVerdict Zod schema.
+
+/** Parse raw LLM text as JSON, stripping markdown fences if needed */
+function parseJudgeJSON(text: string): any {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const cleaned = text
+      .replace(/```json\s*/g, "")
+      .replace(/```\s*/g, "")
+      .trim();
+    return JSON.parse(cleaned);
+  }
+}
+
+/** Pick the strongest available model for the Judge call */
+function pickJudgeModel(): { provider: string; model: string } | null {
+  // Prefer strong models — the Judge needs the best reasoning
+  const candidates: { provider: string; model: string; envKey: string }[] = [
+    { provider: "anthropic", model: "claude-sonnet-4-5", envKey: "AI_INTEGRATIONS_ANTHROPIC_API_KEY" },
+    { provider: "gemini", model: "gemini-2.5-flash", envKey: "AI_INTEGRATIONS_GEMINI_API_KEY" },
+    { provider: "xai", model: "grok-3", envKey: "XAI_API_KEY" },
+  ];
+  const chosen = candidates.find((c) => process.env[c.envKey]);
+  return chosen ? { provider: chosen.provider, model: chosen.model } : null;
+}
+
+async function runJudge(
   query: string,
   completedStages: CompletedStage[],
   totalStages: number,
@@ -405,115 +450,152 @@ async function computeVerificationSummary(
     return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
   }
 
-  // Pick cheapest available model for analysis
-  const candidates: { provider: string; model: string; envKey: string }[] = [
-    { provider: "gemini", model: "gemini-2.5-flash", envKey: "AI_INTEGRATIONS_GEMINI_API_KEY" },
-    { provider: "xai", model: "grok-3-fast", envKey: "XAI_API_KEY" },
-    { provider: "anthropic", model: "claude-haiku-4-5", envKey: "AI_INTEGRATIONS_ANTHROPIC_API_KEY" },
-  ];
-
-  const chosen = candidates.find((c) => process.env[c.envKey]);
-  if (!chosen) {
+  const judgeModel = pickJudgeModel();
+  if (!judgeModel) {
     return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
   }
 
-  // Build model names list so the analysis LLM can reference them by name
+  // Build the stage outputs text block for the Judge
   const modelNames = completedStages.map((s) => `${providerShortName(s.model.provider)} (${s.model.model})`).join(", ");
-  const liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1." : "";
+  const liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1 with real-time data." : "";
 
   let stageOutputsText = "";
   for (const stage of completedStages) {
-    stageOutputsText += `── Stage ${stage.stage} (${stage.model.provider} / ${stage.model.model}) ──\n`;
+    stageOutputsText += `── Stage ${stage.stage} (${providerShortName(stage.model.provider)} / ${stage.model.model}) ──\n`;
     stageOutputsText += stage.content;
     stageOutputsText += "\n\n";
   }
 
-  const systemPrompt = `You are an expert verification analyst. You will receive a query and multiple LLM outputs from a multi-stage verification pipeline. The models used were: ${modelNames}.${liveResearchNote}
+  // The Judge prompt requests the full JudgeVerdict JSON structure with
+  // per-stage analysis (claims, scores, hallucination flags) and overall verdict
+  const systemPrompt = `You are the JUDGE — the final authority in a multi-LLM verification pipeline. The models used were: ${modelNames}.${liveResearchNote}
 
-Analyze consistency, hallucination risk, and contradictions. Then write 3-4 concise analyst-style bullet points that:
-- Reference the actual query topic (e.g. "Nuclear fusion claims…", not "the query")
-- Name specific models by their short name (Claude, Gemini, Grok) when describing agreement or disagreement
-- Mention live web research grounding if it was used
-- Justify the confidence level based on what the models actually said
+You will receive the original query and all stage outputs. Your job is to produce a comprehensive structured verdict.
 
-Respond with ONLY valid JSON (no markdown, no code fences):
+Respond with ONLY valid JSON (no markdown, no code fences) matching this exact schema:
 {
-  "consistencySummary": "Brief description of consistency across models",
-  "hallucinationRisk": "Low/Medium/High with brief explanation",
-  "confidenceLevel": "High/Moderate/Low",
-  "confidenceScore": 0.85,
-  "contradictions": [
-    {
-      "topic": "Specific topic of disagreement",
-      "stageA": 1,
-      "stageB": 2,
-      "description": "Brief description of the contradiction"
-    }
+  "verdict": "2-3 sentence expert verdict summarizing the verification result, referencing the actual topic",
+  "overallScore": 87,
+  "confidence": "high",
+  "keyFindings": [
+    "Finding 1 — topic-specific, referencing models by short name (Claude/Gemini/Grok)",
+    "Finding 2 — note consensus or disagreements between specific models",
+    "Finding 3 — confidence justification tied to the query content",
+    "Finding 4 — mention live web research if used, or note data currency"
   ],
-  "analysisBullets": [
-    "First expert verdict bullet — topic-specific, referencing models by name",
-    "Second bullet — about consensus, corrections, or disagreements found",
-    "Third bullet — confidence justification tied to the query content",
-    "Optional fourth bullet — live research note or additional insight"
+  "stageAnalyses": [
+    {
+      "stage": 1,
+      "agreementScore": 92,
+      "claims": [
+        { "text": "Key claim extracted from this stage", "confidence": 85, "sources": [] }
+      ],
+      "hallucinationFlags": [
+        { "claim": "Specific claim that may be hallucinated", "reason": "Why it's suspect", "severity": "low" }
+      ],
+      "corrections": ["Corrections this stage made to previous output"]
+    }
   ]
 }
 
 Rules:
-- analysisBullets must have 3-4 items, each under 120 characters
-- Each bullet must feel unique to THIS specific query, never generic
-- If there are no contradictions, return an empty array
-- confidenceScore: 0.0 to 1.0`;
+- verdict: 2-3 sentences, never generic — reference the actual query topic
+- overallScore: 0-100 representing cross-model agreement and factual confidence
+- confidence: "high" (score >= 80), "moderate" (50-79), "low" (< 50)
+- keyFindings: 3-5 items, each under 120 chars, referencing models by name
+- stageAnalyses: one entry per stage with agreementScore 0-100
+  - claims: 2-5 key factual claims per stage with confidence 0-100
+  - hallucinationFlags: only include if genuinely suspect (empty array if none)
+  - corrections: list corrections this stage made (empty for stage 1)
+- If live research was used, mention it in keyFindings
+- Be specific — never say "the query" or "the topic", say what it actually is`;
 
   const userContent = `Original Query: ${query}\n\n${stageOutputsText}`;
 
-  try {
-    const responseText = await callLLM(chosen.provider, chosen.model, systemPrompt, userContent, 1024);
+  // Attempt the Judge call with one retry if JSON parsing fails entirely.
+  // Uses jsonMode: true so providers that support it (Gemini, xAI) enforce
+  // JSON output at the API level, reducing parse failures.
+  const MAX_JUDGE_ATTEMPTS = 2;
+  let lastError: unknown;
 
-    let parsed: any;
+  for (let attempt = 1; attempt <= MAX_JUDGE_ATTEMPTS; attempt++) {
     try {
-      parsed = JSON.parse(responseText);
-    } catch {
-      // Strip markdown fences and retry
-      const cleaned = responseText
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*/g, "")
-        .trim();
-      parsed = JSON.parse(cleaned);
+      console.log(`Running Judge stage with ${judgeModel.provider}/${judgeModel.model} (attempt ${attempt})`);
+      const responseText = await callLLM(judgeModel.provider, judgeModel.model, systemPrompt, userContent, 2048, true);
+      const raw = parseJudgeJSON(responseText);
+
+      // Validate with Zod — if it fails, we still try to extract what we can
+      const judgeResult = judgeVerdictSchema.safeParse(raw);
+      let judgeVerdict: JudgeVerdict;
+
+      if (judgeResult.success) {
+        judgeVerdict = judgeResult.data;
+      } else {
+        console.warn(`Judge JSON didn't fully validate (attempt ${attempt}), using raw with defaults:`, judgeResult.error.issues);
+        // Graceful degradation: build a valid verdict from whatever we got
+        judgeVerdict = {
+          verdict: raw.verdict || "Verification analysis complete",
+          overallScore: typeof raw.overallScore === "number" ? Math.max(0, Math.min(100, raw.overallScore)) : 75,
+          confidence: ["high", "moderate", "low"].includes(raw.confidence) ? raw.confidence : "moderate",
+          keyFindings: Array.isArray(raw.keyFindings) ? raw.keyFindings.map(String) : [],
+          stageAnalyses: Array.isArray(raw.stageAnalyses) ? raw.stageAnalyses.map((sa: any) => ({
+            stage: sa.stage || 0,
+            agreementScore: typeof sa.agreementScore === "number" ? sa.agreementScore : 75,
+            claims: Array.isArray(sa.claims) ? sa.claims : [],
+            hallucinationFlags: Array.isArray(sa.hallucinationFlags) ? sa.hallucinationFlags : [],
+            corrections: Array.isArray(sa.corrections) ? sa.corrections : [],
+          })) : [],
+        };
+      }
+
+      // Build the VerificationSummary from the Judge verdict
+      const confidenceScore = judgeVerdict.overallScore / 100;
+      const confidenceText = `${judgeVerdict.confidence.charAt(0).toUpperCase() + judgeVerdict.confidence.slice(1)} (${judgeVerdict.overallScore}%)`;
+
+      // Extract high-severity hallucination flags as contradictions
+      const contradictions = judgeVerdict.stageAnalyses.flatMap((sa) =>
+        sa.hallucinationFlags
+          .filter((f) => f.severity === "high")
+          .map((f) => ({
+            topic: f.claim,
+            stageA: sa.stage,
+            stageB: 0,
+            description: f.reason,
+          }))
+      );
+
+      // Count total hallucination flags across all stages
+      const totalFlags = judgeVerdict.stageAnalyses.reduce((sum, sa) => sum + sa.hallucinationFlags.length, 0);
+      const hallucinationText = totalFlags === 0
+        ? "No hallucinations detected across any stage"
+        : `${totalFlags} potential issue${totalFlags > 1 ? "s" : ""} flagged across ${judgeVerdict.stageAnalyses.filter((sa) => sa.hallucinationFlags.length > 0).length} stage${judgeVerdict.stageAnalyses.filter((sa) => sa.hallucinationFlags.length > 0).length > 1 ? "s" : ""}`;
+
+      // Consistency from agreement scores
+      const avgAgreement = judgeVerdict.stageAnalyses.length > 0
+        ? Math.round(judgeVerdict.stageAnalyses.reduce((sum, sa) => sum + sa.agreementScore, 0) / judgeVerdict.stageAnalyses.length)
+        : 0;
+      const consistencyText = `${avgAgreement}% average agreement across ${completedStages.length} stages`;
+
+      return {
+        consistency: consistencyText,
+        hallucinations: hallucinationText,
+        confidence: confidenceText,
+        contradictions,
+        confidenceScore,
+        isAnalyzed: true,
+        analysisBullets: judgeVerdict.keyFindings,
+        judgeVerdict,
+      };
+    } catch (error) {
+      lastError = error;
+      console.error(`Judge attempt ${attempt} failed:`, error);
+      // Loop will retry if attempts remain
     }
-
-    const contradictions = (parsed.contradictions || []).map((c: any) => ({
-      topic: c.topic || "",
-      stageA: c.stageA || 0,
-      stageB: c.stageB || 0,
-      description: c.description || "",
-    }));
-
-    const confidenceScore = typeof parsed.confidenceScore === "number"
-      ? Math.max(0, Math.min(1, parsed.confidenceScore))
-      : undefined;
-
-    const confidenceText = confidenceScore !== undefined
-      ? `${parsed.confidenceLevel || "Unknown"} (${Math.round(confidenceScore * 100)}%)`
-      : parsed.confidenceLevel || "Unknown";
-
-    // Extract analysisBullets from the LLM response, falling back to metadata-based bullets
-    const analysisBullets = Array.isArray(parsed.analysisBullets) && parsed.analysisBullets.length > 0
-      ? parsed.analysisBullets.map((b: any) => String(b))
-      : buildFallbackBullets(query, completedStages, totalStages, liveResearchUsed);
-
-    return {
-      consistency: parsed.consistencySummary || `Cross-verified across ${completedStages.length} LLMs`,
-      hallucinations: parsed.hallucinationRisk || "Checked at each stage",
-      confidence: confidenceText,
-      contradictions,
-      confidenceScore,
-      isAnalyzed: true,
-      analysisBullets,
-    };
-  } catch (error) {
-    console.error("Analysis failed:", error);
-    return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
   }
+
+  // All attempts exhausted — fall back to metadata-based summary
+  console.error("Judge stage failed after all attempts, using fallback:", lastError);
+  return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
 }
 
 export async function registerRoutes(
@@ -688,7 +770,16 @@ ${lengthConfig.verifyInstruction}`;
         }
       }
 
-      const summary = await computeVerificationSummary(query, completedStages, totalStages, liveResearch);
+      // ── Judge Stage ──
+      // Run the dedicated Judge to produce structured per-stage analysis + overall verdict
+      const summary = await runJudge(query, completedStages, totalStages, liveResearch);
+
+      // Send per-stage analysis events so the frontend can show score badges on each stage
+      if (summary.judgeVerdict) {
+        for (const sa of summary.judgeVerdict.stageAnalyses) {
+          sendSSE(res, { type: "stage_analysis", stage: sa.stage, analysis: sa });
+        }
+      }
 
       // Save to history (non-blocking)
       const verificationId = randomUUID();

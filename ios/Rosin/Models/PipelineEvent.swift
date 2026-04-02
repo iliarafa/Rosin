@@ -10,6 +10,8 @@ enum PipelineEvent {
     case stageRetry(stage: Int, model: LLMModel, attempt: Int)
     case stageSkipped(stage: Int, error: String)
     case stageError(stage: Int, error: String)
+    /// Per-stage analysis from the Judge — contains agreement score, claims, flags
+    case stageAnalysis(stage: Int, analysis: StageAnalysis)
     case summary(VerificationSummary)
     case done
 }
