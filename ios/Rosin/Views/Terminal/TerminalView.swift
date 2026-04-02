@@ -233,10 +233,11 @@ struct TerminalView: View {
     private func exportPDF() {
         let pdfData = ExportService.generatePDF(
             query: viewModel.query,
-            stages: viewModel.stages
+            stages: viewModel.stages,
+            summary: viewModel.summary
         )
         let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("verification-\(Int(Date().timeIntervalSince1970)).pdf")
+            .appendingPathComponent("rosin-report-\(Int(Date().timeIntervalSince1970)).pdf")
         try? pdfData.write(to: tempURL)
         shareItem = ShareItem(items: [tempURL])
     }

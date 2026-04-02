@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HistoryDetailView: View {
     let item: VerificationHistoryItem
+    @State private var shareItem: ShareItem?
 
     var body: some View {
         NavigationStack {
@@ -82,11 +83,49 @@ struct HistoryDetailView: View {
                     if let summary = item.summary {
                         VerificationSummaryView(summary: summary)
                     }
+
+                    // Privacy footer
+                    Text("Stored locally on this device • Private")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundColor(RosinTheme.muted.opacity(0.3))
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 20)
+                        .padding(.bottom, 16)
                 }
             }
             .navigationTitle("Verification Detail")
             .navigationBarTitleDisplayMode(.inline)
             .background(RosinTheme.background)
+            .toolbar {
+                // Export PDF button
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        exportPDF()
+                    } label: {
+                        Text("[PDF]")
+                            .font(RosinTheme.monoCaption2)
+                            .foregroundColor(RosinTheme.muted)
+                    }
+                }
+            }
+            .sheet(item: $shareItem) { item in
+                ShareSheetRepresentable(items: item.items)
+                    .presentationDetents([.medium, .large])
+            }
         }
+    }
+
+    /// Generate a full verification report PDF and present the share sheet.
+    /// 100% local — no data leaves the device.
+    private func exportPDF() {
+        let pdfData = ExportService.generatePDF(
+            query: item.query,
+            stages: item.stages,
+            summary: item.summary
+        )
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rosin-report-\(Int(Date().timeIntervalSince1970)).pdf")
+        try? pdfData.write(to: tempURL)
+        shareItem = ShareItem(items: [tempURL])
     }
 }

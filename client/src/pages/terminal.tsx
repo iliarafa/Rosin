@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { type LLMModel, type StageOutput, type VerificationSummary, type ResearchStatus } from "@shared/schema";
 import { useLocalHistory, type LocalHistoryItem } from "@/hooks/use-local-history";
+import { generateReport } from "@/lib/generate-report";
 
 const allModels: LLMModel[] = [
   { provider: "anthropic", model: "claude-sonnet-4-5" },
@@ -89,6 +90,20 @@ export default function Terminal() {
     setResearchStatus(null);
     setVerificationId(null);
     setHistoryOpen(false);
+  }, []);
+
+  /** Whether the current terminal state has a completed verification to export */
+  const canExport = stages.length > 0 && stages.every((s) => s.status === "complete");
+
+  /** Generate and export a PDF report for the current terminal state */
+  const handleExport = useCallback(() => {
+    if (!canExport) return;
+    generateReport(query, stages, finalSummary);
+  }, [query, stages, finalSummary, canExport]);
+
+  /** Generate and export a PDF report for a specific history item */
+  const handleExportItem = useCallback((item: LocalHistoryItem) => {
+    generateReport(item.query, item.stages, item.summary);
   }, []);
 
   /** Exit read-only mode and reset for a new query */
@@ -415,6 +430,12 @@ export default function Terminal() {
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  onClick={handleExport}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+                >
+                  [EXPORT]
+                </button>
+                <button
                   onClick={clearViewing}
                   className="text-xs text-primary hover:text-foreground transition-colors px-2 py-1 border border-primary/30 rounded-none"
                 >
@@ -512,32 +533,45 @@ export default function Terminal() {
                 {localHistory.items.map((item) => {
                   const jv = item.summary?.judgeVerdict;
                   return (
-                    <button
+                    <div
                       key={item.id}
-                      onClick={() => loadHistoryItem(item)}
-                      className="w-full text-left px-5 py-3.5 hover:bg-muted/30 transition-colors"
+                      className="flex items-start gap-0 hover:bg-muted/30 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs truncate">{item.query}</div>
-                          <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
-                            <span>{item.stages.length} stages</span>
-                            {item.adversarialMode && (
-                              <span className="text-destructive">[ADV]</span>
-                            )}
-                            <span>{relativeTime(item.createdAt)}</span>
+                      {/* Main clickable area — loads item into terminal */}
+                      <button
+                        onClick={() => loadHistoryItem(item)}
+                        className="flex-1 text-left px-5 py-3.5 min-w-0"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs truncate">{item.query}</div>
+                            <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
+                              <span>{item.stages.length} stages</span>
+                              {item.adversarialMode && (
+                                <span className="text-destructive">[ADV]</span>
+                              )}
+                              <span>{relativeTime(item.createdAt)}</span>
+                            </div>
                           </div>
+                          {/* Judge overall score badge */}
+                          {jv && (
+                            <span
+                              className={`shrink-0 text-[10px] border px-1.5 py-0.5 rounded-none tabular-nums ${judgeScoreColor(jv.overallScore)}`}
+                            >
+                              {jv.overallScore}
+                            </span>
+                          )}
                         </div>
-                        {/* Judge overall score badge */}
-                        {jv && (
-                          <span
-                            className={`shrink-0 text-[10px] border px-1.5 py-0.5 rounded-none tabular-nums ${judgeScoreColor(jv.overallScore)}`}
-                          >
-                            {jv.overallScore}
-                          </span>
-                        )}
-                      </div>
-                    </button>
+                      </button>
+                      {/* Per-item export button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleExportItem(item); }}
+                        className="shrink-0 self-center text-[9px] text-muted-foreground/40 hover:text-foreground transition-colors px-2 py-1 mr-2"
+                        title="Export PDF"
+                      >
+                        [PDF]
+                      </button>
+                    </div>
                   );
                 })}
               </div>
