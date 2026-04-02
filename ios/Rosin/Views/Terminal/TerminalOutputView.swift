@@ -19,7 +19,8 @@ struct TerminalOutputView: View {
 
     var body: some View {
         if stages.isEmpty && !isProcessing && researchStatus == nil {
-            EmptyStateView(onQuerySelect: onQuerySelect)
+            // No content to display — results page handles this state
+            EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 // Research status

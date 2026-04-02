@@ -15,35 +15,51 @@ struct TerminalView: View {
     @State private var showMenu = false
     // Two-screen flow: when true, the results page is shown full-screen
     @State private var showResults = false
+    @State private var showAPIKeys = false
     // MARK: - Dropdown state (only one open at a time)
     @State private var showModelPickerForStage: Int?
     @State private var showStagePicker = false
     /// Drives the holographic breathing glow pulse on model pills
     @State private var pillGlowPulse = false
+    /// Boot sequence → input transition
+    @State private var bootFinished = false
+    @FocusState private var queryFocused: Bool
 
     var body: some View {
         ZStack {
-            // ── Main screen (idle + header + input) ──
+            // ── Main screen ──
             VStack(spacing: 0) {
                 header
 
-                ScrollView {
-                    EmptyStateView(onQuerySelect: { viewModel.query = $0 })
+                if !bootFinished {
+                    // Boot sequence plays first, then reveals input
+                    BootSequenceView {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            bootFinished = true
+                        }
+                        // Auto-focus the text input after boot
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            queryFocused = true
+                        }
+                    }
+                } else {
+                    // ── Full-area text input ──
+                    queryInputArea
                 }
 
-                VStack(spacing: 0) {
-                    Divider()
-                    TerminalInputView(
-                        query: $viewModel.query,
-                        isProcessing: false,
-                        onSubmit: {
-                            viewModel.run()
-                            withAnimation(.easeOut(duration: 0.25)) { showResults = true }
-                        },
-                        onCancel: {}
-                    )
-                }
-                .background(.ultraThinMaterial)
+                Divider()
+
+                // ── EXECUTE button ──
+                executeButton
+
+                Divider()
+
+                // ── Bottom navigation bar ──
+                BottomNavBar(
+                    isLiveResearch: $viewModel.isLiveResearch,
+                    isAdversarialMode: $viewModel.isAdversarialMode,
+                    onKeysTap: { showAPIKeys = true }
+                )
             }
             .overlay {
                 if showMenu {
@@ -186,6 +202,11 @@ struct TerminalView: View {
         .sheet(isPresented: $showStats) {
             DisagreementStatsView()
         }
+        .sheet(isPresented: $showAPIKeys) {
+            APIKeysView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
         .sheet(item: $shareItem) { item in
             ShareSheetRepresentable(items: item.items)
                 .presentationDetents([.medium, .large])
@@ -229,20 +250,6 @@ struct TerminalView: View {
                 Spacer()
 
                 HStack(spacing: 12) {
-                    Button { viewModel.isLiveResearch.toggle() } label: {
-                        Text("[LIVE]")
-                            .font(RosinTheme.monoCaption)
-                            .foregroundColor(viewModel.isLiveResearch ? RosinTheme.green : RosinTheme.muted)
-                    }
-                    .disabled(viewModel.isProcessing)
-
-                    Button { viewModel.isAdversarialMode.toggle() } label: {
-                        Text("[ADV]")
-                            .font(RosinTheme.monoCaption)
-                            .foregroundColor(viewModel.isAdversarialMode ? RosinTheme.destructive : RosinTheme.muted)
-                    }
-                    .disabled(viewModel.isProcessing)
-
                     Button {
                         withAnimation(.easeOut(duration: 0.15)) {
                             dismissAllDropdowns()
@@ -412,6 +419,66 @@ struct TerminalView: View {
             .frame(height: 1)
             .padding(.horizontal, 14)
             .padding(.vertical, 2)
+    }
+
+    // MARK: - Full-Area Query Input
+
+    private var queryInputArea: some View {
+        ZStack(alignment: .topLeading) {
+            // Placeholder when empty
+            if viewModel.query.isEmpty {
+                Text("Enter your query...")
+                    .font(RosinTheme.monoBody)
+                    .foregroundColor(RosinTheme.green.opacity(0.25))
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 28)
+            }
+
+            TextEditor(text: $viewModel.query)
+                .font(RosinTheme.monoBody)
+                .scrollContentBackground(.hidden)
+                .focused($queryFocused)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(RosinTheme.background)
+        .onTapGesture { queryFocused = true }
+        .transition(.opacity)
+    }
+
+    // MARK: - Execute Button
+
+    private var executeButton: some View {
+        let isEmpty = viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        return Button {
+            queryFocused = false
+            viewModel.run()
+            withAnimation(.easeOut(duration: 0.25)) { showResults = true }
+        } label: {
+            Text("EXECUTE")
+                .font(RosinTheme.monoCaption)
+                .tracking(2)
+                .foregroundColor(isEmpty ? RosinTheme.muted : RosinTheme.green)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .overlay(
+                    Rectangle()
+                        .stroke(
+                            isEmpty ? Color.primary.opacity(0.15) : RosinTheme.green.opacity(0.4),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(
+                    color: isEmpty ? .clear : RosinTheme.green.opacity(0.15),
+                    radius: isEmpty ? 0 : 8
+                )
+        }
+        .disabled(isEmpty)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial)
     }
 
     // MARK: - Export
