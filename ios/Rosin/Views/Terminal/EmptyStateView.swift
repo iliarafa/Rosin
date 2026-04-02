@@ -34,6 +34,8 @@ struct EmptyStateView: View {
     /// Callback when user taps an example query card
     var onQuerySelect: ((String) -> Void)?
 
+    @Environment(\.colorScheme) private var colorScheme
+
     // MARK: - Boot sequence state
     @State private var bootLineCount = 0
     @State private var booted = false
@@ -51,22 +53,83 @@ struct EmptyStateView: View {
     // MARK: - Example cards fade-in
     @State private var showExamples = false
 
+    // MARK: - Futuristic scanning cursor
+    @State private var scanProgress: CGFloat = 0
+    @State private var scanComplete = false
+
+    // MARK: - Animated grid background
+    @State private var gridOffset: CGFloat = 0
+
+    // MARK: - Title breathing
+    @State private var titleBreathing = false
+
+    /// Adaptive opacity — effects need to be much stronger in light mode
+    private var isDark: Bool { colorScheme == .dark }
+
     var body: some View {
         ZStack {
-            // CRT scanlines removed — clean background only
+            // ── Animated circuit grid background ──
+            animatedGridBackground
 
             if !booted && !skippedBoot {
-                // ── Boot sequence overlay ──
                 bootSequenceView
                     .transition(.opacity)
             } else {
-                // ── Main idle content ──
                 mainIdleContent
                     .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { startBootSequence() }
+    }
+
+    // MARK: - Animated Circuit Grid Background
+    // Visible grid of lines that drifts diagonally. Opacity adapts to color scheme.
+
+    private var animatedGridBackground: some View {
+        GeometryReader { geo in
+            let spacing: CGFloat = 36
+            let extra = spacing * 2
+
+            // Grid lines
+            Path { path in
+                var x: CGFloat = -extra
+                while x <= geo.size.width + extra {
+                    path.move(to: CGPoint(x: x, y: -extra))
+                    path.addLine(to: CGPoint(x: x, y: geo.size.height + extra))
+                    x += spacing
+                }
+                var y: CGFloat = -extra
+                while y <= geo.size.height + extra {
+                    path.move(to: CGPoint(x: -extra, y: y))
+                    path.addLine(to: CGPoint(x: geo.size.width + extra, y: y))
+                    y += spacing
+                }
+            }
+            .stroke(RosinTheme.green.opacity(isDark ? 0.06 : 0.10), lineWidth: 0.5)
+            .offset(x: gridOffset, y: gridOffset)
+
+            // Accent nodes at intersections (small dots for "circuit" feel)
+            Path { path in
+                var x: CGFloat = -extra
+                while x <= geo.size.width + extra {
+                    var y: CGFloat = -extra
+                    while y <= geo.size.height + extra {
+                        path.addEllipse(in: CGRect(x: x - 1.5, y: y - 1.5, width: 3, height: 3))
+                        y += spacing
+                    }
+                    x += spacing
+                }
+            }
+            .fill(RosinTheme.green.opacity(isDark ? 0.08 : 0.12))
+            .offset(x: gridOffset, y: gridOffset)
+        }
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: 25).repeatForever(autoreverses: false)) {
+                gridOffset = 36
+            }
+        }
     }
 
     // MARK: - Boot Sequence
@@ -84,7 +147,6 @@ struct EmptyStateView: View {
 
             Spacer()
 
-            // "Tap to skip" hint
             Text("Tap to skip")
                 .font(RosinTheme.monoCaption2)
                 .foregroundColor(RosinTheme.muted.opacity(0.3))
@@ -96,31 +158,35 @@ struct EmptyStateView: View {
         .onTapGesture { skipBoot() }
     }
 
-    // MARK: - Main Idle Content (Bold & Confident)
+    // MARK: - Main Idle Content
 
     private var mainIdleContent: some View {
         VStack(spacing: 20) {
             Spacer()
 
-            // ── Title with typing animation + neon glow (LARGE) ──
+            // ── Title with holographic neon glow + breathing ──
             HStack(spacing: 0) {
                 let typed = String(fullTitle.prefix(typedCount))
                 let parts = typed.split(separator: "—", maxSplits: 1)
 
-                // "ROSIN " part with neon glow — big bold title
+                // "ROSIN " — holographic glow with green + cyan layers
                 if let rosinPart = parts.first {
                     Text(String(rosinPart))
                         .font(.system(.title2, design: .monospaced).bold())
-                        .foregroundColor(.primary)
-                        .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.5 : 0.15), radius: glowPulse ? 8 : 3)
-                        .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.25 : 0.05), radius: glowPulse ? 16 : 6)
+                        .foregroundColor(RosinTheme.green)
+                        // Strong green neon glow — visible in both themes
+                        .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.9 : 0.4), radius: glowPulse ? 12 : 4)
+                        .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.5 : 0.1), radius: glowPulse ? 24 : 8)
+                        // Cyan holographic shift
+                        .shadow(color: Color.cyan.opacity(glowPulse ? 0.3 : 0.05), radius: glowPulse ? 16 : 0)
                 }
 
-                // "— PURE OUTPUT" part
+                // "— PURE OUTPUT"
                 if parts.count > 1 {
                     Text("—" + String(parts[1]))
                         .font(.system(.title2, design: .monospaced))
                         .foregroundColor(.primary.opacity(0.5))
+                        .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.15 : 0.0), radius: glowPulse ? 8 : 0)
                 }
 
                 // Typing cursor
@@ -131,8 +197,11 @@ struct EmptyStateView: View {
                         .opacity(cursorVisible ? 1 : 0)
                 }
             }
+            // Breathing scale: 0.98–1.02 over 3s
+            .scaleEffect(titleBreathing ? 1.02 : 0.98)
+            .animation(.easeInOut(duration: 3).repeatForever(autoreverses: true), value: titleBreathing)
 
-            // ── Subtitle — bigger ──
+            // ── Subtitle ──
             Text("Launch a query through multiple LLMs.\nVerify, refine and detect hallucinations.")
                 .font(RosinTheme.monoFootnote)
                 .foregroundColor(RosinTheme.muted.opacity(0.6))
@@ -141,20 +210,63 @@ struct EmptyStateView: View {
                 .opacity(titleDone ? 1 : 0)
                 .animation(.easeIn(duration: 0.5), value: titleDone)
 
-            // ── Blinking cursor ──
-            HStack(spacing: 2) {
-                Text("> ")
-                    .font(RosinTheme.monoCaption)
-                    .foregroundColor(RosinTheme.green.opacity(0.5))
-                Text("_")
-                    .font(RosinTheme.monoCaption)
-                    .foregroundColor(RosinTheme.green)
-                    .shadow(color: RosinTheme.green.opacity(0.6), radius: 4)
-                    .opacity(cursorVisible ? 1 : 0)
+            // ── Futuristic scanning cursor ──
+            // Neon beam sweeps left→right, then reveals blinking prompt
+            ZStack {
+                if !scanComplete {
+                    GeometryReader { geo in
+                        // Scan beam with trailing glow
+                        ZStack {
+                            // Wide trailing glow behind the beam
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            RosinTheme.green.opacity(0),
+                                            RosinTheme.green.opacity(0.3),
+                                            RosinTheme.green.opacity(0),
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: 40, height: 2)
+
+                            // The actual bright scan line
+                            Rectangle()
+                                .fill(RosinTheme.green)
+                                .frame(width: 2, height: 22)
+                                .shadow(color: RosinTheme.green.opacity(0.9), radius: 10)
+                                .shadow(color: RosinTheme.green.opacity(0.6), radius: 20)
+                                .shadow(color: Color.cyan.opacity(0.3), radius: 14)
+                        }
+                        .position(
+                            x: scanProgress * geo.size.width,
+                            y: geo.size.height / 2
+                        )
+                    }
+                    .transition(.opacity)
+                }
+
+                // Blinking cursor (fades in after scan)
+                if scanComplete {
+                    HStack(spacing: 2) {
+                        Text("> ")
+                            .font(RosinTheme.monoCaption)
+                            .foregroundColor(RosinTheme.green.opacity(0.5))
+                        Text("_")
+                            .font(RosinTheme.monoCaption)
+                            .foregroundColor(RosinTheme.green)
+                            .shadow(color: RosinTheme.green.opacity(0.8), radius: 6)
+                            .opacity(cursorVisible ? 1 : 0)
+                    }
+                    .transition(.opacity)
+                }
             }
+            .frame(width: 120, height: 26)
             .padding(.top, 4)
 
-            // ── Example query cards (redesigned: bigger, green left border, horizontal scroll) ──
+            // ── Glassmorphic example query cards ──
             if showExamples {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -175,10 +287,13 @@ struct EmptyStateView: View {
             startTypingAnimation()
             startGlowPulse()
             startCursorBlink()
+            startScanAnimation()
+            titleBreathing = true
         }
     }
 
-    // MARK: - Example Card (Redesigned: larger, green accent border)
+    // MARK: - Glassmorphic Example Card
+    // Frosted glass backdrop + green neon border + ambient glow
 
     private func exampleCard(_ example: ExampleQuery) -> some View {
         Button {
@@ -187,8 +302,10 @@ struct EmptyStateView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("[\(example.label)]")
                     .font(RosinTheme.monoCaption)
-                    .foregroundColor(RosinTheme.green.opacity(0.8))
+                    .foregroundColor(RosinTheme.green)
                     .tracking(2)
+                    // Glow on the label text
+                    .shadow(color: RosinTheme.green.opacity(0.5), radius: 4)
                 Text(example.query)
                     .font(RosinTheme.monoCaption)
                     .foregroundColor(RosinTheme.muted)
@@ -198,18 +315,31 @@ struct EmptyStateView: View {
             .frame(width: 240, alignment: .leading)
             .padding(.vertical, 16)
             .padding(.horizontal, 16)
+            // Frosted glass backdrop with green tint
+            .background(
+                ZStack {
+                    // Base frosted material
+                    Rectangle().fill(.ultraThinMaterial)
+                    // Green tint overlay for glassmorphic color
+                    Rectangle().fill(RosinTheme.green.opacity(isDark ? 0.05 : 0.04))
+                }
+            )
             .overlay(alignment: .leading) {
-                // Green left accent border
+                // Bright green left accent
                 Rectangle()
-                    .fill(RosinTheme.green.opacity(0.4))
+                    .fill(RosinTheme.green.opacity(0.7))
                     .frame(width: 3)
+                    .shadow(color: RosinTheme.green.opacity(0.5), radius: 6)
             }
             .overlay(
+                // Green neon border — clearly visible
                 Rectangle()
-                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                    .stroke(RosinTheme.green.opacity(isDark ? 0.25 : 0.20), lineWidth: 1)
             )
+            // Ambient glow around the card
+            .shadow(color: RosinTheme.green.opacity(isDark ? 0.15 : 0.12), radius: 12)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GlassmorphicCardStyle())
     }
 
     // MARK: - Animations
@@ -265,5 +395,34 @@ struct EmptyStateView: View {
         Timer.scheduledTimer(withTimeInterval: 0.55, repeats: true) { _ in
             cursorVisible.toggle()
         }
+    }
+
+    /// Sweeps scan beam left→right over 1.2s, then reveals blinking cursor
+    private func startScanAnimation() {
+        let baseDelay: Double = skippedBoot ? 0.2 : 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay) {
+            withAnimation(.easeInOut(duration: 1.2)) {
+                scanProgress = 1.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    scanComplete = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Glassmorphic Card Button Style
+// Scale-up + amplified glow on press
+private struct GlassmorphicCardStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 1.04 : 1.0)
+            .shadow(
+                color: RosinTheme.green.opacity(configuration.isPressed ? 0.35 : 0.0),
+                radius: configuration.isPressed ? 16 : 0
+            )
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }

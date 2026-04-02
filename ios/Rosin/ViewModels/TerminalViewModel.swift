@@ -37,6 +37,14 @@ final class TerminalViewModel: ObservableObject {
         chain[index] = model
     }
 
+    /// Reorder models in the chain — called by drag & drop on model pills.
+    /// Moves the model at `source` to `destination`, shifting others accordingly.
+    func moveModel(from source: Int, to destination: Int) {
+        guard source < chain.count, destination < chain.count, source != destination else { return }
+        let model = chain.remove(at: source)
+        chain.insert(model, at: destination)
+    }
+
     func updateStageCount(_ count: Int) {
         stageCount = count
         // Ensure chain has enough models

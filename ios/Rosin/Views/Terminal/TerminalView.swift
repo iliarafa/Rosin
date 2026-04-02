@@ -15,6 +15,11 @@ struct TerminalView: View {
     @State private var showMenu = false
     // Two-screen flow: when true, the results page is shown full-screen
     @State private var showResults = false
+    // MARK: - Dropdown state (only one open at a time)
+    @State private var showModelPickerForStage: Int?
+    @State private var showStagePicker = false
+    /// Drives the holographic breathing glow pulse on model pills
+    @State private var pillGlowPulse = false
 
     var body: some View {
         ZStack {
@@ -45,7 +50,7 @@ struct TerminalView: View {
                     Color.black.opacity(0.001)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            withAnimation(.easeOut(duration: 0.15)) { showMenu = false }
+                            withAnimation(.easeOut(duration: 0.15)) { dismissAllDropdowns() }
                         }
 
                     // Dropdown menu
@@ -74,10 +79,83 @@ struct TerminalView: View {
                 }
             }
             .animation(.easeOut(duration: 0.15), value: showMenu)
+            // ── Model picker dropdown (same glass style as [...] menu) ──
+            .overlay {
+                if let stageIndex = showModelPickerForStage, stageIndex < viewModel.chain.count {
+                    let currentModel = viewModel.chain[stageIndex]
+
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeOut(duration: 0.15)) { showModelPickerForStage = nil }
+                        }
+
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(LLMProvider.allCases.enumerated()), id: \.element) { providerIdx, provider in
+                            // Provider section header
+                            Text(provider.displayName)
+                                .font(RosinTheme.monoCaption2)
+                                .foregroundColor(RosinTheme.muted)
+                                .padding(.horizontal, 16)
+                                .padding(.top, providerIdx == 0 ? 4 : 2)
+                                .padding(.bottom, 4)
+
+                            ForEach(provider.models, id: \.self) { modelName in
+                                let isSelected = currentModel.model == modelName && currentModel.provider == provider
+                                modelMenuItem(
+                                    label: modelName,
+                                    isSelected: isSelected
+                                ) {
+                                    viewModel.updateModel(
+                                        at: stageIndex,
+                                        to: LLMModel(provider: provider, model: modelName)
+                                    )
+                                }
+                            }
+
+                            if providerIdx < LLMProvider.allCases.count - 1 {
+                                menuDivider
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    .frame(width: 260)
+                    .modifier(LiquidGlassModifier())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 100)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+                }
+            }
+            .animation(.easeOut(duration: 0.15), value: showModelPickerForStage)
+            // ── Stage count picker dropdown ──
+            .overlay {
+                if showStagePicker {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeOut(duration: 0.15)) { showStagePicker = false }
+                        }
+
+                    VStack(alignment: .leading, spacing: 0) {
+                        stageCountMenuItem(count: 2)
+                        stageCountMenuItem(count: 3)
+                    }
+                    .padding(.vertical, 8)
+                    .frame(width: 160)
+                    .modifier(LiquidGlassModifier())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.top, 52)
+                    .padding(.leading, 20)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .topLeading)))
+                }
+            }
+            .animation(.easeOut(duration: 0.15), value: showStagePicker)
         }
         .background(RosinTheme.background)
         .onAppear {
             viewModel.setup(apiKeyManager: apiKeyManager)
+            // Start holographic breathing pulse on model pills
+            pillGlowPulse = true
         }
         // ── Results page (clean output-only, full-screen cover) ──
         .fullScreenCover(isPresented: $showResults) {
@@ -120,11 +198,33 @@ struct TerminalView: View {
         VStack(spacing: 14) {
             // Row 1: STAGES + toggles + menu
             HStack {
-                StageCountSelectorView(
-                    value: viewModel.stageCount,
-                    onChange: { viewModel.updateStageCount($0) },
-                    disabled: viewModel.isProcessing
-                )
+                // STAGES: [N] — tap to open stage count picker
+                HStack(spacing: 6) {
+                    Text("STAGES:")
+                        .font(RosinTheme.monoCaption2)
+                        .foregroundColor(RosinTheme.muted)
+
+                    Button {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            dismissAllDropdowns()
+                            showStagePicker.toggle()
+                        }
+                    } label: {
+                        Text("\(viewModel.stageCount)")
+                            .font(RosinTheme.monoCaption2)
+                            .foregroundColor(showStagePicker ? RosinTheme.green : .primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(
+                                        showStagePicker ? RosinTheme.green.opacity(0.5) : Color.primary.opacity(0.2),
+                                        lineWidth: 1
+                                    )
+                            )
+                    }
+                    .disabled(viewModel.isProcessing)
+                }
 
                 Spacer()
 
@@ -143,7 +243,12 @@ struct TerminalView: View {
                     }
                     .disabled(viewModel.isProcessing)
 
-                    Button { withAnimation(.easeOut(duration: 0.15)) { showMenu.toggle() } } label: {
+                    Button {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            dismissAllDropdowns()
+                            showMenu.toggle()
+                        }
+                    } label: {
                         Text("[···]")
                             .font(RosinTheme.monoCaption)
                             .foregroundColor(showMenu ? RosinTheme.green : RosinTheme.muted)
@@ -151,59 +256,68 @@ struct TerminalView: View {
                 }
             }
 
-            // Row 2: Segmented model control (full-width)
+            // Row 2: Model pills — tap to open custom dropdown (same style as [...] menu)
             HStack(spacing: 0) {
                 ForEach(0..<viewModel.stageCount, id: \.self) { index in
                     if index < viewModel.chain.count {
                         let stageData = viewModel.stages.first { $0.id == index + 1 }
                         let isActive = stageData?.status == .streaming
+                        let isOpen = showModelPickerForStage == index
                         let model = viewModel.chain[index]
 
-                        Menu {
-                            ForEach(LLMProvider.allCases) { provider in
-                                Section(provider.displayName) {
-                                    ForEach(provider.models, id: \.self) { modelName in
-                                        Button {
-                                            viewModel.updateModel(at: index, to: LLMModel(provider: provider, model: modelName))
-                                        } label: {
-                                            HStack {
-                                                Text(modelName)
-                                                if model.model == modelName { Image(systemName: "checkmark") }
-                                            }
-                                        }
-                                    }
-                                }
+                        Button {
+                            withAnimation(.easeOut(duration: 0.15)) {
+                                dismissAllDropdowns()
+                                showModelPickerForStage = isOpen ? nil : index
                             }
                         } label: {
                             HStack(spacing: 6) {
                                 Text("[\(index + 1)]")
                                     .font(RosinTheme.monoCaption2)
-                                    .foregroundColor(isActive ? RosinTheme.green : RosinTheme.muted)
+                                    .foregroundColor(isActive || isOpen ? RosinTheme.green : RosinTheme.green.opacity(0.5))
                                 Text(model.provider.shortName)
                                     .font(RosinTheme.monoCaption)
-                                    .foregroundColor(isActive ? RosinTheme.green : .primary)
+                                    .foregroundColor(isActive || isOpen ? RosinTheme.green : .primary)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(
-                                isActive
-                                    ? RosinTheme.green.opacity(0.1)
-                                    : Color.primary.opacity(0.04)
+                                RosinTheme.green.opacity(
+                                    isOpen ? 0.15
+                                    : (isActive ? 0.12 : (pillGlowPulse ? 0.04 : 0.02))
+                                )
                             )
                             .overlay(
                                 Rectangle()
                                     .stroke(
-                                        isActive ? RosinTheme.green.opacity(0.4) : Color.primary.opacity(0.1),
-                                        lineWidth: 1
+                                        isOpen
+                                            ? RosinTheme.green.opacity(0.6)
+                                            : (isActive
+                                                ? RosinTheme.green.opacity(0.5)
+                                                : RosinTheme.green.opacity(pillGlowPulse ? 0.25 : 0.12)),
+                                        lineWidth: isOpen ? 1.5 : 1
                                     )
                             )
-                            // Green glow when streaming
-                            .shadow(color: isActive ? RosinTheme.green.opacity(0.25) : .clear, radius: 6)
+                            .shadow(
+                                color: RosinTheme.green.opacity(
+                                    isOpen ? 0.5
+                                    : (isActive ? 0.4 : (pillGlowPulse ? 0.20 : 0.08))
+                                ),
+                                radius: isOpen ? 10 : (isActive ? 8 : (pillGlowPulse ? 8 : 4))
+                            )
+                            .shadow(
+                                color: Color.cyan.opacity(pillGlowPulse ? 0.08 : 0.0),
+                                radius: pillGlowPulse ? 12 : 0
+                            )
                         }
+                        .buttonStyle(.plain)
                         .disabled(viewModel.isProcessing)
                     }
                 }
             }
+            // Subtle breathing scale on all pills
+            .scaleEffect(pillGlowPulse ? 1.005 : 0.995)
+            .animation(.easeInOut(duration: 3).repeatForever(autoreverses: true), value: pillGlowPulse)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
@@ -213,11 +327,66 @@ struct TerminalView: View {
         }
     }
 
-    // MARK: - Menu Helpers
+    // MARK: - Dropdown Helpers
+
+    /// Closes all custom dropdowns (stage picker, model picker, [...] menu)
+    private func dismissAllDropdowns() {
+        showMenu = false
+        showModelPickerForStage = nil
+        showStagePicker = false
+    }
+
+    /// Stage count picker item — same style as [...] menu items
+    private func stageCountMenuItem(count: Int) -> some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.15)) { showStagePicker = false }
+            viewModel.updateStageCount(count)
+        } label: {
+            HStack(spacing: 12) {
+                Text("\(count) stages")
+                    .font(RosinTheme.monoCaption)
+                    .foregroundColor(viewModel.stageCount == count ? RosinTheme.green : .primary)
+                Spacer()
+                if viewModel.stageCount == count {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundColor(RosinTheme.green)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Model picker item — matches the [...] menu item style with checkmark for selection
+    private func modelMenuItem(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.15)) { showModelPickerForStage = nil }
+            action()
+        } label: {
+            HStack(spacing: 12) {
+                Text(label)
+                    .font(RosinTheme.monoCaption)
+                    .foregroundColor(isSelected ? RosinTheme.green : .primary)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundColor(RosinTheme.green)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
 
     private func menuItem(icon: String, label: String, action: @escaping () -> Void) -> some View {
         Button {
-            withAnimation(.easeOut(duration: 0.15)) { showMenu = false }
+            withAnimation(.easeOut(duration: 0.15)) { dismissAllDropdowns() }
             action()
         } label: {
             HStack(spacing: 12) {
