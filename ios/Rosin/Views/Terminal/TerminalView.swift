@@ -153,6 +153,7 @@ struct TerminalView: View {
                         }
 
                     VStack(alignment: .leading, spacing: 0) {
+                        stageCountMenuItem(count: 1)
                         stageCountMenuItem(count: 2)
                         stageCountMenuItem(count: 3)
                     }
@@ -350,7 +351,7 @@ struct TerminalView: View {
             viewModel.updateStageCount(count)
         } label: {
             HStack(spacing: 12) {
-                Text("\(count) stages")
+                Text("\(count) stage\(count == 1 ? "" : "s")")
                     .font(RosinTheme.monoCaption)
                     .foregroundColor(viewModel.stageCount == count ? RosinTheme.green : .primary)
                 Spacer()

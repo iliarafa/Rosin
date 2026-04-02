@@ -66,4 +66,8 @@ extension LLMModel {
         LLMModel(provider: .anthropic, model: "claude-sonnet-4-5"),
         LLMModel(provider: .gemini, model: "gemini-2.5-pro"),
     ]
+
+    static let defaultChain1: [LLMModel] = [
+        LLMModel(provider: .anthropic, model: "claude-sonnet-4-5"),
+    ]
 }

@@ -95,13 +95,19 @@ final class VerificationPipelineManager {
 
             // ── Judge Stage ──
             // Run the dedicated Judge to produce structured per-stage analysis + overall verdict
-            let summary = await runJudge(
-                query: query,
-                completedStages: completedStages,
-                totalStages: totalStages,
-                liveResearchUsed: hasWebResearch,
-                onEvent: onEvent
-            )
+            // Skip Judge for single-stage runs — no cross-verification to analyze
+            let summary: VerificationSummary
+            if totalStages == 1 {
+                summary = fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: hasWebResearch)
+            } else {
+                summary = await runJudge(
+                    query: query,
+                    completedStages: completedStages,
+                    totalStages: totalStages,
+                    liveResearchUsed: hasWebResearch,
+                    onEvent: onEvent
+                )
+            }
             onEvent(.summary(summary))
             onEvent(.done)
             currentTask = nil
@@ -140,7 +146,8 @@ final class VerificationPipelineManager {
             isLast: isLast,
             lengthConfig: lengthConfig,
             adversarialMode: adversarialMode,
-            hasWebResearch: hasWebResearch
+            hasWebResearch: hasWebResearch,
+            isSingleStage: totalStages == 1
         )
         // Inject search context only into Stage 1
         let userContent = StagePromptBuilder.userContent(
@@ -467,7 +474,7 @@ final class VerificationPipelineManager {
 
                 let avgAgreement = judgeVerdict.stageAnalyses.isEmpty ? 0 :
                     judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.agreementScore } / judgeVerdict.stageAnalyses.count
-                let consistencyText = "\(avgAgreement)% average agreement across \(completedStages.count) stages"
+                let consistencyText = "\(avgAgreement)% average agreement across \(completedStages.count) stage\(completedStages.count == 1 ? "" : "s")"
 
                 return VerificationSummary(
                     consistency: consistencyText,
@@ -569,7 +576,7 @@ final class VerificationPipelineManager {
 
         let completed = completedStages.count
         if completed == totalStages {
-            bullets.append("All \(completed) verification stages completed successfully")
+            bullets.append(completed == 1 ? "Single-stage completion — no cross-verification" : "All \(completed) verification stages completed successfully")
         } else {
             bullets.append("\(completed) of \(totalStages) stages completed — partial coverage")
         }

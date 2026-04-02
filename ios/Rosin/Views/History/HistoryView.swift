@@ -82,7 +82,7 @@ struct HistoryView: View {
                                                 .foregroundColor(RosinTheme.destructive)
                                         }
 
-                                        Text("\(item.stages.count) stages")
+                                        Text("\(item.stages.count) stage\(item.stages.count == 1 ? "" : "s")")
                                             .font(RosinTheme.monoCaption2)
                                             .foregroundColor(RosinTheme.muted)
 

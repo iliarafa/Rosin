@@ -167,7 +167,7 @@ enum ExportService {
             drawText("ROSIN AI — VERIFICATION REPORT", attrs: titleAttrs)
             y += 4
             let dateStr = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .short)
-            drawText("\(dateStr) • \(stages.count) stages • Generated 100% locally", attrs: metaAttrs)
+            drawText("\(dateStr) • \(stages.count) stage\(stages.count == 1 ? "" : "s") • Generated 100% locally", attrs: metaAttrs)
             y += 4
             drawDivider(color: green.withAlphaComponent(0.3))
             y += 8

@@ -12,6 +12,12 @@ struct StageCountSelectorView: View {
                 .foregroundColor(RosinTheme.muted)
 
             Menu {
+                Button { onChange(1) } label: {
+                    HStack {
+                        Text("1")
+                        if value == 1 { Image(systemName: "checkmark") }
+                    }
+                }
                 Button { onChange(2) } label: {
                     HStack {
                         Text("2")

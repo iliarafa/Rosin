@@ -1,7 +1,29 @@
 import Foundation
 
 enum StagePromptBuilder {
-    static func systemPrompt(stageNumber: Int, isLast: Bool, lengthConfig: LengthConfig, adversarialMode: Bool = false, hasWebResearch: Bool = false) -> String {
+    static func systemPrompt(stageNumber: Int, isLast: Bool, lengthConfig: LengthConfig, adversarialMode: Bool = false, hasWebResearch: Bool = false, isSingleStage: Bool = false) -> String {
+        if stageNumber == 1 && isSingleStage {
+            let webDirective = hasWebResearch ? """
+
+
+            IMPORTANT: You have been provided with live web search results alongside the user's query. \
+            These results contain current, real-time information retrieved just now. You MUST:
+            - Use the web search results as your primary source for current events, recent developments, and time-sensitive information
+            - Cite sources by their number (e.g. [1], [2]) when referencing information from the search results
+            - Do NOT disclaim knowledge cutoffs or say you lack access to current information — the search results ARE your access to current information
+            - If the search results conflict with your training data, prefer the search results as they are more recent
+            """ : ""
+            return """
+            You are an expert AI assistant. \
+            Provide a thorough, accurate, and well-structured response to the user's query. \
+            Focus on factual accuracy and comprehensive coverage of the topic.
+
+            Be factual and cite any assumptions you make. If you're uncertain about something, acknowledge it.\(webDirective)
+
+            \(lengthConfig.promptInstruction)
+            """
+        }
+
         if stageNumber == 1 {
             let webDirective = hasWebResearch ? """
 
