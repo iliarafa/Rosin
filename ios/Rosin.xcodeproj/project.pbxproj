@@ -57,6 +57,7 @@
 		A1002F00000000000000002F /* TavilyKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2002F00000000000000002F /* TavilyKeyRowView.swift */; };
 		A10030000000000000000030 /* FontSizeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20030000000000000000030 /* FontSizeManager.swift */; };
 		A10031000000000000000031 /* JudgeVerdict.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20031000000000000000031 /* JudgeVerdict.swift */; };
+		A10032000000000000000032 /* PastableTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20032000000000000000032 /* PastableTextField.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -110,6 +111,7 @@
 		A2002F00000000000000002F /* TavilyKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TavilyKeyRowView.swift; sourceTree = "<group>"; };
 		A20030000000000000000030 /* FontSizeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeManager.swift; sourceTree = "<group>"; };
 		A20031000000000000000031 /* JudgeVerdict.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JudgeVerdict.swift; sourceTree = "<group>"; };
+		A20032000000000000000032 /* PastableTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastableTextField.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -286,6 +288,7 @@
 				A2001B00000000000000001B /* APIKeyRowView.swift */,
 				A20024000000000000000024 /* APIKeyGuideView.swift */,
 				A2002F00000000000000002F /* TavilyKeyRowView.swift */,
+				A20032000000000000000032 /* PastableTextField.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -444,6 +447,7 @@
 				A1002F00000000000000002F /* TavilyKeyRowView.swift in Sources */,
 				A10030000000000000000030 /* FontSizeManager.swift in Sources */,
 				A10031000000000000000031 /* JudgeVerdict.swift in Sources */,
+				A10032000000000000000032 /* PastableTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

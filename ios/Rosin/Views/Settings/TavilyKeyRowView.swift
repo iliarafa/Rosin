@@ -33,13 +33,8 @@ struct TavilyKeyRowView: View {
 
             if isEditing {
                 VStack(alignment: .leading, spacing: 6) {
-                    TextField("Enter Tavily API key...", text: $keyInput)
-                        .font(RosinTheme.monoCaption2)
-                        .textFieldStyle(.roundedBorder)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .textContentType(.none)
-                        .keyboardType(.asciiCapable)
+                    PastableTextField(placeholder: "Enter Tavily API key...", text: $keyInput)
+                        .frame(height: 36)
 
                     HStack(spacing: 12) {
                         Button("Save") { saveKey() }
