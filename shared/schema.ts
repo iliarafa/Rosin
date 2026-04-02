@@ -66,6 +66,8 @@ export const verificationSummarySchema = z.object({
   contradictions: z.array(contradictionSchema).optional(),
   confidenceScore: z.number().min(0).max(1).optional(),
   isAnalyzed: z.boolean().optional(),
+  // Dynamic analyst-style bullet points generated from pipeline results
+  analysisBullets: z.array(z.string()).optional(),
 });
 
 export type VerificationSummary = z.infer<typeof verificationSummarySchema>;

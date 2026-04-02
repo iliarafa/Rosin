@@ -317,12 +317,67 @@ interface CompletedStage {
   content: string;
 }
 
-function fallbackSummary(completed: number, total: number): VerificationSummary {
-  const skipped = total - completed;
+/** Map provider ID to short display name for analyst bullets */
+function providerShortName(provider: string): string {
+  switch (provider) {
+    case "anthropic": return "Claude";
+    case "gemini": return "Gemini";
+    case "xai": return "Grok";
+    default: return provider;
+  }
+}
+
+/** Build contextual fallback bullets from pipeline metadata when LLM analysis is unavailable */
+function buildFallbackBullets(
+  query: string,
+  completedStages: CompletedStage[],
+  totalStages: number,
+  liveResearchUsed: boolean
+): string[] {
+  const bullets: string[] = [];
+
+  // Extract a short topic snippet from the query (first ~60 chars at word boundary)
+  const trimmed = query.trim();
+  let topicSnippet = trimmed;
+  if (trimmed.length > 60) {
+    const prefix = trimmed.slice(0, 60);
+    const lastSpace = prefix.lastIndexOf(" ");
+    topicSnippet = lastSpace > 0 ? prefix.slice(0, lastSpace) + "\u2026" : prefix + "\u2026";
+  }
+
+  // Bullet 1: Model names used
+  const modelNames = Array.from(new Set(completedStages.map((s) => providerShortName(s.model.provider))));
+  bullets.push(`Queried "${topicSnippet}" through ${modelNames.join(", ")}`);
+
+  // Bullet 2: Pipeline completion
+  if (completedStages.length === totalStages) {
+    bullets.push(`All ${completedStages.length} verification stages completed successfully`);
+  } else {
+    bullets.push(`${completedStages.length} of ${totalStages} stages completed \u2014 partial coverage`);
+  }
+
+  // Bullet 3: Live research or data source note
+  if (liveResearchUsed) {
+    bullets.push("Grounded with live web data via Tavily search");
+  } else {
+    bullets.push("Based on model training data \u2014 no live web sources used");
+  }
+
+  return bullets;
+}
+
+function fallbackSummary(
+  query: string,
+  completedStages: CompletedStage[],
+  totalStages: number,
+  liveResearchUsed: boolean = false
+): VerificationSummary {
+  const completed = completedStages.length;
+  const skipped = totalStages - completed;
   const consistency = completed < 2
     ? "Insufficient stages for cross-verification"
     : skipped > 0
-      ? `Cross-verified across ${completed} of ${total} LLMs (${skipped} skipped)`
+      ? `Cross-verified across ${completed} of ${totalStages} LLMs (${skipped} skipped)`
       : `Cross-verified across ${completed} independent LLMs`;
 
   const confidence = completed >= 3
@@ -332,19 +387,22 @@ function fallbackSummary(completed: number, total: number): VerificationSummary 
       : "Low \u2013 single-stage only";
 
   const hallucinations = skipped > 0
-    ? `Checked at ${completed} of ${total} stages \u2013 coverage reduced`
+    ? `Checked at ${completed} of ${totalStages} stages \u2013 coverage reduced`
     : "Checked at each stage \u2013 potential issues flagged";
 
-  return { consistency, hallucinations, confidence, contradictions: [], isAnalyzed: false };
+  const analysisBullets = buildFallbackBullets(query, completedStages, totalStages, liveResearchUsed);
+
+  return { consistency, hallucinations, confidence, contradictions: [], isAnalyzed: false, analysisBullets };
 }
 
 async function computeVerificationSummary(
   query: string,
   completedStages: CompletedStage[],
-  totalStages: number
+  totalStages: number,
+  liveResearchUsed: boolean = false
 ): Promise<VerificationSummary> {
   if (completedStages.length < 2) {
-    return fallbackSummary(completedStages.length, totalStages);
+    return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
   }
 
   // Pick cheapest available model for analysis
@@ -356,8 +414,12 @@ async function computeVerificationSummary(
 
   const chosen = candidates.find((c) => process.env[c.envKey]);
   if (!chosen) {
-    return fallbackSummary(completedStages.length, totalStages);
+    return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
   }
+
+  // Build model names list so the analysis LLM can reference them by name
+  const modelNames = completedStages.map((s) => `${providerShortName(s.model.provider)} (${s.model.model})`).join(", ");
+  const liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1." : "";
 
   let stageOutputsText = "";
   for (const stage of completedStages) {
@@ -366,26 +428,41 @@ async function computeVerificationSummary(
     stageOutputsText += "\n\n";
   }
 
-  const systemPrompt = `You are an analysis tool. You will receive a query and multiple LLM outputs for that query from different stages of a verification pipeline. Analyze them for consistency, potential hallucinations, and contradictions.
+  const systemPrompt = `You are an expert verification analyst. You will receive a query and multiple LLM outputs from a multi-stage verification pipeline. The models used were: ${modelNames}.${liveResearchNote}
 
-Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
+Analyze consistency, hallucination risk, and contradictions. Then write 3-4 concise analyst-style bullet points that:
+- Reference the actual query topic (e.g. "Nuclear fusion claims…", not "the query")
+- Name specific models by their short name (Claude, Gemini, Grok) when describing agreement or disagreement
+- Mention live web research grounding if it was used
+- Justify the confidence level based on what the models actually said
+
+Respond with ONLY valid JSON (no markdown, no code fences):
 {
-  "consistencySummary": "Brief description of how consistent the outputs are",
+  "consistencySummary": "Brief description of consistency across models",
   "hallucinationRisk": "Low/Medium/High with brief explanation",
   "confidenceLevel": "High/Moderate/Low",
   "confidenceScore": 0.85,
   "contradictions": [
     {
-      "topic": "The specific topic of disagreement",
+      "topic": "Specific topic of disagreement",
       "stageA": 1,
       "stageB": 2,
       "description": "Brief description of the contradiction"
     }
+  ],
+  "analysisBullets": [
+    "First expert verdict bullet — topic-specific, referencing models by name",
+    "Second bullet — about consensus, corrections, or disagreements found",
+    "Third bullet — confidence justification tied to the query content",
+    "Optional fourth bullet — live research note or additional insight"
   ]
 }
 
-If there are no contradictions, return an empty array for contradictions.
-The confidenceScore should be a number between 0.0 and 1.0.`;
+Rules:
+- analysisBullets must have 3-4 items, each under 120 characters
+- Each bullet must feel unique to THIS specific query, never generic
+- If there are no contradictions, return an empty array
+- confidenceScore: 0.0 to 1.0`;
 
   const userContent = `Original Query: ${query}\n\n${stageOutputsText}`;
 
@@ -419,6 +496,11 @@ The confidenceScore should be a number between 0.0 and 1.0.`;
       ? `${parsed.confidenceLevel || "Unknown"} (${Math.round(confidenceScore * 100)}%)`
       : parsed.confidenceLevel || "Unknown";
 
+    // Extract analysisBullets from the LLM response, falling back to metadata-based bullets
+    const analysisBullets = Array.isArray(parsed.analysisBullets) && parsed.analysisBullets.length > 0
+      ? parsed.analysisBullets.map((b: any) => String(b))
+      : buildFallbackBullets(query, completedStages, totalStages, liveResearchUsed);
+
     return {
       consistency: parsed.consistencySummary || `Cross-verified across ${completedStages.length} LLMs`,
       hallucinations: parsed.hallucinationRisk || "Checked at each stage",
@@ -426,10 +508,11 @@ The confidenceScore should be a number between 0.0 and 1.0.`;
       contradictions,
       confidenceScore,
       isAnalyzed: true,
+      analysisBullets,
     };
   } catch (error) {
     console.error("Analysis failed:", error);
-    return fallbackSummary(completedStages.length, totalStages);
+    return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
   }
 }
 
@@ -605,7 +688,7 @@ ${lengthConfig.verifyInstruction}`;
         }
       }
 
-      const summary = await computeVerificationSummary(query, completedStages, totalStages);
+      const summary = await computeVerificationSummary(query, completedStages, totalStages, liveResearch);
 
       // Save to history (non-blocking)
       const verificationId = randomUUID();

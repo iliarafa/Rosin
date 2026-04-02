@@ -97,6 +97,7 @@ final class VerificationPipelineManager {
                 query: query,
                 completedStages: completedStages,
                 totalStages: totalStages,
+                liveResearchUsed: hasWebResearch,
                 onEvent: onEvent
             )
             onEvent(.summary(summary))
@@ -271,10 +272,11 @@ final class VerificationPipelineManager {
         query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
         totalStages: Int,
+        liveResearchUsed: Bool = false,
         onEvent: @escaping (PipelineEvent) -> Void
     ) async -> VerificationSummary {
         guard completedStages.count >= 2 else {
-            return fallbackSummary(completedStages: completedStages, totalStages: totalStages)
+            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
         // Pick cheapest available model for analysis
@@ -295,7 +297,7 @@ final class VerificationPipelineManager {
         }
 
         guard let model = analysisModel, let apiKey = analysisKey else {
-            return fallbackSummary(completedStages: completedStages, totalStages: totalStages)
+            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
         // Build analysis prompt with all stage outputs
@@ -306,28 +308,47 @@ final class VerificationPipelineManager {
             stageOutputsText += "\n\n"
         }
 
-        let systemPrompt = """
-        You are an analysis tool. You will receive a query and multiple LLM outputs for that query from different stages of a verification pipeline. \
-        Analyze them for consistency, potential hallucinations, and contradictions.
+        // Build model names list for the prompt so the LLM can reference them by name
+        let modelNames = completedStages.map { "\($0.model.provider.shortName) (\($0.model.model))" }.joined(separator: ", ")
+        let liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1." : ""
 
-        Respond with ONLY valid JSON in this exact format (no markdown, no code fences):
+        let systemPrompt = """
+        You are an expert verification analyst. You will receive a query and multiple LLM outputs from a multi-stage verification pipeline. \
+        The models used were: \(modelNames).\(liveResearchNote)
+
+        Analyze consistency, hallucination risk, and contradictions. Then write 3-4 concise analyst-style bullet points that:
+        - Reference the actual query topic (e.g. "Nuclear fusion claims…", not "the query")
+        - Name specific models by their short name (Claude, Gemini, Grok) when describing agreement or disagreement
+        - Mention live web research grounding if it was used
+        - Justify the confidence level based on what the models actually said
+
+        Respond with ONLY valid JSON (no markdown, no code fences):
         {
-          "consistencySummary": "Brief description of how consistent the outputs are",
+          "consistencySummary": "Brief description of consistency across models",
           "hallucinationRisk": "Low/Medium/High with brief explanation",
           "confidenceLevel": "High/Moderate/Low",
           "confidenceScore": 0.85,
           "contradictions": [
             {
-              "topic": "The specific topic of disagreement",
+              "topic": "Specific topic of disagreement",
               "stageA": 1,
               "stageB": 2,
               "description": "Brief description of the contradiction"
             }
+          ],
+          "analysisBullets": [
+            "First expert verdict bullet — topic-specific, referencing models by name",
+            "Second bullet — about consensus, corrections, or disagreements found",
+            "Third bullet — confidence justification tied to the query content",
+            "Optional fourth bullet — live research note or additional insight"
           ]
         }
 
-        If there are no contradictions, return an empty array for contradictions.
-        The confidenceScore should be a number between 0.0 and 1.0.
+        Rules:
+        - analysisBullets must have 3-4 items, each under 120 characters
+        - Each bullet must feel unique to THIS specific query, never generic
+        - If there are no contradictions, return an empty array
+        - confidenceScore: 0.0 to 1.0
         """
 
         let userContent = "Original Query: \(query)\n\n\(stageOutputsText)"
@@ -349,12 +370,12 @@ final class VerificationPipelineManager {
                 responseText += text
             }
         } catch {
-            return fallbackSummary(completedStages: completedStages, totalStages: totalStages)
+            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
         // Parse JSON response
         guard let data = responseText.data(using: .utf8) else {
-            return fallbackSummary(completedStages: completedStages, totalStages: totalStages)
+            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
         do {
@@ -383,7 +404,8 @@ final class VerificationPipelineManager {
                 confidence: confidenceText,
                 contradictions: contradictions,
                 confidenceScore: analysis.confidenceScore,
-                isAnalyzed: true
+                isAnalyzed: true,
+                analysisBullets: analysis.analysisBullets ?? []
             )
         } catch {
             // JSON parsing failed — try to strip markdown fences and retry
@@ -417,17 +439,22 @@ final class VerificationPipelineManager {
                     confidence: confidenceText,
                     contradictions: contradictions,
                     confidenceScore: analysis.confidenceScore,
-                    isAnalyzed: true
+                    isAnalyzed: true,
+                    analysisBullets: analysis.analysisBullets ?? []
                 )
             }
 
-            return fallbackSummary(completedStages: completedStages, totalStages: totalStages)
+            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
     }
 
+    /// Generates a contextual fallback summary using pipeline metadata when LLM analysis is unavailable.
+    /// Builds dynamic bullet points from the query topic, model names, and live research status.
     func fallbackSummary(
+        query: String,
         completedStages: [(stage: Int, model: LLMModel, content: String)],
-        totalStages: Int
+        totalStages: Int,
+        liveResearchUsed: Bool = false
     ) -> VerificationSummary {
         let completed = completedStages.count
         let skipped = totalStages - completed
@@ -457,13 +484,66 @@ final class VerificationPipelineManager {
             hallucinations = "Checked at each stage \u{2013} potential issues flagged"
         }
 
+        // Generate contextual fallback bullets from available pipeline metadata
+        let bullets = Self.buildFallbackBullets(
+            query: query,
+            completedStages: completedStages,
+            totalStages: totalStages,
+            liveResearchUsed: liveResearchUsed
+        )
+
         return VerificationSummary(
             consistency: consistency,
             hallucinations: hallucinations,
             confidence: confidence,
             contradictions: [],
             confidenceScore: nil,
-            isAnalyzed: false
+            isAnalyzed: false,
+            analysisBullets: bullets
         )
+    }
+
+    /// Builds contextual bullet points from pipeline metadata when no LLM analysis is available.
+    /// Extracts a topic snippet from the query and references actual model names used.
+    private static func buildFallbackBullets(
+        query: String,
+        completedStages: [(stage: Int, model: LLMModel, content: String)],
+        totalStages: Int,
+        liveResearchUsed: Bool
+    ) -> [String] {
+        var bullets: [String] = []
+
+        // Extract a short topic from the query (first ~60 chars, breaking at word boundary)
+        let topicSnippet: String = {
+            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.count <= 60 { return trimmed }
+            let prefix = String(trimmed.prefix(60))
+            if let lastSpace = prefix.lastIndex(of: " ") {
+                return String(prefix[prefix.startIndex..<lastSpace]) + "…"
+            }
+            return prefix + "…"
+        }()
+
+        // Bullet 1: Model names used for this query
+        let modelShortNames = completedStages.map { $0.model.provider.shortName }
+        let uniqueNames = NSOrderedSet(array: modelShortNames).array as! [String]
+        bullets.append("Queried \"\(topicSnippet)\" through \(uniqueNames.joined(separator: ", "))")
+
+        // Bullet 2: Pipeline completion status
+        let completed = completedStages.count
+        if completed == totalStages {
+            bullets.append("All \(completed) verification stages completed successfully")
+        } else {
+            bullets.append("\(completed) of \(totalStages) stages completed — partial coverage")
+        }
+
+        // Bullet 3: Live research note or general grounding note
+        if liveResearchUsed {
+            bullets.append("Grounded with live web data via Tavily search")
+        } else {
+            bullets.append("Based on model training data — no live web sources used")
+        }
+
+        return bullets
     }
 }
