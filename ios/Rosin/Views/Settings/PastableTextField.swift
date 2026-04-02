@@ -1,9 +1,13 @@
 import SwiftUI
 import UIKit
 
-/// A UIKit-backed text field that guarantees paste always works.
-/// Uses a custom UITextField subclass that explicitly allows paste
-/// in canPerformAction and becomes first responder on appear.
+// ── APIKeyTextField ─────────────────────────────────────────────────
+// UIKit-backed text field for API key entry. Guarantees paste works
+// around the iOS 26.x Simulator pasteboard sync bug. Also respects
+// SwiftUI layout constraints so it doesn't overflow parent bounds.
+
+typealias APIKeyTextField = PastableTextField
+
 struct PastableTextField: UIViewRepresentable {
     let placeholder: String
     @Binding var text: String
@@ -19,9 +23,14 @@ struct PastableTextField: UIViewRepresentable {
         field.smartQuotesType = .no
         field.smartDashesType = .no
         field.clearButtonMode = .whileEditing
+        field.isSecureTextEntry = false
+        field.clipsToBounds = true
+        // Critical: tell Auto Layout this field should shrink to fit, not expand
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         field.delegate = context.coordinator
         field.addTarget(context.coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
-        // Become first responder after a brief delay so the view is in the hierarchy
+        // Auto-focus after the view settles into the hierarchy
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             field.becomeFirstResponder()
         }
@@ -56,9 +65,7 @@ struct PastableTextField: UIViewRepresentable {
     }
 }
 
-/// UITextField subclass that explicitly allows all edit actions including paste.
-/// Overrides canPerformAction to never block paste, even when the system
-/// would otherwise disable it due to content type or keyboard restrictions.
+/// UITextField subclass that guarantees paste is never blocked.
 class AlwaysPastableField: UITextField {
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(UIResponderStandardEditActions.paste(_:)) {
@@ -67,17 +74,19 @@ class AlwaysPastableField: UITextField {
         return super.canPerformAction(action, withSender: sender)
     }
 
-    // Override paste directly to read from UIPasteboard without restrictions
     override func paste(_ sender: Any?) {
-        if let string = UIPasteboard.general.string {
-            // Insert at cursor position or replace selection
-            if let range = selectedTextRange {
-                replace(range, withText: string.trimmingCharacters(in: .whitespacesAndNewlines))
-                sendActions(for: .editingChanged)
-            } else {
-                text = (text ?? "") + string.trimmingCharacters(in: .whitespacesAndNewlines)
-                sendActions(for: .editingChanged)
-            }
+        guard let string = UIPasteboard.general.string else { return }
+        let cleaned = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let range = selectedTextRange {
+            replace(range, withText: cleaned)
+        } else {
+            text = (text ?? "") + cleaned
         }
+        sendActions(for: .editingChanged)
+    }
+
+    // Respect SwiftUI's proposed width
+    override var intrinsicContentSize: CGSize {
+        CGSize(width: UIView.noIntrinsicMetric, height: 36)
     }
 }

@@ -34,7 +34,7 @@ struct TavilyKeyRowView: View {
             if isEditing {
                 VStack(alignment: .leading, spacing: 6) {
                     PastableTextField(placeholder: "Enter Tavily API key...", text: $keyInput)
-                        .frame(height: 36)
+                        .frame(maxWidth: .infinity, minHeight: 36, maxHeight: 36)
 
                     HStack(spacing: 12) {
                         Button("Save") { saveKey() }
