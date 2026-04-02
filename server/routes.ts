@@ -488,7 +488,20 @@ Respond with ONLY valid JSON (no markdown, no code fences) matching this exact s
       "stage": 1,
       "agreementScore": 92,
       "claims": [
-        { "text": "Key claim extracted from this stage", "confidence": 85, "sources": [] }
+        {
+          "text": "Key claim extracted from this stage",
+          "confidence": 85,
+          "sources": [],
+          "provenance": [
+            {
+              "model": "Claude",
+              "stage": 1,
+              "changeType": "added",
+              "newText": "Key claim as first introduced",
+              "reason": "Initial response to query"
+            }
+          ]
+        }
       ],
       "hallucinationFlags": [
         { "claim": "Specific claim that may be hallucinated", "reason": "Why it's suspect", "severity": "low" }
@@ -505,6 +518,15 @@ Rules:
 - keyFindings: 3-5 items, each under 120 chars, referencing models by name
 - stageAnalyses: one entry per stage with agreementScore 0-100
   - claims: 2-5 key factual claims per stage with confidence 0-100
+    - Each claim MUST include a "provenance" array tracking its lifecycle:
+      - model: short name of the model (Claude/Gemini/Grok)
+      - stage: stage number where the change occurred
+      - changeType: "added" (new claim), "modified" (refined), "flagged" (questioned), "corrected" (error fixed)
+      - originalText: (optional) the previous version of the claim before modification/correction
+      - newText: the claim text as it stands after this change
+      - reason: one sentence explaining why this change was made
+    - Stage 1 claims always have one "added" entry. Later stages may add "modified"/"corrected" entries.
+    - If a claim was introduced in stage 1 and unchanged through all stages, it has only the single "added" entry.
   - hallucinationFlags: only include if genuinely suspect (empty array if none)
   - corrections: list corrections this stage made (empty for stage 1)
 - If live research was used, mention it in keyFindings

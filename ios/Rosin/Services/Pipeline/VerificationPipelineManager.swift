@@ -352,7 +352,20 @@ final class VerificationPipelineManager {
               "stage": 1,
               "agreementScore": 92,
               "claims": [
-                { "text": "Key claim extracted from this stage", "confidence": 85, "sources": [] }
+                {
+                  "text": "Key claim extracted from this stage",
+                  "confidence": 85,
+                  "sources": [],
+                  "provenance": [
+                    {
+                      "model": "Claude",
+                      "stage": 1,
+                      "changeType": "added",
+                      "newText": "Key claim as first introduced",
+                      "reason": "Initial response to query"
+                    }
+                  ]
+                }
               ],
               "hallucinationFlags": [
                 { "claim": "Specific claim that may be hallucinated", "reason": "Why suspect", "severity": "low" }
@@ -369,6 +382,14 @@ final class VerificationPipelineManager {
         - keyFindings: 3-5 items, each under 120 chars, referencing models by name
         - stageAnalyses: one entry per stage with agreementScore 0-100
           - claims: 2-5 key factual claims per stage with confidence 0-100
+            - Each claim MUST include a "provenance" array tracking its lifecycle:
+              - model: short name of the model (Claude/Gemini/Grok)
+              - stage: stage number where the change occurred
+              - changeType: "added" | "modified" | "flagged" | "corrected"
+              - originalText: (optional) previous version before modification/correction
+              - newText: the claim text as it stands after this change
+              - reason: one sentence explaining why this change was made
+            - Stage 1 claims have one "added" entry. Later stages may add "modified"/"corrected" entries.
           - hallucinationFlags: only include if genuinely suspect (empty array if none)
           - corrections: list corrections this stage made (empty for stage 1)
         - Be specific — never say "the query" or "the topic", say what it actually is

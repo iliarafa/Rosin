@@ -38,6 +38,17 @@ function severityColor(severity: string): string {
   return "text-muted-foreground";
 }
 
+/** Color for provenance change type badges */
+function changeTypeColor(changeType: string): string {
+  switch (changeType) {
+    case "added": return "text-green-500";
+    case "modified": return "text-blue-400";
+    case "corrected": return "text-yellow-500";
+    case "flagged": return "text-red-500";
+    default: return "text-muted-foreground";
+  }
+}
+
 export function StageBlock({ stage }: StageBlockProps) {
   const providerName = providerLabels[stage.model.provider] || stage.model.provider;
   const isActive = stage.status === "streaming";
@@ -93,15 +104,34 @@ export function StageBlock({ stage }: StageBlockProps) {
 
           {showDetails && (
             <div className="mt-2 space-y-2 text-xs border-l-2 border-border pl-3">
-              {/* Key claims with confidence */}
+              {/* Key claims with confidence + provenance trail */}
               {analysis.claims.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-2.5">
                   {analysis.claims.map((c, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className={`shrink-0 tabular-nums ${c.confidence >= 80 ? "text-green-500" : c.confidence >= 50 ? "text-yellow-500" : "text-red-500"}`}>
-                        [{c.confidence}]
-                      </span>
-                      <span className="text-muted-foreground">{c.text}</span>
+                    <div key={i} className="space-y-1">
+                      <div className="flex items-start gap-2">
+                        <span className={`shrink-0 tabular-nums ${c.confidence >= 80 ? "text-green-500" : c.confidence >= 50 ? "text-yellow-500" : "text-red-500"}`}>
+                          [{c.confidence}]
+                        </span>
+                        <span className="text-muted-foreground">{c.text}</span>
+                      </div>
+                      {/* Provenance trail — shows which model added/modified/corrected this claim */}
+                      {c.provenance && c.provenance.length > 0 && (
+                        <div className="ml-10 space-y-0.5">
+                          {c.provenance.map((p, j) => (
+                            <div key={j} className="flex items-start gap-1.5 text-[10px] leading-tight">
+                              <span className={`shrink-0 ${changeTypeColor(p.changeType)}`}>
+                                S{p.stage}
+                              </span>
+                              <span className="text-foreground/60">{p.model}</span>
+                              <span className={`shrink-0 ${changeTypeColor(p.changeType)}`}>
+                                {p.changeType.toUpperCase()}
+                              </span>
+                              <span className="text-muted-foreground/60">{p.reason}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

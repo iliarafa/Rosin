@@ -42,11 +42,24 @@ export type InsertVerificationRequest = z.infer<typeof insertVerificationRequest
 
 // ── Structured scoring schemas (Judge pipeline) ──────────────────────
 
+/** A single provenance entry tracking how a claim was introduced or changed */
+export const provenanceEntrySchema = z.object({
+  model: z.string(),
+  stage: z.number(),
+  changeType: z.enum(["added", "modified", "flagged", "corrected"]),
+  originalText: z.string().optional(),
+  newText: z.string(),
+  reason: z.string(),
+});
+export type ProvenanceEntry = z.infer<typeof provenanceEntrySchema>;
+
 /** A single factual claim extracted from a stage's output */
 export const claimSchema = z.object({
   text: z.string(),
   confidence: z.number().min(0).max(100),
   sources: z.array(z.string()).optional(),
+  /** Provenance trail — tracks which model introduced or changed this claim */
+  provenance: z.array(provenanceEntrySchema).optional(),
 });
 export type Claim = z.infer<typeof claimSchema>;
 

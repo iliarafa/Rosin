@@ -1,20 +1,38 @@
 import Foundation
 
 // ── Structured scoring models for the Judge pipeline ──────────────────
-// These match the Zod schemas in shared/schema.ts (Claim, HallucinationFlag,
-// StageAnalysis, JudgeVerdict). The Judge produces all of these in a single
-// structured JSON call after all verification stages complete.
+// These match the Zod schemas in shared/schema.ts (ProvenanceEntry, Claim,
+// HallucinationFlag, StageAnalysis, JudgeVerdict). The Judge produces all
+// of these in a single structured JSON call after all verification stages complete.
+
+/// Tracks how a claim was introduced or changed across pipeline stages.
+/// Each entry records which model made the change, at which stage, and why.
+struct ProvenanceEntry: Codable {
+    let model: String
+    let stage: Int
+    let changeType: ChangeType
+    let originalText: String?
+    let newText: String
+    let reason: String
+
+    enum ChangeType: String, Codable {
+        case added, modified, flagged, corrected
+    }
+}
 
 /// A single factual claim extracted from a stage's output
 struct Claim: Codable {
     let text: String
     let confidence: Int
     let sources: [String]?
+    /// Provenance trail — tracks which model introduced or changed this claim
+    let provenance: [ProvenanceEntry]?
 
-    init(text: String, confidence: Int, sources: [String]? = nil) {
+    init(text: String, confidence: Int, sources: [String]? = nil, provenance: [ProvenanceEntry]? = nil) {
         self.text = text
         self.confidence = confidence
         self.sources = sources
+        self.provenance = provenance
     }
 }
 

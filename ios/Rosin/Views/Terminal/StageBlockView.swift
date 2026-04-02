@@ -80,17 +80,40 @@ struct StageBlockView: View {
                     .buttonStyle(.plain)
 
                     if showDetails {
-                        VStack(alignment: .leading, spacing: 6) {
-                            // Key claims with confidence
+                        VStack(alignment: .leading, spacing: 8) {
+                            // Key claims with confidence + provenance trail
                             ForEach(Array(analysis.claims.enumerated()), id: \.offset) { _, claim in
-                                HStack(alignment: .top, spacing: 6) {
-                                    Text("[\(claim.confidence)]")
-                                        .font(RosinTheme.monoCaption2)
-                                        .foregroundColor(scoreColor(claim.confidence))
-                                    Text(claim.text)
-                                        .font(RosinTheme.monoCaption2)
-                                        .foregroundColor(RosinTheme.muted)
-                                        .fixedSize(horizontal: false, vertical: true)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    HStack(alignment: .top, spacing: 6) {
+                                        Text("[\(claim.confidence)]")
+                                            .font(RosinTheme.monoCaption2)
+                                            .foregroundColor(scoreColor(claim.confidence))
+                                        Text(claim.text)
+                                            .font(RosinTheme.monoCaption2)
+                                            .foregroundColor(RosinTheme.muted)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+
+                                    // Provenance trail — shows which model added/modified/corrected this claim
+                                    if let provenance = claim.provenance, !provenance.isEmpty {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            ForEach(Array(provenance.enumerated()), id: \.offset) { _, entry in
+                                                HStack(spacing: 4) {
+                                                    Text("S\(entry.stage)")
+                                                        .foregroundColor(changeTypeColor(entry.changeType))
+                                                    Text(entry.model)
+                                                        .foregroundColor(.primary.opacity(0.5))
+                                                    Text(entry.changeType.rawValue.uppercased())
+                                                        .foregroundColor(changeTypeColor(entry.changeType))
+                                                    Text(entry.reason)
+                                                        .foregroundColor(RosinTheme.muted.opacity(0.6))
+                                                        .lineLimit(1)
+                                                }
+                                                .font(.system(size: 9, design: .monospaced))
+                                            }
+                                        }
+                                        .padding(.leading, 30)
+                                    }
                                 }
                             }
 
@@ -162,6 +185,16 @@ struct StageBlockView: View {
         case .high: return RosinTheme.destructive
         case .medium: return .yellow
         case .low: return RosinTheme.muted
+        }
+    }
+
+    /// Color for provenance change type badges
+    private func changeTypeColor(_ changeType: ProvenanceEntry.ChangeType) -> Color {
+        switch changeType {
+        case .added: return RosinTheme.green
+        case .modified: return .blue
+        case .corrected: return .yellow
+        case .flagged: return RosinTheme.destructive
         }
     }
 }
