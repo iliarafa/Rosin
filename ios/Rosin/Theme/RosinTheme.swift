@@ -7,10 +7,10 @@ enum RosinTheme {
     static let background = Color("RosinBackground")
     static let muted = Color("RosinMuted")
 
-    // MARK: - Fonts
-    static let monoCaption = Font.system(.caption, design: .monospaced)
-    static let monoCaption2 = Font.system(.caption2, design: .monospaced)
-    static let monoFootnote = Font.system(.footnote, design: .monospaced)
+    // MARK: - Fonts (bumped up for readability — was caption/caption2, now footnote/caption)
+    static let monoCaption = Font.system(.footnote, design: .monospaced)
+    static let monoCaption2 = Font.system(.caption, design: .monospaced)
+    static let monoFootnote = Font.system(.subheadline, design: .monospaced)
     static let monoBody = Font.system(.body, design: .monospaced)
     static let monoSubheadline = Font.system(.subheadline, design: .monospaced)
     static let monoHeadline = Font.system(.headline, design: .monospaced)

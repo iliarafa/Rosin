@@ -397,85 +397,98 @@ final class VerificationPipelineManager {
 
         let userContent = "Original Query: \(query)\n\n\(stageOutputsText)"
 
-        let service = LLMServiceFactory.service(for: judgeConfig.model.provider)
-        let stream = service.streamCompletion(
-            model: judgeConfig.model.model,
-            systemPrompt: systemPrompt,
-            userContent: userContent,
-            apiKey: judgeConfig.apiKey,
-            maxTokens: 2048
-        )
-
-        // Collect the full Judge response (no streaming to UI — runs behind the scenes)
-        var responseText = ""
-        do {
-            for try await text in stream {
-                if Task.isCancelled { break }
-                responseText += text
-            }
-        } catch {
-            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
-        }
-
-        // Parse the Judge's JSON response
-        guard let data = parseJudgeJSON(responseText) else {
-            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
-        }
-
-        do {
-            let judgeVerdict = try JSONDecoder().decode(JudgeVerdict.self, from: data)
-
-            // Emit per-stage analysis events so the ViewModel can attach scores to stages
-            for sa in judgeVerdict.stageAnalyses {
-                onEvent(.stageAnalysis(stage: sa.stage, analysis: sa))
-            }
-
-            // Build VerificationSummary from the Judge verdict
-            let confidenceScore = Double(judgeVerdict.overallScore) / 100.0
-            let confidenceText = "\(judgeVerdict.confidence.capitalized) (\(judgeVerdict.overallScore)%)"
-
-            // Extract high-severity flags as contradictions for the existing UI
-            let contradictions = judgeVerdict.stageAnalyses.flatMap { sa in
-                sa.hallucinationFlags
-                    .filter { $0.severity == .high }
-                    .map { flag in
-                        Contradiction(
-                            topic: flag.claim,
-                            stageA: sa.stage,
-                            stageB: 0,
-                            description: flag.reason
-                        )
-                    }
-            }
-
-            // Hallucination summary text
-            let totalFlags = judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.hallucinationFlags.count }
-            let hallucinationText: String
-            if totalFlags == 0 {
-                hallucinationText = "No hallucinations detected across any stage"
-            } else {
-                let flaggedStages = judgeVerdict.stageAnalyses.filter { !$0.hallucinationFlags.isEmpty }.count
-                hallucinationText = "\(totalFlags) potential issue\(totalFlags > 1 ? "s" : "") flagged across \(flaggedStages) stage\(flaggedStages > 1 ? "s" : "")"
-            }
-
-            // Consistency from agreement scores
-            let avgAgreement = judgeVerdict.stageAnalyses.isEmpty ? 0 :
-                judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.agreementScore } / judgeVerdict.stageAnalyses.count
-            let consistencyText = "\(avgAgreement)% average agreement across \(completedStages.count) stages"
-
-            return VerificationSummary(
-                consistency: consistencyText,
-                hallucinations: hallucinationText,
-                confidence: confidenceText,
-                contradictions: contradictions,
-                confidenceScore: confidenceScore,
-                isAnalyzed: true,
-                analysisBullets: judgeVerdict.keyFindings,
-                judgeVerdict: judgeVerdict
+        // Retry loop — the Judge LLM sometimes returns invalid JSON on the first attempt.
+        // Try up to 2 times before falling back to the metadata-based summary.
+        let maxAttempts = 2
+        for attempt in 1...maxAttempts {
+            let service = LLMServiceFactory.service(for: judgeConfig.model.provider)
+            let stream = service.streamCompletion(
+                model: judgeConfig.model.model,
+                systemPrompt: systemPrompt,
+                userContent: userContent,
+                apiKey: judgeConfig.apiKey,
+                maxTokens: 2048
             )
-        } catch {
-            return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
+
+            var responseText = ""
+            do {
+                for try await text in stream {
+                    if Task.isCancelled { break }
+                    responseText += text
+                }
+            } catch {
+                if attempt == maxAttempts {
+                    return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
+                }
+                continue // retry
+            }
+
+            // Parse the Judge's JSON response
+            guard let data = parseJudgeJSON(responseText) else {
+                if attempt == maxAttempts {
+                    return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
+                }
+                continue // retry
+            }
+
+            do {
+                let judgeVerdict = try JSONDecoder().decode(JudgeVerdict.self, from: data)
+
+                // Emit per-stage analysis events so the ViewModel can attach scores to stages
+                for sa in judgeVerdict.stageAnalyses {
+                    onEvent(.stageAnalysis(stage: sa.stage, analysis: sa))
+                }
+
+                // Build VerificationSummary from the Judge verdict
+                let confidenceScore = Double(judgeVerdict.overallScore) / 100.0
+                let confidenceText = "\(judgeVerdict.confidence.capitalized) (\(judgeVerdict.overallScore)%)"
+
+                let contradictions = judgeVerdict.stageAnalyses.flatMap { sa in
+                    sa.hallucinationFlags
+                        .filter { $0.severity == .high }
+                        .map { flag in
+                            Contradiction(
+                                topic: flag.claim,
+                                stageA: sa.stage,
+                                stageB: 0,
+                                description: flag.reason
+                            )
+                        }
+                }
+
+                let totalFlags = judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.hallucinationFlags.count }
+                let hallucinationText: String
+                if totalFlags == 0 {
+                    hallucinationText = "No hallucinations detected across any stage"
+                } else {
+                    let flaggedStages = judgeVerdict.stageAnalyses.filter { !$0.hallucinationFlags.isEmpty }.count
+                    hallucinationText = "\(totalFlags) potential issue\(totalFlags > 1 ? "s" : "") flagged across \(flaggedStages) stage\(flaggedStages > 1 ? "s" : "")"
+                }
+
+                let avgAgreement = judgeVerdict.stageAnalyses.isEmpty ? 0 :
+                    judgeVerdict.stageAnalyses.reduce(0) { $0 + $1.agreementScore } / judgeVerdict.stageAnalyses.count
+                let consistencyText = "\(avgAgreement)% average agreement across \(completedStages.count) stages"
+
+                return VerificationSummary(
+                    consistency: consistencyText,
+                    hallucinations: hallucinationText,
+                    confidence: confidenceText,
+                    contradictions: contradictions,
+                    confidenceScore: confidenceScore,
+                    isAnalyzed: true,
+                    analysisBullets: judgeVerdict.keyFindings,
+                    judgeVerdict: judgeVerdict
+                )
+            } catch {
+                if attempt == maxAttempts {
+                    return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
+                }
+                // retry on next iteration
+            }
         }
+
+        // Should never reach here, but safety net
+        return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
     }
 
     /// Generates a contextual fallback summary using pipeline metadata when the Judge is unavailable.

@@ -112,7 +112,7 @@ struct SettingsView: View {
                             )
 
                             // Preview
-                            Text("The quick brown fox jumps over the lazy dog.")
+                            Text("A true account of the actual.")
                                 .font(RosinTheme.responseFont(for: fontSizeManager.sizeCategory))
                                 .lineSpacing(fontSizeManager.sizeCategory.lineSpacing)
                                 .foregroundColor(RosinTheme.muted)

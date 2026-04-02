@@ -41,25 +41,25 @@ enum FontSizeCategory: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Point size for stage response content text
+    /// Point size for stage response content text (bumped +2pt for readability)
     var pointSize: CGFloat {
         switch self {
-        case .xSmall: return 10
-        case .small: return 11
-        case .medium: return 12
-        case .large: return 14
-        case .xLarge: return 16
+        case .xSmall: return 12
+        case .small: return 13
+        case .medium: return 15
+        case .large: return 17
+        case .xLarge: return 19
         }
     }
 
     /// Line spacing for response content
     var lineSpacing: CGFloat {
         switch self {
-        case .xSmall: return 3
-        case .small: return 4
-        case .medium: return 5
-        case .large: return 6
-        case .xLarge: return 7
+        case .xSmall: return 4
+        case .small: return 5
+        case .medium: return 6
+        case .large: return 7
+        case .xLarge: return 8
         }
     }
 }

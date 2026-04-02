@@ -85,7 +85,7 @@ struct TerminalOutputView: View {
                         Text("VERIFIED OUTPUT")
                             .font(RosinTheme.monoCaption)
                             .fontWeight(.medium)
-                        Text(lastContent)
+                        markdownText(lastContent)
                             .font(RosinTheme.responseFont(for: fontSizeManager.sizeCategory))
                             .lineSpacing(fontSizeManager.sizeCategory.lineSpacing)
                             .textSelection(.enabled)
@@ -150,5 +150,13 @@ struct TerminalOutputView: View {
                 }
             }
         }
+    }
+
+    /// Renders markdown inline formatting (bold, italic) in LLM output text.
+    private func markdownText(_ string: String) -> Text {
+        if let attributed = try? AttributedString(markdown: string, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            return Text(attributed)
+        }
+        return Text(string)
     }
 }

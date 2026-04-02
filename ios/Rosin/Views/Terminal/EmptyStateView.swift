@@ -53,8 +53,7 @@ struct EmptyStateView: View {
 
     var body: some View {
         ZStack {
-            // ── CRT scanlines background (very subtle) ──
-            CRTScanlinesView()
+            // CRT scanlines removed — clean background only
 
             if !booted && !skippedBoot {
                 // ── Boot sequence overlay ──
@@ -97,74 +96,76 @@ struct EmptyStateView: View {
         .onTapGesture { skipBoot() }
     }
 
-    // MARK: - Main Idle Content
+    // MARK: - Main Idle Content (Bold & Confident)
 
     private var mainIdleContent: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Spacer()
 
-            // ── Title with typing animation + neon glow ──
+            // ── Title with typing animation + neon glow (LARGE) ──
             HStack(spacing: 0) {
                 let typed = String(fullTitle.prefix(typedCount))
                 let parts = typed.split(separator: "—", maxSplits: 1)
 
-                // "ROSIN " part with neon glow
+                // "ROSIN " part with neon glow — big bold title
                 if let rosinPart = parts.first {
                     Text(String(rosinPart))
-                        .font(RosinTheme.monoCaption)
+                        .font(.system(.title2, design: .monospaced).bold())
                         .foregroundColor(.primary)
-                        // Neon green glow effect
                         .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.5 : 0.15), radius: glowPulse ? 8 : 3)
                         .shadow(color: RosinTheme.green.opacity(glowPulse ? 0.25 : 0.05), radius: glowPulse ? 16 : 6)
                 }
 
-                // "— PURE OUTPUT" part (dimmer)
+                // "— PURE OUTPUT" part
                 if parts.count > 1 {
                     Text("—" + String(parts[1]))
-                        .font(RosinTheme.monoCaption)
-                        .foregroundColor(.primary.opacity(0.6))
+                        .font(.system(.title2, design: .monospaced))
+                        .foregroundColor(.primary.opacity(0.5))
                 }
 
-                // Typing cursor (visible while typing)
+                // Typing cursor
                 if !titleDone {
                     Text("▎")
-                        .font(RosinTheme.monoCaption)
+                        .font(.system(.title2, design: .monospaced))
                         .foregroundColor(RosinTheme.green)
                         .opacity(cursorVisible ? 1 : 0)
                 }
             }
 
-            // ── Subtitle ──
-            Text("Launch a query through multiple LLMs. Verify, refine and detect hallucinations.")
-                .font(RosinTheme.monoCaption2)
+            // ── Subtitle — bigger ──
+            Text("Launch a query through multiple LLMs.\nVerify, refine and detect hallucinations.")
+                .font(RosinTheme.monoFootnote)
                 .foregroundColor(RosinTheme.muted.opacity(0.6))
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
+                .frame(maxWidth: 340)
                 .opacity(titleDone ? 1 : 0)
                 .animation(.easeIn(duration: 0.5), value: titleDone)
 
-            // ── Blinking cursor with green glow ──
+            // ── Blinking cursor ──
             HStack(spacing: 2) {
                 Text("> ")
-                    .font(RosinTheme.monoCaption2)
+                    .font(RosinTheme.monoCaption)
                     .foregroundColor(RosinTheme.green.opacity(0.5))
                 Text("_")
-                    .font(RosinTheme.monoCaption2)
+                    .font(RosinTheme.monoCaption)
                     .foregroundColor(RosinTheme.green)
                     .shadow(color: RosinTheme.green.opacity(0.6), radius: 4)
                     .opacity(cursorVisible ? 1 : 0)
             }
-            .padding(.top, 8)
+            .padding(.top, 4)
 
-            // ── Example query cards ──
+            // ── Example query cards (redesigned: bigger, green left border, horizontal scroll) ──
             if showExamples {
-                VStack(spacing: 10) {
-                    ForEach(exampleQueries) { example in
-                        exampleCard(example)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(exampleQueries) { example in
+                            exampleCard(example)
+                        }
                     }
+                    .padding(.horizontal, 24)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
+                .scrollTargetBehavior(.viewAligned)
+                .padding(.top, 8)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
@@ -177,28 +178,35 @@ struct EmptyStateView: View {
         }
     }
 
-    // MARK: - Example Card
+    // MARK: - Example Card (Redesigned: larger, green accent border)
 
     private func exampleCard(_ example: ExampleQuery) -> some View {
         Button {
             onQuerySelect?(example.query)
         } label: {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("[\(example.label)]")
-                    .font(RosinTheme.monoCaption2)
-                    .foregroundColor(RosinTheme.green.opacity(0.7))
+                    .font(RosinTheme.monoCaption)
+                    .foregroundColor(RosinTheme.green.opacity(0.8))
                     .tracking(2)
                 Text(example.query)
-                    .font(RosinTheme.monoCaption2)
+                    .font(RosinTheme.monoCaption)
                     .foregroundColor(RosinTheme.muted)
-                    .lineLimit(2)
+                    .lineLimit(3)
                     .multilineTextAlignment(.leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
+            .frame(width: 240, alignment: .leading)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .overlay(alignment: .leading) {
+                // Green left accent border
+                Rectangle()
+                    .fill(RosinTheme.green.opacity(0.4))
+                    .frame(width: 3)
+            }
             .overlay(
                 Rectangle()
-                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -207,7 +215,6 @@ struct EmptyStateView: View {
     // MARK: - Animations
 
     private func startBootSequence() {
-        // Show boot lines one at a time
         for i in 0..<bootMessages.count {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.25) {
                 guard !skippedBoot else { return }
@@ -216,7 +223,6 @@ struct EmptyStateView: View {
                 }
             }
         }
-        // Transition to main content after boot
         DispatchQueue.main.asyncAfter(deadline: .now() + Double(bootMessages.count) * 0.25 + 0.3) {
             guard !skippedBoot else { return }
             withAnimation(.easeInOut(duration: 0.4)) {
@@ -239,7 +245,6 @@ struct EmptyStateView: View {
                 typedCount = i
                 if i == fullTitle.count {
                     titleDone = true
-                    // Show example cards after title finishes
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                         withAnimation(.easeOut(duration: 0.5)) {
                             showExamples = true
@@ -250,36 +255,15 @@ struct EmptyStateView: View {
         }
     }
 
-    /// Subtle neon glow pulse on "ROSIN"
     private func startGlowPulse() {
         withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
             glowPulse = true
         }
     }
 
-    /// Block cursor blink (step-style, not smooth fade)
     private func startCursorBlink() {
         Timer.scheduledTimer(withTimeInterval: 0.55, repeats: true) { _ in
             cursorVisible.toggle()
         }
-    }
-}
-
-// MARK: - CRT Scanlines Background
-
-/// Very faint horizontal lines simulating a CRT monitor effect
-struct CRTScanlinesView: View {
-    var body: some View {
-        Canvas { context, size in
-            // Draw horizontal lines every 4 points at very low opacity
-            let lineSpacing: CGFloat = 4
-            var y: CGFloat = 0
-            while y < size.height {
-                let rect = CGRect(x: 0, y: y, width: size.width, height: 1)
-                context.fill(Path(rect), with: .color(.primary.opacity(0.025)))
-                y += lineSpacing
-            }
-        }
-        .allowsHitTesting(false)
     }
 }

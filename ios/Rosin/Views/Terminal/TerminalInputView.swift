@@ -9,12 +9,12 @@ struct TerminalInputView: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
-            // Command-line style > prompt with green tint
+        HStack(alignment: .bottom, spacing: 10) {
+            // Command-line style > prompt
             Text(">")
-                .font(RosinTheme.monoCaption.bold())
+                .font(RosinTheme.monoFootnote.bold())
                 .foregroundColor(RosinTheme.green.opacity(0.7))
-                .padding(.bottom, 8)
+                .padding(.bottom, 10)
 
             TextField("Enter your query...", text: $query, axis: .vertical)
                 .font(RosinTheme.monoCaption)
@@ -31,23 +31,22 @@ struct TerminalInputView: View {
                     Text("STOP")
                         .font(RosinTheme.monoCaption)
                         .foregroundColor(RosinTheme.destructive)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
                         .overlay(
                             Rectangle()
                                 .stroke(RosinTheme.destructive, lineWidth: 1)
                         )
                 }
             } else {
-                // EXECUTE button with green glow on enabled state
                 let isEmpty = query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 Button(action: onSubmit) {
                     Text("EXECUTE")
                         .font(RosinTheme.monoCaption)
                         .tracking(1)
                         .foregroundColor(isEmpty ? RosinTheme.muted : RosinTheme.green)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
                         .overlay(
                             Rectangle()
                                 .stroke(
@@ -55,7 +54,6 @@ struct TerminalInputView: View {
                                     lineWidth: 1
                                 )
                         )
-                        // Subtle glow when enabled
                         .shadow(
                             color: isEmpty ? .clear : RosinTheme.green.opacity(0.2),
                             radius: isEmpty ? 0 : 6
@@ -64,9 +62,8 @@ struct TerminalInputView: View {
                 .disabled(isEmpty)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        // Green glow border when input is focused
+        .padding(.horizontal, 24)
+        .padding(.vertical, 18)
         .overlay(
             Rectangle()
                 .stroke(

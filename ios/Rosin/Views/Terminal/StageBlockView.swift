@@ -39,9 +39,9 @@ struct StageBlockView: View {
             }
             .font(RosinTheme.monoCaption)
 
-            // Content
+            // Content — parses markdown so **bold** renders as actual bold
             HStack(alignment: .bottom, spacing: 0) {
-                Text(stage.content)
+                markdownText(stage.content)
                     .font(responseFont)
                     .lineSpacing(fontSizeManager.sizeCategory.lineSpacing)
                     .textSelection(.enabled)
@@ -156,6 +156,15 @@ struct StageBlockView: View {
         .overlay(alignment: .bottom) {
             Divider().opacity(0.4)
         }
+    }
+
+    /// Renders markdown inline formatting (bold, italic) in LLM output text.
+    /// Uses .inlineOnlyPreservingWhitespace to keep line breaks intact.
+    private func markdownText(_ string: String) -> Text {
+        if let attributed = try? AttributedString(markdown: string, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            return Text(attributed)
+        }
+        return Text(string)
     }
 
     /// Color for an agreement/confidence score (0–100)
