@@ -457,9 +457,8 @@ struct TerminalView: View {
             viewModel.run()
             withAnimation(.easeOut(duration: 0.25)) { showResults = true }
         } label: {
-            Text("EXECUTE")
-                .font(RosinTheme.monoCaption)
-                .tracking(2)
+            (Text("RETURN ").font(.system(.subheadline, design: .monospaced).bold()) + Text("⏎").font(.system(.title3, design: .monospaced)))
+                .tracking(3)
                 .foregroundColor(isEmpty ? RosinTheme.muted : RosinTheme.green)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
