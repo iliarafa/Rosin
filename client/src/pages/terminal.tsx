@@ -7,6 +7,7 @@ import { StageCountSelector } from "@/components/stage-count-selector";
 import { TerminalOutput } from "@/components/terminal-output";
 import { TerminalInput } from "@/components/terminal-input";
 import { type LLMModel, type StageOutput, type VerificationSummary, type ResearchStatus } from "@shared/schema";
+import { useLocalHistory } from "@/hooks/use-local-history";
 
 const allModels: LLMModel[] = [
   { provider: "anthropic", model: "claude-sonnet-4-5" },
@@ -32,6 +33,7 @@ export default function Terminal() {
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
+  const localHistory = useLocalHistory();
 
   const activeChain = chain.slice(0, stageCount);
 
@@ -159,6 +161,23 @@ export default function Terminal() {
     setVerificationId(null);
     verifyMutation.mutate({ query, chain: activeChain });
   };
+
+  // Save completed verifications to local history (100% on-device, no server)
+  useEffect(() => {
+    if (
+      finalSummary &&
+      stages.length > 0 &&
+      stages.every((s) => s.status === "complete")
+    ) {
+      localHistory.save({
+        query,
+        chain: activeChain,
+        stages,
+        summary: finalSummary,
+        adversarialMode,
+      });
+    }
+  }, [finalSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (outputRef.current) {

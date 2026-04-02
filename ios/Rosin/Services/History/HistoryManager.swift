@@ -31,6 +31,11 @@ enum HistoryManager {
         }
     }
 
+    /// Clear all history — 100% local deletion, no server involved
+    static func clearAll() {
+        UserDefaults.standard.removeObject(forKey: key)
+    }
+
     struct ProviderPairStat: Identifiable {
         let id: String
         let providerA: String

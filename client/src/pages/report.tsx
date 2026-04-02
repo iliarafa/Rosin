@@ -1,30 +1,41 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { type VerificationRun } from "@shared/schema";
-import { ContradictionsView } from "@/components/contradictions-view";
+import { type LocalHistoryItem } from "@/hooks/use-local-history";
+import { StageBlock } from "@/components/stage-block";
 import { VerificationSummary } from "@/components/verification-summary";
+import { ContradictionsView } from "@/components/contradictions-view";
+import { FinalVerifiedAnswer } from "@/components/final-verified-answer";
 
-function getConfidenceBorderColor(score?: number): string {
-  if (score === undefined) return "border-foreground/20";
-  if (score >= 0.8) return "border-green-500";
-  if (score >= 0.5) return "border-yellow-500";
-  return "border-red-500";
-}
+// ── Report / History Detail View ────────────────────────────────────
+// Reads the full verification result from localStorage (100% local).
+// Renders in read-only mode with all expandable sections working
+// (stages with analysis, Judge verdict, provenance, scores, etc.).
+
+const STORAGE_KEY = "rosin_local_history";
 
 export default function ReportPage() {
   const params = useParams<{ id: string }>();
+  const [run, setRun] = useState<LocalHistoryItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data: run, isLoading, error } = useQuery<VerificationRun>({
-    queryKey: ["/api/report", params.id],
-    queryFn: async () => {
-      const res = await fetch(`/api/report/${params.id}`);
-      if (!res.ok) throw new Error("Report not found");
-      return res.json();
-    },
-    enabled: !!params.id,
-  });
+  // Load the verification from localStorage by ID
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const items: LocalHistoryItem[] = JSON.parse(raw);
+        const found = items.find((item) => item.id === params.id);
+        if (found) {
+          setRun(found);
+        }
+      }
+    } catch {
+      // Corrupted localStorage — ignore
+    }
+    setLoading(false);
+  }, [params.id]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background text-foreground font-mono">
         <div className="text-sm text-muted-foreground animate-pulse">[...] Loading report</div>
@@ -32,27 +43,39 @@ export default function ReportPage() {
     );
   }
 
-  if (error || !run) {
+  if (!run) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground font-mono gap-4">
         <div className="text-sm text-destructive">[ERR] Report not found</div>
-        <Link
-          href="/terminal"
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
-        >
-          [TERMINAL]
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/history"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+          >
+            [HISTORY]
+          </Link>
+          <Link
+            href="/terminal"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
+          >
+            [TERMINAL]
+          </Link>
+        </div>
       </div>
     );
   }
 
   const lastStage = run.stages[run.stages.length - 1];
+  const allComplete = run.stages.every((s) => s.status === "complete");
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-mono">
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="text-sm font-medium">VERIFICATION REPORT</div>
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium">VERIFICATION REPORT</div>
+            <span className="text-[10px] text-muted-foreground/40">LOCAL</span>
+          </div>
           <div className="flex items-center gap-2">
             <Link
               href="/history"
@@ -70,10 +93,10 @@ export default function ReportPage() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8 crt-scanlines">
+        <div className="max-w-4xl mx-auto space-y-0">
           {/* Query and metadata */}
-          <div className="space-y-2">
+          <div className="space-y-2 mb-6">
             <div className="text-sm text-muted-foreground">
               <span className="opacity-60">QUERY: </span>
               <span className="text-foreground">{run.query}</span>
@@ -85,48 +108,32 @@ export default function ReportPage() {
             </div>
           </div>
 
+          {/* Full stage blocks — same rich rendering as live terminal */}
+          {run.stages.map((stage) => (
+            <StageBlock key={stage.stage} stage={stage} />
+          ))}
+
           {/* Contradictions */}
-          {run.summary?.contradictions && run.summary.contradictions.length > 0 && (
+          {allComplete && run.summary?.contradictions && run.summary.contradictions.length > 0 && (
             <ContradictionsView contradictions={run.summary.contradictions} />
           )}
 
-          {/* Verified output */}
-          {lastStage && (
-            <div
-              className={`pt-6 border-t-2 ${getConfidenceBorderColor(run.summary?.confidenceScore)} space-y-3 border-l-4 pl-4`}
-            >
-              <div className="text-sm font-medium text-foreground">VERIFIED OUTPUT</div>
-              <div className="text-sm whitespace-pre-wrap leading-relaxed py-3">
-                {lastStage.content}
-              </div>
-            </div>
+          {/* Final verified answer */}
+          {allComplete && lastStage && (
+            <FinalVerifiedAnswer
+              content={lastStage.content}
+              confidenceScore={run.summary?.confidenceScore}
+            />
           )}
 
-          {/* Stages (collapsed) */}
-          <details className="border border-border">
-            <summary className="px-4 py-3 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-              STAGE OUTPUTS ({run.stages.length})
-            </summary>
-            <div className="border-t border-border divide-y divide-border">
-              {run.stages.map((stage) => (
-                <div key={stage.stage} className="px-4 py-4">
-                  <div className="text-xs text-muted-foreground mb-2">
-                    STAGE {stage.stage}: {stage.model.provider.toUpperCase()} / {stage.model.model}
-                  </div>
-                  <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                    {stage.content}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </details>
-
-          {/* Summary */}
-          {run.summary && <VerificationSummary summary={run.summary} />}
+          {/* Verification summary with Judge verdict */}
+          {run.summary && allComplete && (
+            <VerificationSummary summary={run.summary} />
+          )}
 
           {/* Footer */}
           <div className="text-xs text-muted-foreground opacity-40 text-center pt-8 pb-4 border-t border-border">
-            Generated by Rosin
+            Stored locally on this device
           </div>
         </div>
       </main>
