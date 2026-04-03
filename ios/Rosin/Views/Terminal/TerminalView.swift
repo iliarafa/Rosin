@@ -208,10 +208,6 @@ struct TerminalView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
-        .sheet(item: $shareItem) { item in
-            ShareSheetRepresentable(items: item.items)
-                .presentationDetents([.medium, .large])
-        }
     }
 
     // MARK: - Header (Two spacious rows)
@@ -591,6 +587,10 @@ private struct ResultsView: View {
             }
         }
         .background(RosinTheme.background)
+        .sheet(item: $shareItem) { item in
+            ShareSheetRepresentable(items: item.items)
+                .presentationDetents([.medium, .large])
+        }
     }
 }
 

@@ -95,19 +95,13 @@ final class VerificationPipelineManager {
 
             // ── Judge Stage ──
             // Run the dedicated Judge to produce structured per-stage analysis + overall verdict
-            // Skip Judge for single-stage runs — no cross-verification to analyze
-            let summary: VerificationSummary
-            if totalStages == 1 {
-                summary = fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: hasWebResearch)
-            } else {
-                summary = await runJudge(
-                    query: query,
-                    completedStages: completedStages,
-                    totalStages: totalStages,
-                    liveResearchUsed: hasWebResearch,
-                    onEvent: onEvent
-                )
-            }
+            let summary = await runJudge(
+                query: query,
+                completedStages: completedStages,
+                totalStages: totalStages,
+                liveResearchUsed: hasWebResearch,
+                onEvent: onEvent
+            )
             onEvent(.summary(summary))
             onEvent(.done)
             currentTask = nil
@@ -317,13 +311,16 @@ final class VerificationPipelineManager {
         liveResearchUsed: Bool = false,
         onEvent: @escaping (PipelineEvent) -> Void
     ) async -> VerificationSummary {
-        guard completedStages.count >= 2 else {
+        guard !completedStages.isEmpty else {
+            NSLog("[Judge] No completed stages — using fallback summary")
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
 
         guard let judgeConfig = pickJudgeModel() else {
+            NSLog("[Judge] No API key available for Judge model — using fallback summary")
             return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
         }
+        NSLog("[Judge] Using %@ for Judge analysis", judgeConfig.model.model)
 
         // Build the stage outputs text for the Judge
         let modelNames = completedStages.map { "\($0.model.provider.shortName) (\($0.model.model))" }.joined(separator: ", ")
@@ -414,7 +411,7 @@ final class VerificationPipelineManager {
                 systemPrompt: systemPrompt,
                 userContent: userContent,
                 apiKey: judgeConfig.apiKey,
-                maxTokens: 2048
+                maxTokens: 8192
             )
 
             var responseText = ""
@@ -424,6 +421,7 @@ final class VerificationPipelineManager {
                     responseText += text
                 }
             } catch {
+                NSLog("[Judge] Attempt %d streaming error: %@", attempt, error.localizedDescription)
                 if attempt == maxAttempts {
                     return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
                 }
@@ -432,6 +430,7 @@ final class VerificationPipelineManager {
 
             // Parse the Judge's JSON response
             guard let data = parseJudgeJSON(responseText) else {
+                NSLog("[Judge] Attempt %d JSON parse failed. Raw (first 500): %@", attempt, String(responseText.prefix(500)))
                 if attempt == maxAttempts {
                     return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
                 }
@@ -440,6 +439,7 @@ final class VerificationPipelineManager {
 
             do {
                 let judgeVerdict = try JSONDecoder().decode(JudgeVerdict.self, from: data)
+                NSLog("[Judge] Successfully decoded verdict — score: %d", judgeVerdict.overallScore)
 
                 // Emit per-stage analysis events so the ViewModel can attach scores to stages
                 for sa in judgeVerdict.stageAnalyses {
@@ -487,6 +487,7 @@ final class VerificationPipelineManager {
                     judgeVerdict: judgeVerdict
                 )
             } catch {
+                NSLog("[Judge] Attempt %d decode error: %@", attempt, String(describing: error))
                 if attempt == maxAttempts {
                     return fallbackSummary(query: query, completedStages: completedStages, totalStages: totalStages, liveResearchUsed: liveResearchUsed)
                 }
