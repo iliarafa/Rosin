@@ -61,6 +61,8 @@
 		A10033000000000000000033 /* NavBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20033000000000000000033 /* NavBarManager.swift */; };
 		A10034000000000000000034 /* BottomNavBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20034000000000000000034 /* BottomNavBar.swift */; };
 		A10035000000000000000035 /* APIKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20035000000000000000035 /* APIKeysView.swift */; };
+		A10036000000000000000036 /* RosinProcessingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20036000000000000000036 /* RosinProcessingView.swift */; };
+		A10037000000000000000037 /* RosinResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20037000000000000000037 /* RosinResultsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -118,6 +120,8 @@
 		A20033000000000000000033 /* NavBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavBarManager.swift; sourceTree = "<group>"; };
 		A20034000000000000000034 /* BottomNavBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNavBar.swift; sourceTree = "<group>"; };
 		A20035000000000000000035 /* APIKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeysView.swift; sourceTree = "<group>"; };
+		A20036000000000000000036 /* RosinProcessingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinProcessingView.swift; sourceTree = "<group>"; };
+		A20037000000000000000037 /* RosinResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinResultsView.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -278,6 +282,8 @@
 				A20012000000000000000012 /* TerminalView.swift */,
 				A20013000000000000000013 /* StageBlockView.swift */,
 				A20014000000000000000014 /* TerminalOutputView.swift */,
+				A20036000000000000000036 /* RosinProcessingView.swift */,
+				A20037000000000000000037 /* RosinResultsView.swift */,
 				A20015000000000000000015 /* TerminalInputView.swift */,
 				A20016000000000000000016 /* ModelSelectorView.swift */,
 				A20017000000000000000017 /* StageCountSelectorView.swift */,
@@ -428,6 +434,8 @@
 				A10012000000000000000012 /* TerminalView.swift in Sources */,
 				A10013000000000000000013 /* StageBlockView.swift in Sources */,
 				A10014000000000000000014 /* TerminalOutputView.swift in Sources */,
+				A10036000000000000000036 /* RosinProcessingView.swift in Sources */,
+				A10037000000000000000037 /* RosinResultsView.swift in Sources */,
 				A10015000000000000000015 /* TerminalInputView.swift in Sources */,
 				A10016000000000000000016 /* ModelSelectorView.swift in Sources */,
 				A10017000000000000000017 /* StageCountSelectorView.swift in Sources */,

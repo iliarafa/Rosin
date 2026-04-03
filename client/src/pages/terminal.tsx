@@ -58,6 +58,7 @@ export default function Terminal() {
   const [finalSummary, setFinalSummary] = useState<VerificationSummary | null>(null);
   const [adversarialMode, setAdversarialMode] = useState(false);
   const [liveResearch, setLiveResearch] = useState(false);
+  const [rosinMode, setRosinMode] = useState(() => localStorage.getItem("rosin_mode") === "true");
   const [researchStatus, setResearchStatus] = useState<ResearchStatus | null>(null);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -258,6 +259,11 @@ export default function Terminal() {
     }
   }, [stages]);
 
+  // Persist rosinMode to localStorage
+  useEffect(() => {
+    localStorage.setItem("rosin_mode", String(rosinMode));
+  }, [rosinMode]);
+
   // Reset confirm-clear state when drawer closes
   useEffect(() => {
     if (!historyOpen) setConfirmClear(false);
@@ -277,6 +283,16 @@ export default function Terminal() {
             disabled={verifyMutation.isPending || !!viewingItem}
           />
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setRosinMode((v) => !v)}
+              className={`text-xs transition-colors px-1.5 py-1 border rounded-none ${
+                rosinMode
+                  ? "text-primary border-primary/50"
+                  : "text-muted-foreground border-border"
+              }`}
+            >
+              [ROSIN]
+            </button>
             <button
               onClick={() => setLiveResearch((v) => !v)}
               className={`text-xs transition-colors px-1.5 py-1 border rounded-none ${
@@ -363,6 +379,17 @@ export default function Terminal() {
             );
           })}
           <div className="hidden sm:flex sm:items-center sm:ml-auto sm:gap-2">
+            <button
+              onClick={() => setRosinMode((v) => !v)}
+              className={`text-xs transition-colors px-2 py-1 border rounded-none ${
+                rosinMode
+                  ? "text-primary border-primary/50"
+                  : "text-muted-foreground border-border"
+              } hover:text-foreground`}
+              data-testid="button-rosin-mode"
+            >
+              {rosinMode ? "[ROSIN: ON]" : "[ROSIN: OFF]"}
+            </button>
             <button
               onClick={() => setLiveResearch((v) => !v)}
               className={`text-xs transition-colors px-2 py-1 border rounded-none ${
@@ -462,6 +489,8 @@ export default function Terminal() {
             verificationId={verificationId}
             researchStatus={researchStatus}
             onQuerySelect={(q) => { if (!viewingItem) setQuery(q); }}
+            rosinMode={rosinMode}
+            onViewFullOutput={() => setRosinMode(false)}
           />
         </div>
       </main>

@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
     @EnvironmentObject private var fontSizeManager: FontSizeManager
+    @AppStorage("rosin_mode") private var isRosinMode = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
@@ -74,6 +75,38 @@ struct SettingsView: View {
                             .padding(.vertical, 4)
                             .background(cardBackground)
                             .cornerRadius(10)
+                    }
+
+                    // Rosin Mode
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Mode")
+                            .font(RosinTheme.monoCaption2)
+                            .foregroundColor(RosinTheme.muted)
+                            .textCase(.uppercase)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+
+                        VStack(spacing: 0) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Rosin Mode")
+                                        .font(RosinTheme.monoCaption)
+                                    Text("Hide stage-by-stage output. Show only the final verified answer.")
+                                        .font(RosinTheme.monoCaption2)
+                                        .foregroundColor(RosinTheme.muted)
+                                }
+
+                                Spacer()
+
+                                Toggle("", isOn: $isRosinMode)
+                                    .labelsHidden()
+                                    .tint(RosinTheme.green)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                        }
+                        .background(cardBackground)
+                        .cornerRadius(10)
                     }
 
                     // Response font size

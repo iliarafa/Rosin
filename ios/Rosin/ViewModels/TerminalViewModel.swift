@@ -11,6 +11,9 @@ final class TerminalViewModel: ObservableObject {
     @Published var chain: [LLMModel] = LLMModel.defaultChain3
     @Published var isAdversarialMode = false
     @Published var isLiveResearch = false
+    @Published var isRosinMode: Bool = UserDefaults.standard.bool(forKey: "rosin_mode") {
+        didSet { UserDefaults.standard.set(isRosinMode, forKey: "rosin_mode") }
+    }
     @Published var researchStatus: ResearchStatus?
 
     private var pipeline: VerificationPipelineManager?

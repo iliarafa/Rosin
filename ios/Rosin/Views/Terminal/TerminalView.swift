@@ -514,12 +514,13 @@ private struct ResultsView: View {
     let onExportPDF: () -> Void
     @Binding var shareItem: ShareItem?
     @EnvironmentObject private var fontSizeManager: FontSizeManager
+    @AppStorage("rosin_mode") private var isRosinMode = false
 
     var body: some View {
         VStack(spacing: 0) {
             // Slim top bar: query + cancel/done
             HStack {
-                Text("VERIFYING")
+                Text(isRosinMode && viewModel.isProcessing ? "ROSIN" : "VERIFYING")
                     .font(RosinTheme.monoCaption)
                     .fontWeight(.medium)
                     .foregroundColor(viewModel.isProcessing ? RosinTheme.green : .primary)
@@ -561,32 +562,54 @@ private struct ResultsView: View {
             .background(.ultraThinMaterial)
             .overlay(alignment: .bottom) { Divider() }
 
-            // Scrollable output — same TerminalOutputView but in clean context
-            ScrollViewReader { proxy in
-                ScrollView {
-                    TerminalOutputView(
-                        query: viewModel.query,
+            // Scrollable output — conditionally show Rosin mode views
+            if isRosinMode {
+                if !viewModel.allComplete {
+                    RosinProcessingView(
                         stages: viewModel.stages,
-                        summary: viewModel.summary,
-                        isProcessing: viewModel.isProcessing,
-                        expectedStageCount: viewModel.stageCount,
-                        onExportCSV: onExportCSV,
-                        onExportPDF: onExportPDF,
-                        onQuerySelect: nil,
-                        researchStatus: viewModel.researchStatus
+                        expectedStageCount: viewModel.stageCount
                     )
-                    .id("output")
-                    Color.clear.frame(height: 1).id("bottom")
+                    .transition(.opacity)
+                } else {
+                    ScrollView {
+                        RosinResultsView(
+                            query: viewModel.query,
+                            stages: viewModel.stages,
+                            summary: viewModel.summary,
+                            onExportCSV: onExportCSV,
+                            onExportPDF: onExportPDF
+                        )
+                    }
+                    .transition(.opacity)
                 }
-                .onChange(of: viewModel.stages.count) { _, _ in
-                    withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
-                }
-                .onChange(of: viewModel.stages.last?.content) { _, _ in
-                    withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        TerminalOutputView(
+                            query: viewModel.query,
+                            stages: viewModel.stages,
+                            summary: viewModel.summary,
+                            isProcessing: viewModel.isProcessing,
+                            expectedStageCount: viewModel.stageCount,
+                            onExportCSV: onExportCSV,
+                            onExportPDF: onExportPDF,
+                            onQuerySelect: nil,
+                            researchStatus: viewModel.researchStatus
+                        )
+                        .id("output")
+                        Color.clear.frame(height: 1).id("bottom")
+                    }
+                    .onChange(of: viewModel.stages.count) { _, _ in
+                        withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                    }
+                    .onChange(of: viewModel.stages.last?.content) { _, _ in
+                        withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                    }
                 }
             }
         }
         .background(RosinTheme.background)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.allComplete)
         .sheet(item: $shareItem) { item in
             ShareSheetRepresentable(items: item.items)
                 .presentationDetents([.medium, .large])
