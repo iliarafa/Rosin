@@ -63,6 +63,8 @@
 		A10035000000000000000035 /* APIKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20035000000000000000035 /* APIKeysView.swift */; };
 		A10036000000000000000036 /* RosinProcessingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20036000000000000000036 /* RosinProcessingView.swift */; };
 		A10037000000000000000037 /* RosinResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20037000000000000000037 /* RosinResultsView.swift */; };
+		A10038000000000000000038 /* ExaSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20038000000000000000038 /* ExaSearchService.swift */; };
+		A10039000000000000000039 /* ExaKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20039000000000000000039 /* ExaKeyRowView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -122,6 +124,8 @@
 		A20035000000000000000035 /* APIKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeysView.swift; sourceTree = "<group>"; };
 		A20036000000000000000036 /* RosinProcessingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinProcessingView.swift; sourceTree = "<group>"; };
 		A20037000000000000000037 /* RosinResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinResultsView.swift; sourceTree = "<group>"; };
+		A20038000000000000000038 /* ExaSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaSearchService.swift; sourceTree = "<group>"; };
+		A20039000000000000000039 /* ExaKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaKeyRowView.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -223,6 +227,7 @@
 				A2000D00000000000000000D /* XAIStreamingService.swift */,
 				A2000E00000000000000000E /* LLMServiceFactory.swift */,
 				A2002C00000000000000002C /* TavilySearchService.swift */,
+				A20038000000000000000038 /* ExaSearchService.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -302,6 +307,7 @@
 				A2001B00000000000000001B /* APIKeyRowView.swift */,
 				A20024000000000000000024 /* APIKeyGuideView.swift */,
 				A2002F00000000000000002F /* TavilyKeyRowView.swift */,
+				A20039000000000000000039 /* ExaKeyRowView.swift */,
 				A20032000000000000000032 /* PastableTextField.swift */,
 				A20035000000000000000035 /* APIKeysView.swift */,
 			);
@@ -459,9 +465,11 @@
 				A1002A00000000000000002A /* HistoryDetailView.swift in Sources */,
 				A1002B00000000000000002B /* DisagreementStatsView.swift in Sources */,
 				A1002C00000000000000002C /* TavilySearchService.swift in Sources */,
+				A10038000000000000000038 /* ExaSearchService.swift in Sources */,
 				A1002D00000000000000002D /* ResearchStatus.swift in Sources */,
 				A1002E00000000000000002E /* ResearchStatusView.swift in Sources */,
 				A1002F00000000000000002F /* TavilyKeyRowView.swift in Sources */,
+				A10039000000000000000039 /* ExaKeyRowView.swift in Sources */,
 				A10030000000000000000030 /* FontSizeManager.swift in Sources */,
 				A10031000000000000000031 /* JudgeVerdict.swift in Sources */,
 				A10032000000000000000032 /* PastableTextField.swift in Sources */,

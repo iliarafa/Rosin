@@ -32,10 +32,37 @@ final class VerificationPipelineManager {
             let totalStages = chain.count
             let lengthConfig = QueryComplexityClassifier.classify(query)
 
-            // Live Research: run Tavily search before the verification pipeline
+            // Live Research: prefer Exa.ai (neural search), fall back to Tavily
             var searchContext = ""
             if liveResearch {
-                if let tavilyKey = apiKeyManager.tavilyKey {
+                if let exaKey = apiKeyManager.exaKey {
+                    onEvent(.researchStart)
+                    do {
+                        let searchResponse = try await ExaSearchService.search(query: query, apiKey: exaKey)
+                        searchContext = searchResponse.formattedContext
+                        onEvent(.researchComplete(
+                            sourceCount: searchResponse.results.count,
+                            sources: searchResponse.sourceSummary
+                        ))
+                    } catch {
+                        NSLog("[Pipeline] Exa search failed, falling back to Tavily: %@", "\(error)")
+                        // Fall through to Tavily
+                        if let tavilyKey = apiKeyManager.tavilyKey {
+                            do {
+                                let searchResponse = try await TavilySearchService.search(query: query, apiKey: tavilyKey)
+                                searchContext = searchResponse.formattedContext
+                                onEvent(.researchComplete(
+                                    sourceCount: searchResponse.results.count,
+                                    sources: searchResponse.sourceSummary
+                                ))
+                            } catch {
+                                onEvent(.researchError(error: "Web search failed — proceeding without live data"))
+                            }
+                        } else {
+                            onEvent(.researchError(error: "Exa search failed and no Tavily key configured"))
+                        }
+                    }
+                } else if let tavilyKey = apiKeyManager.tavilyKey {
                     onEvent(.researchStart)
                     do {
                         let searchResponse = try await TavilySearchService.search(query: query, apiKey: tavilyKey)
@@ -48,7 +75,7 @@ final class VerificationPipelineManager {
                         onEvent(.researchError(error: "Web search failed — proceeding without live data"))
                     }
                 } else {
-                    onEvent(.researchError(error: "Tavily API key not configured — add it in Settings"))
+                    onEvent(.researchError(error: "No search API key configured — add Exa or Tavily key in Settings"))
                 }
             }
 

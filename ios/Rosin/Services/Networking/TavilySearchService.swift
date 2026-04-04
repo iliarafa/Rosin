@@ -78,6 +78,11 @@ enum TavilySearchService {
         return TavilySearchResponse(results: results)
     }
 
+    /// Public wrapper so ExaSearchService can reuse the same scoring logic.
+    static func publicScoreResult(title: String, url: String, content: String) -> Int {
+        scoreResult(title: title, url: url, content: content)
+    }
+
     /// Score a search result for source credibility (0–100).
     /// High scores = official/reputable sources. Low scores = spam/speculation.
     private static func scoreResult(title: String, url: String, content: String) -> Int {

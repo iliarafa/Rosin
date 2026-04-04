@@ -47,6 +47,42 @@ function getTavilyClient(): ReturnType<typeof tavily> | null {
   return tavilyClient;
 }
 
+/** Exa.ai neural search — preferred over Tavily when EXA_API_KEY is set */
+async function exaSearch(query: string, maxResults = 8): Promise<{ title: string; url: string; content: string }[]> {
+  const apiKey = process.env.EXA_API_KEY;
+  if (!apiKey) return [];
+
+  const response = await fetch("https://api.exa.ai/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      query,
+      type: "auto",
+      numResults: maxResults,
+      contents: {
+        text: { maxCharacters: 1000 },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    console.error(`[Exa] Search failed with status ${response.status}`);
+    throw new Error(`Exa search failed: ${response.status}`);
+  }
+
+  const data = await response.json() as { results?: { title?: string; url?: string; text?: string }[] };
+  return (data.results || [])
+    .filter((r) => r.title && r.url)
+    .map((r) => ({
+      title: r.title || "",
+      url: r.url || "",
+      content: r.text || "",
+    }));
+}
+
 /**
  * Score a Tavily search result for source credibility (0–100).
  * High scores = official/reputable sources. Low scores = spam/speculation.
@@ -774,27 +810,17 @@ export async function registerRoutes(
       const totalStages = chain.length;
       const lengthConfig = classifyComplexity(query);
 
-      // Live Research: run Tavily search before the verification pipeline
+      // Live Research: prefer Exa.ai (neural search), fall back to Tavily
       let searchContext = "";
       if (liveResearch) {
-        const client = getTavilyClient();
-        if (client) {
-          // Emit a research_start event so the UI shows a search indicator
-          sendSSE(res, { type: "research_start" });
-          try {
-            const searchResponse = await client.search(query, {
-              maxResults: 8,
-              searchDepth: "advanced",
-              includeAnswer: true,
-            });
-            const results = searchResponse.results.map((r) => ({
-              title: r.title,
-              url: r.url,
-              content: r.content,
-            }));
-            searchContext = formatSearchContext(results);
+        sendSSE(res, { type: "research_start" });
 
-            // Stream a brief summary of sources found
+        // Try Exa first
+        if (process.env.EXA_API_KEY) {
+          try {
+            console.log("[Research] Using Exa.ai for web search");
+            const results = await exaSearch(query);
+            searchContext = formatSearchContext(results);
             const sourceSummary = results
               .map((r, i) => `  [${i + 1}] ${r.title} — ${r.url}`)
               .join("\n");
@@ -803,13 +829,44 @@ export async function registerRoutes(
               sourceCount: results.length,
               sources: sourceSummary,
             });
-          } catch (searchError) {
-            console.error("Tavily search failed, continuing without web context:", searchError);
-            sendSSE(res, { type: "research_error", error: "Web search unavailable — proceeding without live data" });
+          } catch (exaError) {
+            console.error("[Research] Exa search failed, falling back to Tavily:", exaError);
+            // Fall through to Tavily below
           }
-        } else {
-          // No Tavily key configured — warn and proceed
-          sendSSE(res, { type: "research_error", error: "TAVILY_API_KEY not configured — proceeding without live data" });
+        }
+
+        // Fall back to Tavily if Exa didn't produce results
+        if (!searchContext) {
+          const client = getTavilyClient();
+          if (client) {
+            try {
+              console.log("[Research] Using Tavily for web search");
+              const searchResponse = await client.search(query, {
+                maxResults: 8,
+                searchDepth: "advanced",
+                includeAnswer: true,
+              });
+              const results = searchResponse.results.map((r) => ({
+                title: r.title,
+                url: r.url,
+                content: r.content,
+              }));
+              searchContext = formatSearchContext(results);
+              const sourceSummary = results
+                .map((r, i) => `  [${i + 1}] ${r.title} — ${r.url}`)
+                .join("\n");
+              sendSSE(res, {
+                type: "research_complete",
+                sourceCount: results.length,
+                sources: sourceSummary,
+              });
+            } catch (searchError) {
+              console.error("[Research] Tavily search failed:", searchError);
+              sendSSE(res, { type: "research_error", error: "Web search unavailable — proceeding without live data" });
+            }
+          } else {
+            sendSSE(res, { type: "research_error", error: "No search API key configured (EXA_API_KEY or TAVILY_API_KEY)" });
+          }
         }
       }
 

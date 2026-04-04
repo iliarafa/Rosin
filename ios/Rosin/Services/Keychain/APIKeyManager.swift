@@ -5,8 +5,10 @@ import SwiftUI
 final class APIKeyManager: ObservableObject {
     @Published private(set) var hasKey: [LLMProvider: Bool] = [:]
     @Published private(set) var hasTavilyKey = false
+    @Published private(set) var hasExaKey = false
 
     private static let tavilyKeychainKey = "tavily"
+    private static let exaKeychainKey = "exa"
 
     init() {
         refreshKeyStatus()
@@ -17,6 +19,7 @@ final class APIKeyManager: ObservableObject {
             hasKey[provider] = KeychainService.load(key: provider.rawValue) != nil
         }
         hasTavilyKey = KeychainService.load(key: Self.tavilyKeychainKey) != nil
+        hasExaKey = KeychainService.load(key: Self.exaKeychainKey) != nil
     }
 
     func apiKey(for provider: LLMProvider) -> String? {
@@ -57,5 +60,26 @@ final class APIKeyManager: ObservableObject {
     func deleteTavilyKey() throws {
         try KeychainService.delete(key: Self.tavilyKeychainKey)
         hasTavilyKey = false
+    }
+
+    // MARK: - Exa
+
+    var exaKey: String? {
+        KeychainService.load(key: Self.exaKeychainKey)
+    }
+
+    func saveExaKey(_ key: String) throws {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            try deleteExaKey()
+            return
+        }
+        try KeychainService.save(key: Self.exaKeychainKey, value: trimmed)
+        hasExaKey = true
+    }
+
+    func deleteExaKey() throws {
+        try KeychainService.delete(key: Self.exaKeychainKey)
+        hasExaKey = false
     }
 }
