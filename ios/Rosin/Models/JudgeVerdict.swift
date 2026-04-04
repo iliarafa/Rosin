@@ -17,6 +17,18 @@ struct ProvenanceEntry: Codable {
 
     enum ChangeType: String, Codable {
         case added, modified, flagged, corrected
+
+        /// Lenient decoding — maps unexpected values to closest match
+        init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self).lowercased()
+            switch raw {
+            case "added", "new", "introduced": self = .added
+            case "modified", "updated", "refined", "changed": self = .modified
+            case "flagged", "questioned", "suspect": self = .flagged
+            case "corrected", "fixed", "revised": self = .corrected
+            default: self = .added
+            }
+        }
     }
 }
 
@@ -44,6 +56,17 @@ struct HallucinationFlag: Codable {
 
     enum HallucinationSeverity: String, Codable {
         case low, medium, high
+
+        /// Lenient decoding — maps unexpected values like "moderate" to the closest match
+        init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self).lowercased()
+            switch raw {
+            case "low": self = .low
+            case "medium", "moderate", "med": self = .medium
+            case "high", "critical", "severe": self = .high
+            default: self = .medium // safe default for unknown values
+            }
+        }
     }
 }
 

@@ -12,6 +12,8 @@ enum PipelineEvent {
     case stageError(stage: Int, error: String)
     /// Per-stage analysis from the Judge — contains agreement score, claims, flags
     case stageAnalysis(stage: Int, analysis: StageAnalysis)
+    /// Auto tie-breaker triggered due to strong disagreement between stages
+    case tieBreaker(reason: String)
     case summary(VerificationSummary)
     case done
 }

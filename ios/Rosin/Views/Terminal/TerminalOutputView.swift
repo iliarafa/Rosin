@@ -12,9 +12,10 @@ struct TerminalOutputView: View {
     /// Callback when user taps an example query on the idle screen
     var onQuerySelect: ((String) -> Void)?
     var researchStatus: ResearchStatus?
+    var tieBreakReason: String?
 
     private var allComplete: Bool {
-        stages.count == expectedStageCount && stages.allSatisfy { $0.status == .complete }
+        stages.count >= expectedStageCount && stages.allSatisfy { $0.status == .complete }
     }
 
     var body: some View {
@@ -43,6 +44,23 @@ struct TerminalOutputView: View {
 
                 // Stage blocks
                 ForEach(stages) { stage in
+                    // Tie-breaker banner — shown before the extra stage
+                    if tieBreakReason != nil && stage.id == expectedStageCount + 1 {
+                        HStack(spacing: 10) {
+                            Rectangle()
+                                .fill(RosinTheme.green.opacity(0.3))
+                                .frame(height: 1)
+                            Text("AUTO TIE-BREAKER TRIGGERED")
+                                .font(RosinTheme.monoCaption2)
+                                .foregroundColor(RosinTheme.green)
+                                .tracking(2)
+                            Rectangle()
+                                .fill(RosinTheme.green.opacity(0.3))
+                                .frame(height: 1)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                    }
                     StageBlockView(stage: stage)
                 }
 

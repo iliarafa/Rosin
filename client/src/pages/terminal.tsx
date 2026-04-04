@@ -59,6 +59,8 @@ export default function Terminal() {
   const [adversarialMode, setAdversarialMode] = useState(false);
   const [liveResearch, setLiveResearch] = useState(false);
   const [rosinMode, setRosinMode] = useState(() => localStorage.getItem("rosin_mode") === "true");
+  const [autoTieBreaker, setAutoTieBreaker] = useState(() => localStorage.getItem("auto_tie_breaker") !== "false");
+  const [tieBreakReason, setTieBreakReason] = useState<string | null>(null);
   const [researchStatus, setResearchStatus] = useState<ResearchStatus | null>(null);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -115,6 +117,7 @@ export default function Terminal() {
     setFinalSummary(null);
     setResearchStatus(null);
     setVerificationId(null);
+    setTieBreakReason(null);
   }, []);
 
   const processSSEStream = useCallback(async (response: Response, chainModels: LLMModel[]) => {
@@ -190,6 +193,8 @@ export default function Terminal() {
                   : s
               )
             );
+          } else if (event.type === "tie_breaker_triggered") {
+            setTieBreakReason(event.reason);
           } else if (event.type === "summary") {
             setFinalSummary(event.summary);
           }
@@ -201,7 +206,7 @@ export default function Terminal() {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ query, chain }: VerificationInput) => {
-      const response = await apiRequest("POST", "/api/verify", { query, chain, adversarialMode, liveResearch });
+      const response = await apiRequest("POST", "/api/verify", { query, chain, adversarialMode, liveResearch, autoTieBreaker });
       await processSSEStream(response, chain);
     },
     onSuccess: () => {
@@ -232,6 +237,7 @@ export default function Terminal() {
     setFinalSummary(null);
     setResearchStatus(null);
     setVerificationId(null);
+    setTieBreakReason(null);
     verifyMutation.mutate({ query, chain: activeChain });
   };
 
@@ -263,6 +269,11 @@ export default function Terminal() {
   useEffect(() => {
     localStorage.setItem("rosin_mode", String(rosinMode));
   }, [rosinMode]);
+
+  // Persist autoTieBreaker to localStorage
+  useEffect(() => {
+    localStorage.setItem("auto_tie_breaker", String(autoTieBreaker));
+  }, [autoTieBreaker]);
 
   // Reset confirm-clear state when drawer closes
   useEffect(() => {
@@ -326,6 +337,14 @@ export default function Terminal() {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
                   <div className="absolute right-0 top-full mt-1 z-50 border border-border bg-background py-1 min-w-[120px]">
+                    <button
+                      className={`block w-full text-left text-xs transition-colors px-3 py-1.5 ${
+                        autoTieBreaker ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      onClick={() => { setAutoTieBreaker((v) => !v); setMobileMenuOpen(false); }}
+                    >
+                      {autoTieBreaker ? "[TIE-BREAK: ON]" : "[TIE-BREAK: OFF]"}
+                    </button>
                     <button
                       className="block w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
                       onClick={() => { setMobileMenuOpen(false); setHistoryOpen(true); }}
@@ -414,6 +433,17 @@ export default function Terminal() {
             >
               {adversarialMode ? "[ADV: ON]" : "[ADV: OFF]"}
             </button>
+            <button
+              onClick={() => setAutoTieBreaker((v) => !v)}
+              className={`text-xs transition-colors px-2 py-1 border rounded-none ${
+                autoTieBreaker
+                  ? "text-primary border-primary/50"
+                  : "text-muted-foreground border-border"
+              } hover:text-foreground`}
+              data-testid="button-tie-break"
+            >
+              {autoTieBreaker ? "[TIE-BREAK: ON]" : "[TIE-BREAK: OFF]"}
+            </button>
             {/* History drawer trigger — opens slide-in panel */}
             <button
               onClick={() => setHistoryOpen(true)}
@@ -491,6 +521,7 @@ export default function Terminal() {
             onQuerySelect={(q) => { if (!viewingItem) setQuery(q); }}
             rosinMode={rosinMode}
             onViewFullOutput={() => setRosinMode(false)}
+            tieBreakReason={tieBreakReason}
           />
         </div>
       </main>

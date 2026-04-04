@@ -22,6 +22,7 @@ final class VerificationPipelineManager {
         chain: [LLMModel],
         adversarialMode: Bool = false,
         liveResearch: Bool = false,
+        autoTieBreaker: Bool = true,
         onEvent: @escaping (PipelineEvent) -> Void
     ) {
         cancel()
@@ -95,13 +96,61 @@ final class VerificationPipelineManager {
 
             // ── Judge Stage ──
             // Run the dedicated Judge to produce structured per-stage analysis + overall verdict
-            let summary = await runJudge(
+            var summary = await runJudge(
                 query: query,
                 completedStages: completedStages,
                 totalStages: totalStages,
                 liveResearchUsed: hasWebResearch,
+                searchContext: searchContext,
                 onEvent: onEvent
             )
+
+            // ── Auto Tie-Breaker ──
+            // If the Judge detects strong disagreement, run an extra verification stage
+            // to resolve conflicts before finalizing the result.
+            if autoTieBreaker, let jv = summary.judgeVerdict {
+                let tieBreak = Self.shouldTriggerTieBreaker(jv)
+                if tieBreak.triggered, !Task.isCancelled {
+                    onEvent(.tieBreaker(reason: tieBreak.reason))
+
+                    let tbStageNum = totalStages + 1
+                    let tbModel = pickTieBreakerModel()
+
+                    if let tbModel {
+                        let tbResult = try? await executeStageWithResilience(
+                            stageNum: tbStageNum,
+                            primaryModel: tbModel,
+                            isLast: true,
+                            query: query,
+                            completedStages: completedStages,
+                            totalStages: tbStageNum,
+                            lengthConfig: lengthConfig,
+                            adversarialMode: false,
+                            hasWebResearch: hasWebResearch,
+                            searchContext: "",
+                            onEvent: onEvent,
+                            tieBreakerVerdict: jv
+                        )
+
+                        if let tbResult {
+                            completedStages.append((stage: tbStageNum, model: tbResult.model, content: tbResult.content))
+
+                            // Re-run Judge with expanded stage set
+                            if !Task.isCancelled {
+                                summary = await runJudge(
+                                    query: query,
+                                    completedStages: completedStages,
+                                    totalStages: completedStages.count,
+                                    liveResearchUsed: hasWebResearch,
+                                    searchContext: searchContext,
+                                    onEvent: onEvent
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             onEvent(.summary(summary))
             onEvent(.done)
             currentTask = nil
@@ -111,6 +160,51 @@ final class VerificationPipelineManager {
     func cancel() {
         currentTask?.cancel()
         currentTask = nil
+    }
+
+    // MARK: - Tie-Breaker Logic
+
+    /// Determine if the Tie-Breaker stage should run based on Judge verdict.
+    /// Triggers when:
+    ///   1. Score variance between stages > 25 points (strong disagreement)
+    ///   2. Overall Judge score < 50 (low confidence)
+    ///   3. >= 2 "flagged" or "corrected" provenance entries (significant corrections)
+    static func shouldTriggerTieBreaker(_ verdict: JudgeVerdict) -> (triggered: Bool, reason: String) {
+        guard verdict.stageAnalyses.count >= 2 else { return (false, "") }
+
+        let scores = verdict.stageAnalyses.map { $0.agreementScore }
+        let scoreVariance = (scores.max() ?? 0) - (scores.min() ?? 0) > 25
+
+        let lowConfidence = verdict.overallScore < 50
+
+        let flaggedOrCorrected = verdict.stageAnalyses.flatMap { sa in
+            sa.claims.flatMap { claim in
+                (claim.provenance ?? []).filter { $0.changeType == .flagged || $0.changeType == .corrected }
+            }
+        }.count
+        let hasManyFlags = flaggedOrCorrected >= 2
+
+        var reasons: [String] = []
+        if scoreVariance { reasons.append("stage score variance > 25pts") }
+        if lowConfidence { reasons.append("overall score \(verdict.overallScore)/100") }
+        if hasManyFlags { reasons.append("\(flaggedOrCorrected) flagged/corrected claims") }
+
+        return (scoreVariance || lowConfidence || hasManyFlags, reasons.joined(separator: ", "))
+    }
+
+    /// Pick the strongest available model for the tie-breaker stage (same logic as Judge).
+    private func pickTieBreakerModel() -> LLMModel? {
+        let candidates: [(provider: LLMProvider, model: String)] = [
+            (.anthropic, "claude-sonnet-4-5"),
+            (.gemini, "gemini-2.5-flash"),
+            (.xai, "grok-3"),
+        ]
+        for candidate in candidates {
+            if apiKeyManager.apiKey(for: candidate.provider) != nil {
+                return LLMModel(provider: candidate.provider, model: candidate.model)
+            }
+        }
+        return nil
     }
 
     // MARK: - Private Helpers
@@ -128,27 +222,43 @@ final class VerificationPipelineManager {
         adversarialMode: Bool = false,
         hasWebResearch: Bool = false,
         searchContext: String = "",
-        onEvent: @escaping (PipelineEvent) -> Void
+        onEvent: @escaping (PipelineEvent) -> Void,
+        tieBreakerVerdict: JudgeVerdict? = nil
     ) async -> String? {
         guard let apiKey = apiKeyManager.apiKey(for: model.provider) else {
             return nil
         }
 
-        let isLast = stageNum == totalStages
-        let systemPrompt = StagePromptBuilder.systemPrompt(
-            stageNumber: stageNum,
-            isLast: isLast,
-            lengthConfig: lengthConfig,
-            adversarialMode: adversarialMode,
-            hasWebResearch: hasWebResearch,
-            isSingleStage: totalStages == 1
-        )
-        // Inject search context only into Stage 1
-        let userContent = StagePromptBuilder.userContent(
-            query: query,
-            allPriorOutputs: completedStages,
-            searchContext: stageNum == 1 ? searchContext : ""
-        )
+        let systemPrompt: String
+        let userContent: String
+
+        if let verdict = tieBreakerVerdict {
+            // Tie-breaker stage: use special prompt with Judge context
+            systemPrompt = StagePromptBuilder.tieBreakerPrompt(lengthConfig: lengthConfig)
+            userContent = StagePromptBuilder.tieBreakerUserContent(
+                query: query,
+                allPriorOutputs: completedStages,
+                judgeVerdict: verdict,
+                searchContext: searchContext
+            )
+        } else {
+            let isLast = stageNum == totalStages
+            systemPrompt = StagePromptBuilder.systemPrompt(
+                stageNumber: stageNum,
+                isLast: isLast,
+                lengthConfig: lengthConfig,
+                adversarialMode: adversarialMode,
+                hasWebResearch: hasWebResearch,
+                isSingleStage: totalStages == 1
+            )
+            // Every stage gets the Tavily results so each model can independently
+            // verify claims against fresh web sources, not just training data.
+            userContent = StagePromptBuilder.userContent(
+                query: query,
+                allPriorOutputs: completedStages,
+                searchContext: searchContext
+            )
+        }
 
         let service = LLMServiceFactory.service(for: model.provider)
         let stream = service.streamCompletion(
@@ -187,7 +297,8 @@ final class VerificationPipelineManager {
         adversarialMode: Bool = false,
         hasWebResearch: Bool = false,
         searchContext: String = "",
-        onEvent: @escaping (PipelineEvent) -> Void
+        onEvent: @escaping (PipelineEvent) -> Void,
+        tieBreakerVerdict: JudgeVerdict? = nil
     ) async throws -> (content: String, model: LLMModel)? {
         // Emit stageStart once before first attempt
         onEvent(.stageStart(stage: stageNum, model: primaryModel))
@@ -203,7 +314,8 @@ final class VerificationPipelineManager {
             adversarialMode: adversarialMode,
             hasWebResearch: hasWebResearch,
             searchContext: searchContext,
-            onEvent: onEvent
+            onEvent: onEvent,
+            tieBreakerVerdict: tieBreakerVerdict
         ) {
             onEvent(.stageComplete(stage: stageNum))
             return (content: content, model: primaryModel)
@@ -224,7 +336,8 @@ final class VerificationPipelineManager {
             adversarialMode: adversarialMode,
             hasWebResearch: hasWebResearch,
             searchContext: searchContext,
-            onEvent: onEvent
+            onEvent: onEvent,
+            tieBreakerVerdict: tieBreakerVerdict
         ) {
             onEvent(.stageComplete(stage: stageNum))
             return (content: content, model: primaryModel)
@@ -309,6 +422,7 @@ final class VerificationPipelineManager {
         completedStages: [(stage: Int, model: LLMModel, content: String)],
         totalStages: Int,
         liveResearchUsed: Bool = false,
+        searchContext: String = "",
         onEvent: @escaping (PipelineEvent) -> Void
     ) async -> VerificationSummary {
         guard !completedStages.isEmpty else {
@@ -326,19 +440,48 @@ final class VerificationPipelineManager {
         let modelNames = completedStages.map { "\($0.model.provider.shortName) (\($0.model.model))" }.joined(separator: ", ")
         let liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1 with real-time data." : ""
 
+        // Cap each stage's content to ~4000 chars to keep Judge input within model context limits.
+        // With 4 stages at 4000 chars each + prompt, total input stays well under 128K tokens.
+        let maxStageChars = 4000
         var stageOutputsText = ""
         for stage in completedStages {
             stageOutputsText += "── Stage \(stage.stage) (\(stage.model.provider.shortName) / \(stage.model.model)) ──\n"
-            stageOutputsText += stage.content
+            if stage.content.count > maxStageChars {
+                stageOutputsText += String(stage.content.prefix(maxStageChars))
+                stageOutputsText += "\n[... truncated for Judge analysis]\n"
+            } else {
+                stageOutputsText += stage.content
+            }
             stageOutputsText += "\n\n"
         }
+        NSLog("[Judge] Input: %d stages, ~%d chars total", completedStages.count, stageOutputsText.count)
 
         // The Judge prompt requests the full JudgeVerdict JSON structure
         let systemPrompt = """
-        You are the JUDGE — the final authority in a multi-LLM verification pipeline. \
+        You are the final JUDGE in Rosin AI's multi-LLM verification pipeline. \
         The models used were: \(modelNames).\(liveResearchNote)
 
-        You will receive the original query and all stage outputs. Produce a comprehensive structured verdict.
+        Your job is to synthesize all previous stages and produce a truthful, well-calibrated final verdict.
+
+        CONSENSUS RULE (HIGHEST PRIORITY):
+        - When ALL or MOST stages agree on a claim (especially about a product's existence, specs, or pricing), \
+        you MUST heavily favor that consensus. Do NOT override multi-stage agreement with your own skepticism.
+        - You may ONLY override strong stage consensus when you have clear, specific contradictory evidence from \
+        high-credibility sources (apple.com, official press releases, MacRumors, The Verge, etc.).
+        - If you do override consensus, you MUST explain exactly why with specific evidence. \
+        "I don't recognize this product" is NOT valid evidence.
+
+        NEW/RECENT PRODUCTS (within last 60 days):
+        - Recent web search results + stage consensus are MORE reliable than your training data.
+        - Only declare a product "does not exist" when there is overwhelming evidence: zero official presence \
+        on apple.com, no press releases, no credible journalism. Noisy or speculative sources are NOT sufficient grounds.
+        - When Live Research was used, treat the provided Tavily results as primary evidence.
+
+        CONFIDENCE RULES:
+        - confidence MUST be consistent with overallScore: "high" (score >= 80), "moderate" (50-79), "low" (< 50).
+        - NEVER output a low score with "high" confidence or vice versa.
+
+        Always prioritize truth and evidence over forced skepticism.
 
         Respond with ONLY valid JSON (no markdown, no code fences):
         {
@@ -346,10 +489,10 @@ final class VerificationPipelineManager {
           "overallScore": 87,
           "confidence": "high",
           "keyFindings": [
-            "Finding 1 — topic-specific, referencing models by short name (Claude/Gemini/Grok)",
-            "Finding 2 — note consensus or disagreements between specific models",
-            "Finding 3 — confidence justification tied to the query content",
-            "Finding 4 — mention live web research if used, or note data currency"
+            "Finding 1 \u{2014} topic-specific, referencing models by short name (Claude/Gemini/Grok)",
+            "Finding 2 \u{2014} note consensus or disagreements between specific models",
+            "Finding 3 \u{2014} confidence justification tied to the query content",
+            "Finding 4 \u{2014} mention live web research if used, or note data currency"
           ],
           "stageAnalyses": [
             {
@@ -379,10 +522,9 @@ final class VerificationPipelineManager {
           ]
         }
 
-        Rules:
-        - verdict: 2-3 sentences, never generic — reference the actual query topic
-        - overallScore: 0-100 representing cross-model agreement and factual confidence
-        - confidence: "high" (score >= 80), "moderate" (50-79), "low" (< 50)
+        JSON field rules:
+        - verdict: 2-3 sentences, never generic \u{2014} reference the actual query topic
+        - overallScore: 0-100 representing factual confidence weighted by source recency
         - keyFindings: 3-5 items, each under 120 chars, referencing models by name
         - stageAnalyses: one entry per stage with agreementScore 0-100
           - claims: 2-5 key factual claims per stage with confidence 0-100
@@ -396,10 +538,14 @@ final class VerificationPipelineManager {
             - Stage 1 claims have one "added" entry. Later stages may add "modified"/"corrected" entries.
           - hallucinationFlags: only include if genuinely suspect (empty array if none)
           - corrections: list corrections this stage made (empty for stage 1)
-        - Be specific — never say "the query" or "the topic", say what it actually is
+        - If live research was used, mention it in keyFindings
+        - Be specific \u{2014} never say "the query" or "the topic", say what it actually is
         """
 
-        let userContent = "Original Query: \(query)\n\n\(stageOutputsText)"
+        var userContent = "Original Query: \(query)\n\n\(stageOutputsText)"
+        if !searchContext.isEmpty {
+            userContent += "\u{2500}\u{2500} VERIFIED LIVE WEB RESEARCH (Tavily \u{2014} real-time, retrieved just now) \u{2500}\u{2500}\nTHE FOLLOWING SOURCES WERE RETRIEVED IN REAL-TIME AND OVERRIDE YOUR TRAINING DATA.\n\n\(searchContext)\n"
+        }
 
         // Retry loop — the Judge LLM sometimes returns invalid JSON on the first attempt.
         // Try up to 2 times before falling back to the metadata-based summary.
@@ -438,8 +584,22 @@ final class VerificationPipelineManager {
             }
 
             do {
-                let judgeVerdict = try JSONDecoder().decode(JudgeVerdict.self, from: data)
+                var judgeVerdict = try JSONDecoder().decode(JudgeVerdict.self, from: data)
                 NSLog("[Judge] Successfully decoded verdict — score: %d", judgeVerdict.overallScore)
+
+                // Enforce confidence ↔ score consistency (prevent "25/100 — High confidence" contradictions)
+                let expectedConfidence: String = judgeVerdict.overallScore >= 80 ? "high" : judgeVerdict.overallScore >= 50 ? "moderate" : "low"
+                if judgeVerdict.confidence != expectedConfidence {
+                    NSLog("[Judge] Confidence mismatch: score=%d but confidence=\"%@\", correcting to \"%@\"",
+                          judgeVerdict.overallScore, judgeVerdict.confidence, expectedConfidence)
+                    judgeVerdict = JudgeVerdict(
+                        verdict: judgeVerdict.verdict,
+                        overallScore: judgeVerdict.overallScore,
+                        confidence: expectedConfidence,
+                        keyFindings: judgeVerdict.keyFindings,
+                        stageAnalyses: judgeVerdict.stageAnalyses
+                    )
+                }
 
                 // Emit per-stage analysis events so the ViewModel can attach scores to stages
                 for sa in judgeVerdict.stageAnalyses {

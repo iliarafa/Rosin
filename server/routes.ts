@@ -47,12 +47,66 @@ function getTavilyClient(): ReturnType<typeof tavily> | null {
   return tavilyClient;
 }
 
-/** Format Tavily search results into a context block for LLM prompts */
+/**
+ * Score a Tavily search result for source credibility (0–100).
+ * High scores = official/reputable sources. Low scores = spam/speculation.
+ */
+function scoreSearchResult(result: { title: string; url: string; content: string }): number {
+  let score = 0;
+  const urlLower = result.url.toLowerCase();
+  const contentLower = result.content.toLowerCase();
+  const titleLower = result.title.toLowerCase();
+
+  // Domain reputation (0–40 pts)
+  const tier1 = ["apple.com", "google.com", "microsoft.com", "nvidia.com", "developer.apple.com"];
+  const tier2 = ["macrumors.com", "theverge.com", "arstechnica.com", "techcrunch.com", "wired.com",
+    "reuters.com", "apnews.com", "bbc.com", "bbc.co.uk", "nytimes.com", "washingtonpost.com",
+    "bloomberg.com", "wsj.com", "cnbc.com", "ft.com"];
+  const tier3 = ["tomshardware.com", "anandtech.com", "cnet.com", "engadget.com", "9to5mac.com",
+    "9to5google.com", "tomsguide.com", "pcmag.com", "zdnet.com", "gsmarena.com", "howtogeek.com"];
+  const tier4 = ["wikipedia.org", "github.com", "stackoverflow.com", "medium.com", "substack.com"];
+
+  if (tier1.some((d) => urlLower.includes(d))) score += 40;
+  else if (tier2.some((d) => urlLower.includes(d))) score += 35;
+  else if (tier3.some((d) => urlLower.includes(d))) score += 25;
+  else if (tier4.some((d) => urlLower.includes(d))) score += 15;
+  else score += 5;
+
+  // Content quality signals (0–30 pts)
+  const hasSpecificData = /\$\d|€\d|\d{3,}(?:\s*mah|\s*gb|\s*tb|\s*ghz|\s*mm)|(?:a\d{2}|m\d)\s*(?:pro|max|chip)/i.test(result.content);
+  if (hasSpecificData) score += 15;
+  const hasAttribution = /(?:press release|official|announced|by\s+[A-Z][a-z]+ [A-Z])/i.test(result.content);
+  if (hasAttribution) score += 10;
+  if (result.content.length > 200) score += 5;
+
+  // Red flags (negative pts)
+  const aiSpam = /in this article|let'?s explore|let'?s dive|in this comprehensive|everything you need to know/i.test(contentLower + " " + titleLower);
+  if (aiSpam) score -= 15;
+  const speculative = /\b(?:rumored|reportedly|expected to|could be|might be|is said to|unconfirmed)\b/i.test(contentLower);
+  if (speculative) score -= 10;
+  const spamUrl = /affiliate|ai-generated|sponsored/i.test(urlLower) || (urlLower.split("/").length > 8);
+  if (spamUrl) score -= 5;
+
+  return Math.max(0, Math.min(100, score));
+}
+
+/** Format Tavily search results with credibility scores for LLM prompts */
 function formatSearchContext(results: { title: string; url: string; content: string }[]): string {
-  const lines = results.map((r, i) =>
-    `[${i + 1}] ${r.title}\n    ${r.url}\n    ${r.content}`
+  // Score and sort by credibility
+  const scored = results
+    .map((r) => ({ ...r, credibility: scoreSearchResult(r) }))
+    .sort((a, b) => b.credibility - a.credibility);
+
+  const lines = scored.map((r, i) =>
+    `[${i + 1}] [CREDIBILITY: ${r.credibility}/100] ${r.title}\n    ${r.url}\n    ${r.content}`
   );
-  return `You have access to the following live web search results. Use them to ground your answer with current, up-to-date facts. Always prefer this information over your training data when they conflict.\n\nSources:\n${lines.join("\n\n")}`;
+  return `LIVE WEB SEARCH RESULTS (ranked by source credibility).
+Prioritize high-credibility sources (≥80) over low-credibility ones (<60).
+Sources with credibility ≥80 are from established, reputable outlets — trust them over your training data.
+Sources with credibility <40 may be AI-generated or speculative — treat with caution.
+
+Sources:
+${lines.join("\n\n")}`;
 }
 
 function sendSSE(res: Response, data: Record<string, unknown>) {
@@ -428,6 +482,39 @@ function parseJudgeJSON(text: string): any {
   }
 }
 
+/**
+ * Determine if the Tie-Breaker stage should run based on Judge verdict.
+ * Triggers when:
+ *   1. Score variance between stages > 25 points (strong disagreement)
+ *   2. Overall Judge score < 50 (low confidence)
+ *   3. >= 2 "flagged" or "corrected" provenance entries (significant corrections)
+ */
+function shouldTriggerTieBreaker(verdict: JudgeVerdict | undefined): { triggered: boolean; reason: string } {
+  if (!verdict || verdict.stageAnalyses.length < 2) return { triggered: false, reason: "" };
+
+  const scores = verdict.stageAnalyses.map((sa) => sa.agreementScore);
+  const scoreVariance = Math.max(...scores) - Math.min(...scores) > 25;
+
+  const lowConfidence = verdict.overallScore < 50;
+
+  const flaggedOrCorrected = verdict.stageAnalyses.flatMap((sa) =>
+    sa.claims.flatMap((c) => (c.provenance || []).filter((p) =>
+      p.changeType === "flagged" || p.changeType === "corrected"
+    ))
+  ).length;
+  const hasManyFlags = flaggedOrCorrected >= 2;
+
+  const reasons: string[] = [];
+  if (scoreVariance) reasons.push(`stage score variance > 25pts`);
+  if (lowConfidence) reasons.push(`overall score ${verdict.overallScore}/100`);
+  if (hasManyFlags) reasons.push(`${flaggedOrCorrected} flagged/corrected claims`);
+
+  return {
+    triggered: scoreVariance || lowConfidence || hasManyFlags,
+    reason: reasons.join(", "),
+  };
+}
+
 /** Pick the strongest available model for the Judge call */
 function pickJudgeModel(): { provider: string; model: string } | null {
   // Prefer strong models — the Judge needs the best reasoning
@@ -444,7 +531,8 @@ async function runJudge(
   query: string,
   completedStages: CompletedStage[],
   totalStages: number,
-  liveResearchUsed: boolean = false
+  liveResearchUsed: boolean = false,
+  searchContext: string = ""
 ): Promise<VerificationSummary> {
   if (completedStages.length < 2) {
     return fallbackSummary(query, completedStages, totalStages, liveResearchUsed);
@@ -459,18 +547,42 @@ async function runJudge(
   const modelNames = completedStages.map((s) => `${providerShortName(s.model.provider)} (${s.model.model})`).join(", ");
   const liveResearchNote = liveResearchUsed ? " Live web research (Tavily) was used to ground Stage 1 with real-time data." : "";
 
+  // Cap each stage's content to ~4000 chars to keep Judge input within model context limits.
+  const maxStageChars = 4000;
   let stageOutputsText = "";
   for (const stage of completedStages) {
     stageOutputsText += `── Stage ${stage.stage} (${providerShortName(stage.model.provider)} / ${stage.model.model}) ──\n`;
-    stageOutputsText += stage.content;
+    if (stage.content.length > maxStageChars) {
+      stageOutputsText += stage.content.slice(0, maxStageChars);
+      stageOutputsText += "\n[... truncated for Judge analysis]\n";
+    } else {
+      stageOutputsText += stage.content;
+    }
     stageOutputsText += "\n\n";
   }
+  console.log(`[Judge] Input: ${completedStages.length} stages, ~${stageOutputsText.length} chars total`);
 
   // The Judge prompt requests the full JudgeVerdict JSON structure with
   // per-stage analysis (claims, scores, hallucination flags) and overall verdict
-  const systemPrompt = `You are the JUDGE — the final authority in a multi-LLM verification pipeline. The models used were: ${modelNames}.${liveResearchNote}
+  const systemPrompt = `You are the final JUDGE in Rosin AI's multi-LLM verification pipeline. The models used were: ${modelNames}.${liveResearchNote}
 
-You will receive the original query and all stage outputs. Your job is to produce a comprehensive structured verdict.
+Your job is to synthesize all previous stages and produce a truthful, well-calibrated final verdict.
+
+CONSENSUS RULE (HIGHEST PRIORITY):
+- When ALL or MOST stages agree on a claim (especially about a product's existence, specs, or pricing), you MUST heavily favor that consensus. Do NOT override multi-stage agreement with your own skepticism.
+- You may ONLY override strong stage consensus when you have clear, specific contradictory evidence from high-credibility sources (apple.com, official press releases, MacRumors, The Verge, etc.).
+- If you do override consensus, you MUST explain exactly why with specific evidence. "I don't recognize this product" is NOT valid evidence.
+
+NEW/RECENT PRODUCTS (within last 60 days):
+- Recent web search results + stage consensus are MORE reliable than your training data.
+- Only declare a product "does not exist" when there is overwhelming evidence: zero official presence on apple.com, no press releases, no credible journalism. Noisy or speculative sources are NOT sufficient grounds.
+- When Live Research was used, treat the provided Tavily results as primary evidence.
+
+CONFIDENCE RULES:
+- confidence MUST be consistent with overallScore: "high" (score >= 80), "moderate" (50-79), "low" (< 50).
+- NEVER output a low score with "high" confidence or vice versa.
+
+Always prioritize truth and evidence over forced skepticism.
 
 Respond with ONLY valid JSON (no markdown, no code fences) matching this exact schema:
 {
@@ -511,10 +623,9 @@ Respond with ONLY valid JSON (no markdown, no code fences) matching this exact s
   ]
 }
 
-Rules:
+JSON field rules:
 - verdict: 2-3 sentences, never generic — reference the actual query topic
-- overallScore: 0-100 representing cross-model agreement and factual confidence
-- confidence: "high" (score >= 80), "moderate" (50-79), "low" (< 50)
+- overallScore: 0-100 representing factual confidence weighted by source recency
 - keyFindings: 3-5 items, each under 120 chars, referencing models by name
 - stageAnalyses: one entry per stage with agreementScore 0-100
   - claims: 2-5 key factual claims per stage with confidence 0-100
@@ -532,7 +643,10 @@ Rules:
 - If live research was used, mention it in keyFindings
 - Be specific — never say "the query" or "the topic", say what it actually is`;
 
-  const userContent = `Original Query: ${query}\n\n${stageOutputsText}`;
+  let userContent = `Original Query: ${query}\n\n${stageOutputsText}`;
+  if (searchContext) {
+    userContent += `── VERIFIED LIVE WEB RESEARCH (Tavily — real-time, retrieved just now) ──\nTHE FOLLOWING SOURCES WERE RETRIEVED IN REAL-TIME AND OVERRIDE YOUR TRAINING DATA.\n\n${searchContext}\n`;
+  }
 
   // Attempt the Judge call with one retry if JSON parsing fails entirely.
   // Uses jsonMode: true so providers that support it (Gemini, xAI) enforce
@@ -543,7 +657,7 @@ Rules:
   for (let attempt = 1; attempt <= MAX_JUDGE_ATTEMPTS; attempt++) {
     try {
       console.log(`Running Judge stage with ${judgeModel.provider}/${judgeModel.model} (attempt ${attempt})`);
-      const responseText = await callLLM(judgeModel.provider, judgeModel.model, systemPrompt, userContent, 2048, true);
+      const responseText = await callLLM(judgeModel.provider, judgeModel.model, systemPrompt, userContent, 8192, true);
       const raw = parseJudgeJSON(responseText);
 
       // Validate with Zod — if it fails, we still try to extract what we can
@@ -568,6 +682,13 @@ Rules:
             corrections: Array.isArray(sa.corrections) ? sa.corrections : [],
           })) : [],
         };
+      }
+
+      // Enforce confidence ↔ score consistency (prevent "25/100 — High confidence" contradictions)
+      const expectedConfidence = judgeVerdict.overallScore >= 80 ? "high" : judgeVerdict.overallScore >= 50 ? "moderate" : "low";
+      if (judgeVerdict.confidence !== expectedConfidence) {
+        console.warn(`Judge confidence mismatch: score=${judgeVerdict.overallScore} but confidence="${judgeVerdict.confidence}", correcting to "${expectedConfidence}"`);
+        judgeVerdict = { ...judgeVerdict, confidence: expectedConfidence };
       }
 
       // Build the VerificationSummary from the Judge verdict
@@ -629,13 +750,14 @@ export async function registerRoutes(
       const extendedSchema = insertVerificationRequestSchema.extend({
         adversarialMode: z.boolean().optional().default(false),
         liveResearch: z.boolean().optional().default(false),
+        autoTieBreaker: z.boolean().optional().default(true),
       });
       const parsed = extendedSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
       }
 
-      const { query, chain, adversarialMode, liveResearch } = parsed.data;
+      const { query, chain, adversarialMode, liveResearch, autoTieBreaker } = parsed.data;
 
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
@@ -661,8 +783,8 @@ export async function registerRoutes(
           sendSSE(res, { type: "research_start" });
           try {
             const searchResponse = await client.search(query, {
-              maxResults: 5,
-              searchDepth: "basic",
+              maxResults: 8,
+              searchDepth: "advanced",
               includeAnswer: true,
             });
             const results = searchResponse.results.map((r) => ({
@@ -709,27 +831,23 @@ Be factual and cite any assumptions you make. If you're uncertain about somethin
 ${lengthConfig.promptInstruction}`;
         }
 
-        const webGroundingNote = hasWebResearch
-          ? "\n\nNote: The first stage was provided with live web search results. Information about current events and recent developments in the previous response is grounded in real-time web data — treat it as sourced information, not speculation. Do not dismiss it as beyond your knowledge cutoff."
-          : "";
-
         if (isLast) {
           return `You are the final stage of a multi-LLM verification pipeline. You produce the definitive, verified response.
-
+${hasWebResearch ? "\nYou have live web search results below — use them as your primary source of truth.\n" : ""}
 Your tasks:
-1. Final verification of all claims
-2. Synthesize all previous stages into a clear, concise final answer
+1. Synthesize all previous stages into a clear, concise final answer
+2. ${hasWebResearch ? "Ground your answer in the web search results provided" : "Final verification of all claims"}
 3. Remove any redundancy
 4. Ensure the response is well-structured and easy to understand
 5. Note any remaining caveats or areas of genuine uncertainty
 
-Produce the final verified response that best answers the user's original query.${webGroundingNote}
+Produce the final verified response that best answers the user's original query.
 
 ${lengthConfig.finalInstruction}`;
         }
 
-        // Middle stage — adversarial or standard
-        if (adversarialMode) {
+        // Middle stage — adversarial or standard (only when no web research)
+        if (adversarialMode && !hasWebResearch) {
           return `You are in ADVERSARIAL MODE. You are stage ${stageNum} of a multi-LLM verification pipeline. Your job is to find flaws.
 
 Your tasks:
@@ -740,7 +858,25 @@ Your tasks:
 5. Flag misleading, vague, or unsubstantiated information
 6. Provide a corrected and hardened version of the response
 
-Be aggressive in your analysis. Do not give the benefit of the doubt.${webGroundingNote}
+Be aggressive in your analysis. Do not give the benefit of the doubt.
+
+${lengthConfig.verifyInstruction}`;
+        }
+
+        // When live web research is available, reframe the task as "refine using sources"
+        // instead of "verify and find errors" — the verification framing causes models to
+        // flag web-sourced facts as hallucinations when they're absent from training data.
+        if (hasWebResearch) {
+          return `You are stage ${stageNum} of a multi-LLM verification pipeline. You have been provided with live web search results AND the previous stage's response.
+
+Your tasks:
+1. Use the web search results as your primary source of truth
+2. Refine and improve the previous response using evidence from the web sources
+3. Add any relevant details from the web sources that the previous stage missed
+4. Ensure the response directly answers the user's question
+5. Do NOT question whether subjects mentioned in the web sources exist — they have been verified via live search
+
+Produce an improved, well-sourced response.
 
 ${lengthConfig.verifyInstruction}`;
         }
@@ -755,7 +891,7 @@ Your tasks:
 5. Cross-check the information against your knowledge
 6. Improve clarity where needed
 
-Provide a refined and verified version of the response.${webGroundingNote}
+Provide a refined and verified version of the response.
 
 ${lengthConfig.verifyInstruction}`;
       };
@@ -774,13 +910,14 @@ ${lengthConfig.verifyInstruction}`;
 
         console.log(`Starting stage ${stageNum}/${totalStages}, provider: ${chain[i].provider}, model: ${chain[i].model}`);
 
-        // Inject live web search context into the first stage so all subsequent
-        // stages benefit from grounded information flowing through the pipeline
-        const userContent = isFirst
-          ? searchContext
-            ? `Original Query: ${query}\n\n── Live Web Research ──\n${searchContext}`
-            : `Original Query: ${query}`
+        // Every stage gets the Tavily results so each model can independently
+        // verify claims against fresh web sources, not just training data.
+        let userContent = isFirst
+          ? `Original Query: ${query}`
           : `Original Query: ${query}\n\nPrevious Response:\n${previousOutput}`;
+        if (searchContext) {
+          userContent += `\n\n── LIVE WEB RESEARCH (Tavily — retrieved just now) ──\n${searchContext}`;
+        }
 
         try {
           previousOutput = await runStage(chain[i], prompt, userContent, res, stageNum, lengthConfig.maxTokens);
@@ -794,7 +931,77 @@ ${lengthConfig.verifyInstruction}`;
 
       // ── Judge Stage ──
       // Run the dedicated Judge to produce structured per-stage analysis + overall verdict
-      const summary = await runJudge(query, completedStages, totalStages, liveResearch);
+      let summary = await runJudge(query, completedStages, totalStages, liveResearch, searchContext);
+
+      // ── Auto Tie-Breaker ──
+      // If the Judge detects strong disagreement, run an extra verification stage
+      // to resolve conflicts before finalizing the result.
+      const tieBreak = shouldTriggerTieBreaker(summary.judgeVerdict);
+      if (tieBreak.triggered && autoTieBreaker) {
+        checkDisconnect();
+        console.log(`Tie-breaker triggered: ${tieBreak.reason}`);
+        sendSSE(res, { type: "tie_breaker_triggered", reason: tieBreak.reason });
+
+        const tbModel = pickJudgeModel();
+        if (tbModel) {
+          const tbStageNum = totalStages + 1;
+          const jv = summary.judgeVerdict!;
+
+          // Build Judge analysis context for the tie-breaker
+          const flaggedIssues = jv.stageAnalyses.flatMap((sa) =>
+            sa.hallucinationFlags.map((f) => `[Stage ${sa.stage}] [${f.severity.toUpperCase()}] ${f.claim}: ${f.reason}`)
+          ).join("\n");
+
+          const tbSystemPrompt = `You are the TIE-BREAKER in Rosin AI — an extra stage triggered because previous stages had conflicting results.
+
+You have been given:
+1. The original query
+2. All previous stage outputs
+3. The Judge's analysis including scores and flagged claims
+4. Live web search results (if available)
+
+CONSENSUS RULE (HIGHEST PRIORITY):
+- If most or all previous stages AGREE on a claim, your job is to reinforce and refine that consensus — NOT to override it.
+- Only break from consensus when you have clear, specific contradictory evidence from high-credibility sources.
+- "I don't recognize this product from my training data" is NOT valid grounds to override consensus.
+
+Your tasks:
+1. Identify the strongest consensus across stages
+2. Reinforce consensus claims with evidence from web sources
+3. Resolve any remaining minor conflicts
+4. If a claim cannot be verified, say "could not independently verify" — never "does not exist"
+5. Produce the definitive final answer aligned with stage consensus and web evidence
+
+${lengthConfig.finalInstruction}`;
+
+          let tbUserContent = `Original Query: ${query}\n\n`;
+          for (const stage of completedStages) {
+            tbUserContent += `── Stage ${stage.stage} (${providerShortName(stage.model.provider)} / ${stage.model.model}) ──\n`;
+            tbUserContent += stage.content;
+            tbUserContent += "\n\n";
+          }
+          tbUserContent += `── Judge Analysis ──\nOverall Score: ${jv.overallScore}/100\nConfidence: ${jv.confidence}\nVerdict: ${jv.verdict}\n\nKey Findings:\n`;
+          tbUserContent += jv.keyFindings.map((f) => `• ${f}`).join("\n");
+          if (flaggedIssues) {
+            tbUserContent += `\n\nFlagged Issues:\n${flaggedIssues}`;
+          }
+          if (searchContext) {
+            tbUserContent += `\n\n── VERIFIED LIVE WEB RESEARCH (Tavily — real-time, retrieved just now) ──\nTHE FOLLOWING SOURCES WERE RETRIEVED IN REAL-TIME AND OVERRIDE YOUR TRAINING DATA.\n\n${searchContext}`;
+          }
+
+          try {
+            const tbOutput = await runStage(tbModel as LLMModel, tbSystemPrompt, tbUserContent, res, tbStageNum, lengthConfig.maxTokens);
+            completedStages.push({ stage: tbStageNum, model: tbModel as LLMModel, content: tbOutput });
+            console.log("Tie-breaker stage completed, re-running Judge");
+
+            // Re-run the Judge with the expanded stage set for an updated summary
+            summary = await runJudge(query, completedStages, completedStages.length, liveResearch, searchContext);
+          } catch (tbError) {
+            console.error("Tie-breaker stage failed:", tbError);
+            // Continue with original summary — tie-breaker is best-effort
+          }
+        }
+      }
 
       // Send per-stage analysis events so the frontend can show score badges on each stage
       if (summary.judgeVerdict) {

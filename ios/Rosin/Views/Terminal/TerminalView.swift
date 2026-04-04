@@ -180,6 +180,7 @@ struct TerminalView: View {
                 viewModel: viewModel,
                 onDone: {
                     withAnimation(.easeOut(duration: 0.25)) { showResults = false }
+                    viewModel.query = ""
                 },
                 onExportCSV: exportCSV,
                 onExportPDF: exportPDF,
@@ -594,7 +595,8 @@ private struct ResultsView: View {
                             onExportCSV: onExportCSV,
                             onExportPDF: onExportPDF,
                             onQuerySelect: nil,
-                            researchStatus: viewModel.researchStatus
+                            researchStatus: viewModel.researchStatus,
+                            tieBreakReason: viewModel.tieBreakReason
                         )
                         .id("output")
                         Color.clear.frame(height: 1).id("bottom")

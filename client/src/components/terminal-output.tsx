@@ -65,6 +65,7 @@ interface TerminalOutputProps {
   onQuerySelect?: (query: string) => void;
   rosinMode?: boolean;
   onViewFullOutput?: () => void;
+  tieBreakReason?: string | null;
 }
 
 function exportToCSV(query: string, stages: StageOutput[]) {
@@ -161,6 +162,7 @@ export function TerminalOutput({
   onQuerySelect,
   rosinMode,
   onViewFullOutput,
+  tieBreakReason,
 }: TerminalOutputProps) {
   /* ── Boot sequence state — runs once on first mount ── */
   const [booted, setBooted] = useState(false);
@@ -315,7 +317,7 @@ export function TerminalOutput({
     );
   }
 
-  const allComplete = stages.length === expectedStageCount && stages.every((s) => s.status === "complete");
+  const allComplete = stages.length >= expectedStageCount && stages.every((s) => s.status === "complete");
   const lastStage = allComplete ? stages[stages.length - 1] : null;
 
   // ── Rosin mode: show processing or results-only view ──
@@ -386,7 +388,17 @@ export function TerminalOutput({
       )}
 
       {stages.map((stage) => (
-        <StageBlock key={stage.stage} stage={stage} />
+        <div key={stage.stage}>
+          {/* Tie-breaker banner — shown before the extra stage */}
+          {tieBreakReason && stage.stage === expectedStageCount + 1 && (
+            <div className="flex items-center gap-3 py-4 text-xs">
+              <span className="flex-1 border-t border-primary/30" />
+              <span className="text-primary tracking-wider">AUTO TIE-BREAKER TRIGGERED</span>
+              <span className="flex-1 border-t border-primary/30" />
+            </div>
+          )}
+          <StageBlock stage={stage} />
+        </div>
       ))}
 
       {allComplete && summary?.contradictions && summary.contradictions.length > 0 && (

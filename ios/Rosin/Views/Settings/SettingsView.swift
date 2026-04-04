@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
     @EnvironmentObject private var fontSizeManager: FontSizeManager
     @AppStorage("rosin_mode") private var isRosinMode = false
+    @AppStorage("auto_tie_breaker") private var isAutoTieBreaker = true
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
@@ -99,6 +100,26 @@ struct SettingsView: View {
                                 Spacer()
 
                                 Toggle("", isOn: $isRosinMode)
+                                    .labelsHidden()
+                                    .tint(RosinTheme.green)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+
+                            Divider().padding(.leading, 16)
+
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Auto Tie-Breaker")
+                                        .font(RosinTheme.monoCaption)
+                                    Text("Run an extra verification round when models strongly disagree.")
+                                        .font(RosinTheme.monoCaption2)
+                                        .foregroundColor(RosinTheme.muted)
+                                }
+
+                                Spacer()
+
+                                Toggle("", isOn: $isAutoTieBreaker)
                                     .labelsHidden()
                                     .tint(RosinTheme.green)
                             }

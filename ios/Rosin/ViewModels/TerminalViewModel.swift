@@ -14,6 +14,10 @@ final class TerminalViewModel: ObservableObject {
     @Published var isRosinMode: Bool = UserDefaults.standard.bool(forKey: "rosin_mode") {
         didSet { UserDefaults.standard.set(isRosinMode, forKey: "rosin_mode") }
     }
+    @Published var isAutoTieBreaker: Bool = UserDefaults.standard.object(forKey: "auto_tie_breaker") == nil ? true : UserDefaults.standard.bool(forKey: "auto_tie_breaker") {
+        didSet { UserDefaults.standard.set(isAutoTieBreaker, forKey: "auto_tie_breaker") }
+    }
+    @Published var tieBreakReason: String?
     @Published var researchStatus: ResearchStatus?
 
     private var pipeline: VerificationPipelineManager?
@@ -23,7 +27,7 @@ final class TerminalViewModel: ObservableObject {
     }
 
     var allComplete: Bool {
-        stages.count == stageCount && stages.allSatisfy { $0.status == .complete || $0.status == .skipped }
+        stages.count >= stageCount && stages.allSatisfy { $0.status == .complete || $0.status == .skipped }
     }
 
     var lastStageContent: String? {
@@ -66,13 +70,14 @@ final class TerminalViewModel: ObservableObject {
         stages = []
         summary = nil
         researchStatus = nil
+        tieBreakReason = nil
         isProcessing = true
 
         // Haptic feedback
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.impactOccurred()
 
-        pipeline?.run(query: trimmed, chain: activeChain, adversarialMode: isAdversarialMode, liveResearch: isLiveResearch) { [weak self] event in
+        pipeline?.run(query: trimmed, chain: activeChain, adversarialMode: isAdversarialMode, liveResearch: isLiveResearch, autoTieBreaker: isAutoTieBreaker) { [weak self] event in
             guard let self else { return }
             self.handleEvent(event)
         }
@@ -148,6 +153,9 @@ final class TerminalViewModel: ObservableObject {
             if let idx = stages.firstIndex(where: { $0.id == stage }) {
                 stages[idx].analysis = analysis
             }
+
+        case .tieBreaker(let reason):
+            tieBreakReason = reason
 
         case .summary(let s):
             summary = s
