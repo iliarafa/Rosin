@@ -69,11 +69,19 @@ struct APIKeysView: View {
                             .padding(.horizontal, 16)
                             .padding(.bottom, 8)
 
-                        TavilyKeyRowView()
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 4)
-                            .background(cardBackground)
-                            .cornerRadius(10)
+                        VStack(spacing: 0) {
+                            ExaKeyRowView()
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+
+                            Divider().padding(.leading, 16)
+
+                            TavilyKeyRowView()
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+                        }
+                        .background(cardBackground)
+                        .cornerRadius(10)
                     }
                 }
                 .padding()

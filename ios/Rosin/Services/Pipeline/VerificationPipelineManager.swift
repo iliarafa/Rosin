@@ -35,47 +35,38 @@ final class VerificationPipelineManager {
             // Live Research: prefer Exa.ai (neural search), fall back to Tavily
             var searchContext = ""
             if liveResearch {
+                onEvent(.researchStart)
+                var rawResponse: TavilySearchResponse?
+
+                // Step 1: Search — prefer Exa, fall back to Tavily
                 if let exaKey = apiKeyManager.exaKey {
-                    onEvent(.researchStart)
                     do {
-                        let searchResponse = try await ExaSearchService.search(query: query, apiKey: exaKey)
-                        searchContext = searchResponse.formattedContext
-                        onEvent(.researchComplete(
-                            sourceCount: searchResponse.results.count,
-                            sources: searchResponse.sourceSummary
-                        ))
+                        rawResponse = try await ExaSearchService.search(query: query, apiKey: exaKey)
                     } catch {
                         NSLog("[Pipeline] Exa search failed, falling back to Tavily: %@", "\(error)")
-                        // Fall through to Tavily
-                        if let tavilyKey = apiKeyManager.tavilyKey {
-                            do {
-                                let searchResponse = try await TavilySearchService.search(query: query, apiKey: tavilyKey)
-                                searchContext = searchResponse.formattedContext
-                                onEvent(.researchComplete(
-                                    sourceCount: searchResponse.results.count,
-                                    sources: searchResponse.sourceSummary
-                                ))
-                            } catch {
-                                onEvent(.researchError(error: "Web search failed — proceeding without live data"))
-                            }
-                        } else {
-                            onEvent(.researchError(error: "Exa search failed and no Tavily key configured"))
-                        }
                     }
-                } else if let tavilyKey = apiKeyManager.tavilyKey {
-                    onEvent(.researchStart)
+                }
+                if rawResponse == nil, let tavilyKey = apiKeyManager.tavilyKey {
                     do {
-                        let searchResponse = try await TavilySearchService.search(query: query, apiKey: tavilyKey)
-                        searchContext = searchResponse.formattedContext
-                        onEvent(.researchComplete(
-                            sourceCount: searchResponse.results.count,
-                            sources: searchResponse.sourceSummary
-                        ))
+                        rawResponse = try await TavilySearchService.search(query: query, apiKey: tavilyKey)
                     } catch {
-                        onEvent(.researchError(error: "Web search failed — proceeding without live data"))
+                        NSLog("[Pipeline] Tavily search also failed: %@", "\(error)")
                     }
-                } else {
+                }
+
+                if var response = rawResponse {
+                    // Step 2: Verify URLs — HEAD request each URL to confirm it exists
+                    response = await URLVerifier.verify(response: response)
+
+                    searchContext = response.formattedContext
+                    onEvent(.researchComplete(
+                        sourceCount: response.results.count,
+                        sources: response.sourceSummary
+                    ))
+                } else if apiKeyManager.exaKey == nil && apiKeyManager.tavilyKey == nil {
                     onEvent(.researchError(error: "No search API key configured — add Exa or Tavily key in Settings"))
+                } else {
+                    onEvent(.researchError(error: "Web search failed — proceeding without live data"))
                 }
             }
 
@@ -154,7 +145,7 @@ final class VerificationPipelineManager {
                             lengthConfig: lengthConfig,
                             adversarialMode: false,
                             hasWebResearch: hasWebResearch,
-                            searchContext: "",
+                            searchContext: searchContext,
                             onEvent: onEvent,
                             tieBreakerVerdict: jv
                         )
@@ -221,10 +212,11 @@ final class VerificationPipelineManager {
 
     /// Pick the strongest available model for the tie-breaker stage (same logic as Judge).
     private func pickTieBreakerModel() -> LLMModel? {
+        // Grok first — it has real-time X data and more recent knowledge
         let candidates: [(provider: LLMProvider, model: String)] = [
-            (.anthropic, "claude-sonnet-4-5"),
-            (.gemini, "gemini-2.5-flash"),
             (.xai, "grok-3"),
+            (.gemini, "gemini-2.5-flash"),
+            (.anthropic, "claude-sonnet-4-5"),
         ]
         for candidate in candidates {
             if apiKeyManager.apiKey(for: candidate.provider) != nil {

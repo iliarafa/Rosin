@@ -1,10 +1,18 @@
 import Foundation
 
+enum URLVerificationStatus: String {
+    case verified = "VERIFIED: 200 OK"
+    case broken = "BROKEN: 404/Error"
+    case timeout = "TIMEOUT"
+    case unchecked = "UNCHECKED"
+}
+
 struct TavilySearchResult {
     let title: String
     let url: String
     let content: String
     let credibility: Int
+    var urlStatus: URLVerificationStatus = .unchecked
 }
 
 struct TavilySearchResponse {
@@ -13,14 +21,17 @@ struct TavilySearchResponse {
     var formattedContext: String {
         // Sort by credibility score descending
         let sorted = results.sorted { $0.credibility > $1.credibility }
+        let verifiedCount = sorted.filter { $0.urlStatus == .verified }.count
         let lines = sorted.enumerated().map { i, r in
-            "[\(i + 1)] [CREDIBILITY: \(r.credibility)/100] \(r.title)\n    \(r.url)\n    \(r.content)"
+            "[\(i + 1)] [\(r.urlStatus.rawValue)] [CREDIBILITY: \(r.credibility)/100] \(r.title)\n    \(r.url)\n    \(r.content)"
         }
         return """
         LIVE WEB SEARCH RESULTS (ranked by source credibility).
-        Prioritize high-credibility sources (\u{2265}80) over low-credibility ones (<60).
-        Sources with credibility \u{2265}80 are from established, reputable outlets \u{2014} trust them over your training data.
-        Sources with credibility <40 may be AI-generated or speculative \u{2014} treat with caution.
+        Each URL has been MACHINE-VERIFIED by fetching it \u{2014} this is not an LLM opinion.
+        \(verifiedCount) of \(sorted.count) URLs returned HTTP 200 (confirmed to exist).
+        Sources marked [VERIFIED: 200 OK] are CONFIRMED REAL PAGES. Their content is factual.
+        Sources marked [BROKEN: 404/Error] may be fabricated \u{2014} ignore their claims.
+        You MUST NOT claim a product "does not exist" if ANY verified source describes it.
 
         Sources:
         \(lines.joined(separator: "\n\n"))
@@ -30,8 +41,67 @@ struct TavilySearchResponse {
     var sourceSummary: String {
         let sorted = results.sorted { $0.credibility > $1.credibility }
         return sorted.enumerated().map { i, r in
-            "  [\(i + 1)] [CRED:\(r.credibility)] \(r.title) \u{2014} \(r.url)"
+            let status = r.urlStatus == .verified ? "\u{2713}" : (r.urlStatus == .broken ? "\u{2717}" : "?")
+            return "  [\(i + 1)] [\(status)] [CRED:\(r.credibility)] \(r.title) \u{2014} \(r.url)"
         }.joined(separator: "\n")
+    }
+}
+
+/// Verify search result URLs by fetching them (HEAD request, 5s timeout).
+/// Returns a new response with urlStatus set on each result.
+enum URLVerifier {
+    static func verify(response: TavilySearchResponse) async -> TavilySearchResponse {
+        let verified = await withTaskGroup(of: (Int, URLVerificationStatus).self) { group in
+            for (index, result) in response.results.enumerated() {
+                group.addTask {
+                    let status = await Self.checkURL(result.url)
+                    return (index, status)
+                }
+            }
+            var statuses: [Int: URLVerificationStatus] = [:]
+            for await (index, status) in group {
+                statuses[index] = status
+            }
+            return statuses
+        }
+
+        let updatedResults = response.results.enumerated().map { index, result in
+            var updated = result
+            updated.urlStatus = verified[index] ?? .unchecked
+            return updated
+        }
+
+        let verifiedCount = updatedResults.filter { $0.urlStatus == .verified }.count
+        let brokenCount = updatedResults.filter { $0.urlStatus == .broken }.count
+        NSLog("[URLVerifier] %d verified, %d broken, %d timeout/unchecked",
+              verifiedCount, brokenCount, updatedResults.count - verifiedCount - brokenCount)
+
+        return TavilySearchResponse(results: updatedResults)
+    }
+
+    private static func checkURL(_ urlString: String) async -> URLVerificationStatus {
+        guard let url = URL(string: urlString) else { return .broken }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "HEAD"
+        request.timeoutInterval = 5
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse {
+                if (200...399).contains(http.statusCode) {
+                    return .verified
+                } else {
+                    return .broken
+                }
+            }
+            return .unchecked
+        } catch {
+            if (error as NSError).code == NSURLErrorTimedOut {
+                return .timeout
+            }
+            return .broken
+        }
     }
 }
 

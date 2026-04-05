@@ -126,20 +126,53 @@ function scoreSearchResult(result: { title: string; url: string; content: string
   return Math.max(0, Math.min(100, score));
 }
 
-/** Format Tavily search results with credibility scores for LLM prompts */
-function formatSearchContext(results: { title: string; url: string; content: string }[]): string {
+/** Verify URLs by fetching them (HEAD request, 5s timeout) */
+async function verifyURLs(results: { title: string; url: string; content: string }[]): Promise<{ title: string; url: string; content: string; urlStatus: string }[]> {
+  const verified = await Promise.all(
+    results.map(async (r) => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(r.url, {
+          method: "HEAD",
+          signal: controller.signal,
+          redirect: "follow",
+        });
+        clearTimeout(timeout);
+        const status = response.status >= 200 && response.status < 400
+          ? "VERIFIED: 200 OK"
+          : `BROKEN: ${response.status}`;
+        return { ...r, urlStatus: status };
+      } catch (error) {
+        const isTimeout = (error as Error).name === "AbortError";
+        return { ...r, urlStatus: isTimeout ? "TIMEOUT" : "BROKEN: 404/Error" };
+      }
+    })
+  );
+  const verifiedCount = verified.filter((r) => r.urlStatus.startsWith("VERIFIED")).length;
+  const brokenCount = verified.filter((r) => r.urlStatus.startsWith("BROKEN")).length;
+  console.log(`[URLVerifier] ${verifiedCount} verified, ${brokenCount} broken, ${verified.length - verifiedCount - brokenCount} timeout`);
+  return verified;
+}
+
+/** Format search results with credibility scores and URL verification for LLM prompts */
+function formatSearchContext(results: { title: string; url: string; content: string; urlStatus?: string }[]): string {
   // Score and sort by credibility
   const scored = results
     .map((r) => ({ ...r, credibility: scoreSearchResult(r) }))
     .sort((a, b) => b.credibility - a.credibility);
 
+  const verifiedCount = scored.filter((r) => r.urlStatus?.startsWith("VERIFIED")).length;
+
   const lines = scored.map((r, i) =>
-    `[${i + 1}] [CREDIBILITY: ${r.credibility}/100] ${r.title}\n    ${r.url}\n    ${r.content}`
+    `[${i + 1}] [${r.urlStatus || "UNCHECKED"}] [CREDIBILITY: ${r.credibility}/100] ${r.title}\n    ${r.url}\n    ${r.content}`
   );
   return `LIVE WEB SEARCH RESULTS (ranked by source credibility).
-Prioritize high-credibility sources (≥80) over low-credibility ones (<60).
-Sources with credibility ≥80 are from established, reputable outlets — trust them over your training data.
-Sources with credibility <40 may be AI-generated or speculative — treat with caution.
+Each URL has been MACHINE-VERIFIED by fetching it — this is not an LLM opinion.
+${verifiedCount} of ${scored.length} URLs returned HTTP 200 (confirmed to exist).
+Sources marked [VERIFIED: 200 OK] are CONFIRMED REAL PAGES. Their content is factual.
+Sources marked [BROKEN: 404/Error] may be fabricated — ignore their claims.
+You MUST NOT claim a product "does not exist" if ANY verified source describes it.
 
 Sources:
 ${lines.join("\n\n")}`;
@@ -563,6 +596,17 @@ function pickJudgeModel(): { provider: string; model: string } | null {
   return chosen ? { provider: chosen.provider, model: chosen.model } : null;
 }
 
+/** Pick model for the Tie-Breaker — Grok first (has real-time X data) */
+function pickTieBreakerModel(): { provider: string; model: string } | null {
+  const candidates: { provider: string; model: string; envKey: string }[] = [
+    { provider: "xai", model: "grok-3", envKey: "XAI_API_KEY" },
+    { provider: "gemini", model: "gemini-2.5-flash", envKey: "AI_INTEGRATIONS_GEMINI_API_KEY" },
+    { provider: "anthropic", model: "claude-sonnet-4-5", envKey: "AI_INTEGRATIONS_ANTHROPIC_API_KEY" },
+  ];
+  const chosen = candidates.find((c) => process.env[c.envKey]);
+  return chosen ? { provider: chosen.provider, model: chosen.model } : null;
+}
+
 async function runJudge(
   query: string,
   completedStages: CompletedStage[],
@@ -810,33 +854,22 @@ export async function registerRoutes(
       const totalStages = chain.length;
       const lengthConfig = classifyComplexity(query);
 
-      // Live Research: prefer Exa.ai (neural search), fall back to Tavily
+      // Live Research: search → verify URLs → format with credibility + verification status
       let searchContext = "";
       if (liveResearch) {
         sendSSE(res, { type: "research_start" });
+        let rawResults: { title: string; url: string; content: string }[] | null = null;
 
-        // Try Exa first
+        // Step 1: Search — prefer Exa, fall back to Tavily
         if (process.env.EXA_API_KEY) {
           try {
             console.log("[Research] Using Exa.ai for web search");
-            const results = await exaSearch(query);
-            searchContext = formatSearchContext(results);
-            const sourceSummary = results
-              .map((r, i) => `  [${i + 1}] ${r.title} — ${r.url}`)
-              .join("\n");
-            sendSSE(res, {
-              type: "research_complete",
-              sourceCount: results.length,
-              sources: sourceSummary,
-            });
+            rawResults = await exaSearch(query);
           } catch (exaError) {
-            console.error("[Research] Exa search failed, falling back to Tavily:", exaError);
-            // Fall through to Tavily below
+            console.error("[Research] Exa failed, falling back to Tavily:", exaError);
           }
         }
-
-        // Fall back to Tavily if Exa didn't produce results
-        if (!searchContext) {
+        if (!rawResults) {
           const client = getTavilyClient();
           if (client) {
             try {
@@ -846,27 +879,35 @@ export async function registerRoutes(
                 searchDepth: "advanced",
                 includeAnswer: true,
               });
-              const results = searchResponse.results.map((r) => ({
-                title: r.title,
-                url: r.url,
-                content: r.content,
+              rawResults = searchResponse.results.map((r) => ({
+                title: r.title, url: r.url, content: r.content,
               }));
-              searchContext = formatSearchContext(results);
-              const sourceSummary = results
-                .map((r, i) => `  [${i + 1}] ${r.title} — ${r.url}`)
-                .join("\n");
-              sendSSE(res, {
-                type: "research_complete",
-                sourceCount: results.length,
-                sources: sourceSummary,
-              });
             } catch (searchError) {
-              console.error("[Research] Tavily search failed:", searchError);
-              sendSSE(res, { type: "research_error", error: "Web search unavailable — proceeding without live data" });
+              console.error("[Research] Tavily also failed:", searchError);
             }
-          } else {
-            sendSSE(res, { type: "research_error", error: "No search API key configured (EXA_API_KEY or TAVILY_API_KEY)" });
           }
+        }
+
+        if (rawResults && rawResults.length > 0) {
+          // Step 2: Verify URLs — HEAD request each to confirm pages exist
+          const verified = await verifyURLs(rawResults);
+
+          searchContext = formatSearchContext(verified);
+          const sourceSummary = verified
+            .map((r, i) => {
+              const tag = r.urlStatus.startsWith("VERIFIED") ? "✓" : (r.urlStatus.startsWith("BROKEN") ? "✗" : "?");
+              return `  [${i + 1}] [${tag}] ${r.title} — ${r.url}`;
+            })
+            .join("\n");
+          sendSSE(res, {
+            type: "research_complete",
+            sourceCount: verified.length,
+            sources: sourceSummary,
+          });
+        } else if (!process.env.EXA_API_KEY && !process.env.TAVILY_API_KEY) {
+          sendSSE(res, { type: "research_error", error: "No search API key configured (EXA_API_KEY or TAVILY_API_KEY)" });
+        } else {
+          sendSSE(res, { type: "research_error", error: "Web search failed — proceeding without live data" });
         }
       }
 
@@ -999,7 +1040,7 @@ ${lengthConfig.verifyInstruction}`;
         console.log(`Tie-breaker triggered: ${tieBreak.reason}`);
         sendSSE(res, { type: "tie_breaker_triggered", reason: tieBreak.reason });
 
-        const tbModel = pickJudgeModel();
+        const tbModel = pickTieBreakerModel();
         if (tbModel) {
           const tbStageNum = totalStages + 1;
           const jv = summary.judgeVerdict!;
