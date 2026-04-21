@@ -39,9 +39,6 @@ export function StageCountSelector({
           <SelectItem value="3" className="text-xs rounded-none" data-testid="select-option-stages-3">
             3
           </SelectItem>
-          <SelectItem value="4" className="text-xs rounded-none" data-testid="select-option-stages-4">
-            4
-          </SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -53,7 +53,7 @@ function relativeTime(dateStr: string): string {
 
 export default function Terminal() {
   const [, setMode] = useRosinMode();
-  const [stageCount, setStageCount] = useState(4);
+  const [stageCount, setStageCount] = useState(3);
   const [chain, setChain] = useState<LLMModel[]>(allModels);
   const [query, setQuery] = useState("");
   const [stages, setStages] = useState<StageOutput[]>([]);
