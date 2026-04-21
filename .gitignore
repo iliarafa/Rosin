@@ -10,4 +10,4 @@ vite.config.ts.*
 .env.local
 .env.development
 .env.production
-.env*.local
+.env*.local.superpowers/
