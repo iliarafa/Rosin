@@ -122,6 +122,7 @@ export const verificationSummarySchema = z.object({
   confidence: z.string(),
   contradictions: z.array(contradictionSchema).optional(),
   confidenceScore: z.number().min(0).max(1).optional(),
+  trustScore: z.number().min(0).max(100).optional(),
   isAnalyzed: z.boolean().optional(),
   analysisBullets: z.array(z.string()).optional(),
   /** Structured Judge verdict — present when the Judge stage completes */

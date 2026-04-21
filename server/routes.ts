@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 import { tavily } from "@tavily/core";
 import { insertVerificationRequestSchema, type LLMModel, type VerificationSummary, type JudgeVerdict, type StageAnalysis, judgeVerdictSchema } from "@shared/schema";
+import { computeTrustScore } from "./trust-score";
 import { z } from "zod";
 import { storage } from "./storage";
 import { randomUUID } from "crypto";
@@ -856,6 +857,8 @@ export async function registerRoutes(
 
       // Live Research: search → verify URLs → format with credibility + verification status
       let searchContext = "";
+      let verifiedSourceCount = 0;
+      let brokenSourceCount = 0;
       if (liveResearch) {
         sendSSE(res, { type: "research_start" });
         let rawResults: { title: string; url: string; content: string }[] | null = null;
@@ -891,7 +894,8 @@ export async function registerRoutes(
         if (rawResults && rawResults.length > 0) {
           // Step 2: Verify URLs — HEAD request each to confirm pages exist
           const verified = await verifyURLs(rawResults);
-
+          verifiedSourceCount = verified.filter((r) => r.urlStatus.startsWith("VERIFIED")).length;
+          brokenSourceCount = verified.filter((r) => r.urlStatus.startsWith("BROKEN")).length;
           searchContext = formatSearchContext(verified);
           const sourceSummary = verified
             .map((r, i) => {
@@ -903,6 +907,11 @@ export async function registerRoutes(
             type: "research_complete",
             sourceCount: verified.length,
             sources: sourceSummary,
+            verifiedSources: verified.map((r) => ({
+              title: r.title,
+              url: r.url,
+              urlStatus: r.urlStatus,
+            })),
           });
         } else if (!process.env.EXA_API_KEY && !process.env.TAVILY_API_KEY) {
           sendSSE(res, { type: "research_error", error: "No search API key configured (EXA_API_KEY or TAVILY_API_KEY)" });
@@ -1126,6 +1135,12 @@ ${lengthConfig.finalInstruction}`;
       }).catch((err) => console.error("Failed to save verification:", err));
 
       sendSSE(res, { type: "verification_id", id: verificationId });
+      summary.trustScore = computeTrustScore({
+        judgeVerdict: summary.judgeVerdict,
+        verifiedSources: verifiedSourceCount,
+        brokenSources: brokenSourceCount,
+      }) ?? undefined;
+
       sendSSE(res, { type: "summary", summary });
       sendSSE(res, { type: "done" });
       res.end();
