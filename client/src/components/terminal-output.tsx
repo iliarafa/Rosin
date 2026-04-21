@@ -5,8 +5,6 @@ import { StageBlock } from "./stage-block";
 import { VerificationSummary } from "./verification-summary";
 import { ContradictionsView } from "./contradictions-view";
 import { FinalVerifiedAnswer } from "./final-verified-answer";
-import { RosinProcessingView } from "./rosin-processing-view";
-import { RosinResultsView } from "./rosin-results-view";
 import { Download, Share2 } from "lucide-react";
 
 /* ── Example queries shown on the idle screen ── */
@@ -63,8 +61,6 @@ interface TerminalOutputProps {
   verificationId?: string | null;
   researchStatus?: ResearchStatus | null;
   onQuerySelect?: (query: string) => void;
-  rosinMode?: boolean;
-  onViewFullOutput?: () => void;
   tieBreakReason?: string | null;
 }
 
@@ -160,8 +156,6 @@ export function TerminalOutput({
   verificationId,
   researchStatus,
   onQuerySelect,
-  rosinMode,
-  onViewFullOutput,
   tieBreakReason,
 }: TerminalOutputProps) {
   /* ── Boot sequence state — runs once on first mount ── */
@@ -319,33 +313,6 @@ export function TerminalOutput({
 
   const allComplete = stages.length >= expectedStageCount && stages.every((s) => s.status === "complete");
   const lastStage = allComplete ? stages[stages.length - 1] : null;
-
-  // ── Rosin mode: show processing or results-only view ──
-  if (rosinMode && (stages.length > 0 || isProcessing || researchStatus)) {
-    if (!allComplete) {
-      return (
-        <AnimatePresence mode="wait">
-          <RosinProcessingView
-            key="processing"
-            stages={stages}
-            expectedStageCount={expectedStageCount}
-          />
-        </AnimatePresence>
-      );
-    }
-    return (
-      <AnimatePresence mode="wait">
-        <RosinResultsView
-          key="results"
-          query={query}
-          stages={stages}
-          summary={summary}
-          verificationId={verificationId}
-          onViewFullOutput={onViewFullOutput || (() => {})}
-        />
-      </AnimatePresence>
-    );
-  }
 
   return (
     <div className="space-y-8" data-testid="stages-container">

@@ -10,4 +10,7 @@ vite.config.ts.*
 .env.local
 .env.development
 .env.production
-.env*.local.superpowers/
+.env*.local
+
+# Superpowers brainstorm/plan session artifacts
+.superpowers/
