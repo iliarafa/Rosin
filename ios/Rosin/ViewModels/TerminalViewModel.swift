@@ -96,6 +96,9 @@ final class TerminalViewModel: ObservableObject {
         case .researchComplete(let sourceCount, let sources):
             researchStatus = .complete(sourceCount: sourceCount, sources: sources)
 
+        case .researchVerifiedSources:
+            break
+
         case .researchError(let error):
             researchStatus = .error(error)
 
