@@ -375,16 +375,8 @@ export default function Terminal() {
           </div>
         </div>
 
-        {/* ── Desktop header row ── */}
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-6">
-          <div className="hidden sm:flex sm:items-center sm:gap-5">
-            <StageCountSelector
-              value={stageCount}
-              onChange={setStageCount}
-              disabled={verifyMutation.isPending || !!viewingItem}
-            />
-            <span className="text-muted-foreground opacity-40">|</span>
-          </div>
+        {/* ── Mobile: model selectors only (stages + toggles live above) ── */}
+        <div className="grid grid-cols-2 gap-3 sm:hidden">
           {activeChain.map((model, index) => {
             const stageData = stages.find((s) => s.stage === index + 1);
             const isActive = stageData?.status === "streaming";
@@ -399,7 +391,33 @@ export default function Terminal() {
               />
             );
           })}
-          <div className="hidden sm:flex sm:items-center sm:ml-auto sm:gap-2">
+        </div>
+
+        {/* ── Desktop: two centered rows, NOVICE pinned to the right edge ── */}
+        <div className="relative hidden sm:block">
+          <div className="flex items-center justify-center gap-5 mb-3">
+            <StageCountSelector
+              value={stageCount}
+              onChange={setStageCount}
+              disabled={verifyMutation.isPending || !!viewingItem}
+            />
+            <span className="text-muted-foreground opacity-40">|</span>
+            {activeChain.map((model, index) => {
+              const stageData = stages.find((s) => s.stage === index + 1);
+              const isActive = stageData?.status === "streaming";
+              return (
+                <ModelSelector
+                  key={index}
+                  stageNumber={index + 1}
+                  selectedModel={model}
+                  onModelChange={(m) => updateModel(index, m)}
+                  disabled={verifyMutation.isPending || !!viewingItem}
+                  isActive={isActive}
+                />
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => setRosinMode((v) => !v)}
               className={`text-xs transition-colors px-2 py-1 border rounded-none ${
@@ -446,7 +464,6 @@ export default function Terminal() {
             >
               {autoTieBreaker ? "[TIE-BREAK: ON]" : "[TIE-BREAK: OFF]"}
             </button>
-            {/* History drawer trigger — opens slide-in panel */}
             <button
               onClick={() => setHistoryOpen(true)}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 border border-border rounded-none"
@@ -466,15 +483,15 @@ export default function Terminal() {
             >
               [README]
             </Link>
-            <Link
-              href="/"
-              onClick={() => setMode("novice")}
-              className="text-xs text-zinc-500 hover:text-zinc-200 uppercase tracking-widest"
-              data-testid="pro-to-novice"
-            >
-              [ ← NOVICE ]
-            </Link>
           </div>
+          <Link
+            href="/"
+            onClick={() => setMode("novice")}
+            className="absolute top-1/2 right-0 -translate-y-1/2 text-xs text-zinc-500 hover:text-zinc-200 uppercase tracking-widest"
+            data-testid="pro-to-novice"
+          >
+            [ ← NOVICE ]
+          </Link>
         </div>
       </header>
 
