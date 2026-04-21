@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { type LLMModel, type StageOutput, type VerificationSummary, type ResearchStatus } from "@shared/schema";
 import { useLocalHistory, type LocalHistoryItem } from "@/hooks/use-local-history";
+import { useRosinMode } from "@/hooks/use-rosin-mode";
 import { generateReport } from "@/lib/generate-report";
 
 const allModels: LLMModel[] = [
@@ -51,6 +52,7 @@ function relativeTime(dateStr: string): string {
 }
 
 export default function Terminal() {
+  const [, setMode] = useRosinMode();
   const [stageCount, setStageCount] = useState(4);
   const [chain, setChain] = useState<LLMModel[]>(allModels);
   const [query, setQuery] = useState("");
@@ -463,6 +465,14 @@ export default function Terminal() {
               data-testid="link-readme"
             >
               [README]
+            </Link>
+            <Link
+              href="/"
+              onClick={() => setMode("novice")}
+              className="text-xs text-zinc-500 hover:text-zinc-200 uppercase tracking-widest"
+              data-testid="pro-to-novice"
+            >
+              [ ← NOVICE ]
             </Link>
           </div>
         </div>
