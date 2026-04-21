@@ -73,8 +73,6 @@ export function ModelSelector({
       data-testid={`model-selector-stage-${stageNumber}`}
     >
       <span className="text-xs text-muted-foreground opacity-80">[{stageNumber}]</span>
-      {/* Provider icon */}
-      <ProviderIcon provider={selectedModel.provider} />
       <Select
         value={currentValue}
         onValueChange={(val) => {
