@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C754191CA07383EE1A11DE6 /* NoviceResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */; };
+		7638CAC91F4AE36A0FEB5D89 /* TrustScoreCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939282F945C32E7CE002891B /* TrustScoreCalculator.swift */; };
+		7978ABFDECE174E9FC416416 /* RosinModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AC8082CD92CE32F8854919 /* RosinModeManager.swift */; };
 		A10001000000000000000001 /* RosinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20001000000000000000001 /* RosinApp.swift */; };
 		A10002000000000000000002 /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20002000000000000000002 /* LLMProvider.swift */; };
 		A10003000000000000000003 /* StageOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20003000000000000000003 /* StageOutput.swift */; };
@@ -22,7 +25,6 @@
 		A1000D00000000000000000D /* XAIStreamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000D00000000000000000D /* XAIStreamingService.swift */; };
 		A1000E00000000000000000E /* LLMServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000E00000000000000000E /* LLMServiceFactory.swift */; };
 		A1000F00000000000000000F /* StagePromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F00000000000000000F /* StagePromptBuilder.swift */; };
-		A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */; };
 		A10010000000000000000010 /* VerificationPipelineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20010000000000000000010 /* VerificationPipelineManager.swift */; };
 		A10011000000000000000011 /* TerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20011000000000000000011 /* TerminalViewModel.swift */; };
 		A10012000000000000000012 /* TerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20012000000000000000012 /* TerminalView.swift */; };
@@ -65,9 +67,18 @@
 		A10037000000000000000037 /* RosinResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20037000000000000000037 /* RosinResultsView.swift */; };
 		A10038000000000000000038 /* ExaSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20038000000000000000038 /* ExaSearchService.swift */; };
 		A10039000000000000000039 /* ExaKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20039000000000000000039 /* ExaKeyRowView.swift */; };
+		A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */; };
+		DFDB8F5B570D2DFBA64B4916 /* NoviceTerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */; };
+		F8BCCABC9096971E6DE065C7 /* TrustScoreBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */; };
+		F8CF35CDD1BAAE9BE0F67450 /* NoviceTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrustScoreBannerView.swift; sourceTree = "<group>"; };
+		6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceResultView.swift; sourceTree = "<group>"; };
+		9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalViewModel.swift; sourceTree = "<group>"; };
+		939282F945C32E7CE002891B /* TrustScoreCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrustScoreCalculator.swift; sourceTree = "<group>"; };
+		95AC8082CD92CE32F8854919 /* RosinModeManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RosinModeManager.swift; sourceTree = "<group>"; };
 		A20001000000000000000001 /* RosinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinApp.swift; sourceTree = "<group>"; };
 		A20002000000000000000002 /* LLMProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMProvider.swift; sourceTree = "<group>"; };
 		A20003000000000000000003 /* StageOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageOutput.swift; sourceTree = "<group>"; };
@@ -83,7 +94,6 @@
 		A2000D00000000000000000D /* XAIStreamingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XAIStreamingService.swift; sourceTree = "<group>"; };
 		A2000E00000000000000000E /* LLMServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceFactory.swift; sourceTree = "<group>"; };
 		A2000F00000000000000000F /* StagePromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagePromptBuilder.swift; sourceTree = "<group>"; };
-		A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryComplexityClassifier.swift; sourceTree = "<group>"; };
 		A20010000000000000000010 /* VerificationPipelineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationPipelineManager.swift; sourceTree = "<group>"; };
 		A20011000000000000000011 /* TerminalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalViewModel.swift; sourceTree = "<group>"; };
 		A20012000000000000000012 /* TerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalView.swift; sourceTree = "<group>"; };
@@ -126,7 +136,9 @@
 		A20037000000000000000037 /* RosinResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosinResultsView.swift; sourceTree = "<group>"; };
 		A20038000000000000000038 /* ExaSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaSearchService.swift; sourceTree = "<group>"; };
 		A20039000000000000000039 /* ExaKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaKeyRowView.swift; sourceTree = "<group>"; };
+		A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryComplexityClassifier.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +152,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A09401972F5235448C7DF75D /* Novice */ = {
+			isa = PBXGroup;
+			children = (
+				6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */,
+				D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */,
+				6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */,
+			);
+			name = Novice;
+			path = Novice;
+			sourceTree = "<group>";
+		};
 		A50000000000000000000000 = {
 			isa = PBXGroup;
 			children = (
@@ -195,17 +218,10 @@
 				A50007000000000000000007 /* Pipeline */,
 				A50010000000000000000010 /* History */,
 				A20033000000000000000033 /* NavBarManager.swift */,
+				939282F945C32E7CE002891B /* TrustScoreCalculator.swift */,
+				95AC8082CD92CE32F8854919 /* RosinModeManager.swift */,
 			);
 			path = Services;
-			sourceTree = "<group>";
-		};
-		A50010000000000000000010 /* History */ = {
-			isa = PBXGroup;
-			children = (
-				A20027000000000000000027 /* VerificationHistoryItem.swift */,
-				A20028000000000000000028 /* HistoryManager.swift */,
-			);
-			path = History;
 			sourceTree = "<group>";
 		};
 		A50005000000000000000005 /* Keychain */ = {
@@ -246,6 +262,7 @@
 			isa = PBXGroup;
 			children = (
 				A20011000000000000000011 /* TerminalViewModel.swift */,
+				9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -260,25 +277,9 @@
 				A5000D00000000000000000D /* Shared */,
 				A50011000000000000000011 /* History */,
 				A50012000000000000000012 /* Analytics */,
+				A09401972F5235448C7DF75D /* Novice */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		A50011000000000000000011 /* History */ = {
-			isa = PBXGroup;
-			children = (
-				A20029000000000000000029 /* HistoryView.swift */,
-				A2002A00000000000000002A /* HistoryDetailView.swift */,
-			);
-			path = History;
-			sourceTree = "<group>";
-		};
-		A50012000000000000000012 /* Analytics */ = {
-			isa = PBXGroup;
-			children = (
-				A2002B00000000000000002B /* DisagreementStatsView.swift */,
-			);
-			path = Analytics;
 			sourceTree = "<group>";
 		};
 		A5000A00000000000000000A /* Terminal */ = {
@@ -347,6 +348,32 @@
 				A20022000000000000000022 /* ShareSheetRepresentable.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		A50010000000000000000010 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				A20027000000000000000027 /* VerificationHistoryItem.swift */,
+				A20028000000000000000028 /* HistoryManager.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		A50011000000000000000011 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				A20029000000000000000029 /* HistoryView.swift */,
+				A2002A00000000000000002A /* HistoryDetailView.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		A50012000000000000000012 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				A2002B00000000000000002B /* DisagreementStatsView.swift */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -476,6 +503,12 @@
 				A10033000000000000000033 /* NavBarManager.swift in Sources */,
 				A10034000000000000000034 /* BottomNavBar.swift in Sources */,
 				A10035000000000000000035 /* APIKeysView.swift in Sources */,
+				7638CAC91F4AE36A0FEB5D89 /* TrustScoreCalculator.swift in Sources */,
+				7978ABFDECE174E9FC416416 /* RosinModeManager.swift in Sources */,
+				DFDB8F5B570D2DFBA64B4916 /* NoviceTerminalViewModel.swift in Sources */,
+				F8BCCABC9096971E6DE065C7 /* TrustScoreBannerView.swift in Sources */,
+				F8CF35CDD1BAAE9BE0F67450 /* NoviceTerminalView.swift in Sources */,
+				0C754191CA07383EE1A11DE6 /* NoviceResultView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
