@@ -39,6 +39,7 @@ struct VerificationSummary: Codable {
     let confidence: String
     let contradictions: [Contradiction]
     let confidenceScore: Double?
+    let trustScore: Int?
     let isAnalyzed: Bool
     /// Dynamic analyst-style bullet points (now sourced from judgeVerdict.keyFindings)
     let analysisBullets: [String]
@@ -51,6 +52,7 @@ struct VerificationSummary: Codable {
         confidence: String,
         contradictions: [Contradiction] = [],
         confidenceScore: Double? = nil,
+        trustScore: Int? = nil,
         isAnalyzed: Bool = false,
         analysisBullets: [String] = [],
         judgeVerdict: JudgeVerdict? = nil
@@ -60,6 +62,7 @@ struct VerificationSummary: Codable {
         self.confidence = confidence
         self.contradictions = contradictions
         self.confidenceScore = confidenceScore
+        self.trustScore = trustScore
         self.isAnalyzed = isAnalyzed
         self.analysisBullets = analysisBullets
         self.judgeVerdict = judgeVerdict
@@ -73,6 +76,7 @@ struct VerificationSummary: Codable {
         confidence = try container.decode(String.self, forKey: .confidence)
         contradictions = try container.decode([Contradiction].self, forKey: .contradictions)
         confidenceScore = try container.decodeIfPresent(Double.self, forKey: .confidenceScore)
+        trustScore = try container.decodeIfPresent(Int.self, forKey: .trustScore)
         isAnalyzed = try container.decode(Bool.self, forKey: .isAnalyzed)
         analysisBullets = try container.decodeIfPresent([String].self, forKey: .analysisBullets) ?? []
         judgeVerdict = try container.decodeIfPresent(JudgeVerdict.self, forKey: .judgeVerdict)
