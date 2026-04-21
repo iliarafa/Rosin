@@ -3,8 +3,9 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Landing from "@/pages/landing";
+import Novice from "@/pages/novice";
 import Terminal from "@/pages/terminal";
+import Welcome from "@/pages/welcome";
 import ReadmePage from "@/pages/readme";
 import RecommendationsPage from "@/pages/recommendations";
 import HeatmapPage from "@/pages/heatmap";
@@ -13,12 +14,14 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={Novice} />
+      <Route path="/pro" component={Terminal} />
+      {/* Backward-compat: existing /terminal URLs still land in Terminal */}
       <Route path="/terminal" component={Terminal} />
+      <Route path="/welcome" component={Welcome} />
       <Route path="/readme" component={ReadmePage} />
       <Route path="/recommendations" component={RecommendationsPage} />
-      {/* History and report now live inside terminal.tsx as a slide-in drawer.
-          Keep the routes pointing to Terminal for backward-compatible URLs. */}
+      {/* History/report drawer routes — keep pointing at Terminal */}
       <Route path="/history" component={Terminal} />
       <Route path="/report/:id" component={Terminal} />
       <Route path="/heatmap" component={HeatmapPage} />
