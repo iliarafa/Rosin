@@ -61,6 +61,11 @@ export default function NovicePage() {
         window.location.href = "/sign-in";
         return;
       }
+      if (response.status === 503) {
+        setError("Verification is temporarily unavailable. Please try again later.");
+        setPhase("error");
+        return;
+      }
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
 
       const reader = response.body.getReader();
