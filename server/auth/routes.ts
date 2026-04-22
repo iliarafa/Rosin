@@ -23,23 +23,33 @@ import { verifyTurnstile } from "./turnstile";
 import { buildGoogleAuthUrl, decodeState, exchangeGoogleCode } from "./google";
 import { verifyAppleIdentityToken } from "./apple";
 
+type AuthedRequest = Request & { account: Account };
+
+/** Validates a post-OAuth redirect target. Mobile mode requires the custom
+ *  `rosinai://` scheme; web mode requires a site-relative path. Everything
+ *  else — absolute URLs, protocol-relative, non-rosinai schemes — is rejected
+ *  so a forged `state` cannot steal the session token via an open redirect. */
+function isSafeRedirect(value: string | undefined, mode: "web" | "mobile"): boolean {
+  if (!value) return mode === "web"; // web falls back to "/"
+  if (mode === "mobile") return value.startsWith("rosinai://");
+  // web: must be a site-relative path ("/...") but not protocol-relative ("//...")
+  return value.startsWith("/") && !value.startsWith("//");
+}
+
 async function upsertAccount(opts: {
   email: string;
   authProvider: "email" | "google" | "apple";
   providerSubject?: string;
 }): Promise<Account> {
   const email = normalizeEmail(opts.email);
-  const existing = await db.select().from(accounts).where(eq(accounts.email, email)).limit(1);
-  if (existing[0]) return existing[0];
-  const inserted = await db
+  // Atomic: insert or do nothing, then always re-fetch — guarantees a row exists.
+  await db
     .insert(accounts)
-    .values({
-      email,
-      authProvider: opts.authProvider,
-      providerSubject: opts.providerSubject,
-    })
-    .returning();
-  return inserted[0];
+    .values({ email, authProvider: opts.authProvider, providerSubject: opts.providerSubject })
+    .onConflictDoNothing({ target: accounts.email });
+  const [row] = await db.select().from(accounts).where(eq(accounts.email, email)).limit(1);
+  if (!row) throw new Error("upsertAccount: insert+fetch returned no row");
+  return row;
 }
 
 function accountPublic(a: Account, cap = 3) {
@@ -71,13 +81,13 @@ export function registerAuthRoutes(app: Express): void {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + EMAIL_CODE_TTL_MS);
 
-    await db.insert(emailCodes).values({ email, codeHash, expiresAt });
     try {
       await sendEmailCode(email, code);
     } catch (err) {
       console.error("[auth] sendEmailCode failed:", err);
       return res.status(502).json({ error: "Email delivery failed" });
     }
+    await db.insert(emailCodes).values({ email, codeHash, expiresAt });
     res.json({ ok: true });
   });
 
@@ -144,12 +154,15 @@ export function registerAuthRoutes(app: Express): void {
         providerSubject: identity.sub,
       });
       const token = await createSession(account.id);
-      if (state?.mode === "mobile" && state.redirectBack) {
+      if (state?.mode === "mobile") {
+        if (!isSafeRedirect(state.redirectBack, "mobile")) {
+          return res.status(400).send("Invalid mobile redirect");
+        }
         const dest = `${state.redirectBack}?token=${encodeURIComponent(token)}`;
         return res.redirect(dest);
       }
       setSessionCookie(res, token);
-      const redirectBack = state?.redirectBack ?? "/";
+      const redirectBack = isSafeRedirect(state?.redirectBack, "web") ? state!.redirectBack! : "/";
       res.redirect(redirectBack);
     } catch (err) {
       console.error("[auth] Google callback failed:", err);
@@ -165,6 +178,9 @@ export function registerAuthRoutes(app: Express): void {
     });
     const parsed = bodySchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+    if (!isSafeRedirect(parsed.data.redirectBack, "mobile")) {
+      return res.status(400).json({ error: "Invalid redirectBack (must be rosinai://...)" });
+    }
     const url = buildGoogleAuthUrl({
       mode: "mobile",
       redirectBack: parsed.data.redirectBack,
@@ -205,6 +221,6 @@ export function registerAuthRoutes(app: Express): void {
 
   // ── Session info ───────────────────────────────────────────────────
   app.get("/api/auth/me", requireSession, async (req: Request, res: Response) => {
-    res.json({ account: accountPublic(req.account!) });
+    res.json({ account: accountPublic((req as AuthedRequest).account) });
   });
 }
