@@ -34,6 +34,8 @@ final class VerificationPipelineManager {
 
             // Live Research: prefer Exa.ai (neural search), fall back to Tavily
             var searchContext = ""
+            var verifiedSourceCount = 0
+            var brokenSourceCount = 0
             if liveResearch {
                 onEvent(.researchStart)
                 var rawResponse: TavilySearchResponse?
@@ -57,6 +59,10 @@ final class VerificationPipelineManager {
                 if var response = rawResponse {
                     // Step 2: Verify URLs — HEAD request each URL to confirm it exists
                     response = await URLVerifier.verify(response: response)
+
+                    verifiedSourceCount = response.results.filter { $0.urlStatus == .verified }.count
+                    brokenSourceCount = response.results.filter { $0.urlStatus == .broken }.count
+                    onEvent(.researchVerifiedSources(results: response.results))
 
                     searchContext = response.formattedContext
                     onEvent(.researchComplete(
@@ -168,6 +174,22 @@ final class VerificationPipelineManager {
                     }
                 }
             }
+
+            summary = VerificationSummary(
+                consistency: summary.consistency,
+                hallucinations: summary.hallucinations,
+                confidence: summary.confidence,
+                contradictions: summary.contradictions,
+                confidenceScore: summary.confidenceScore,
+                trustScore: TrustScoreCalculator.compute(
+                    judgeVerdict: summary.judgeVerdict,
+                    verifiedSources: verifiedSourceCount,
+                    brokenSources: brokenSourceCount
+                ),
+                isAnalyzed: summary.isAnalyzed,
+                analysisBullets: summary.analysisBullets,
+                judgeVerdict: summary.judgeVerdict
+            )
 
             onEvent(.summary(summary))
             onEvent(.done)
