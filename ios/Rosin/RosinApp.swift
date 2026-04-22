@@ -5,23 +5,29 @@ struct RosinApp: App {
     @StateObject private var apiKeyManager = APIKeyManager()
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var fontSizeManager = FontSizeManager()
-    @State private var showTerminal = false
+    @StateObject private var modeManager = RosinModeManager()
+    @State private var onboardingComplete = false
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if showTerminal {
-                    TerminalView()
-                        .environmentObject(apiKeyManager)
-                        .transition(.opacity)
+                if !onboardingComplete {
+                    LandingView(showTerminal: $onboardingComplete)
                 } else {
-                    LandingView(showTerminal: $showTerminal)
-                        .transition(.opacity)
+                    switch modeManager.mode {
+                    case .novice:
+                        NoviceTerminalView(apiKeyManager: apiKeyManager)
+                    case .pro:
+                        TerminalView()
+                    }
                 }
             }
+            .environmentObject(apiKeyManager)
             .environmentObject(appearanceManager)
             .environmentObject(fontSizeManager)
+            .environmentObject(modeManager)
             .preferredColorScheme(appearanceManager.colorScheme)
+            .animation(.default, value: modeManager.mode)
         }
     }
 }
