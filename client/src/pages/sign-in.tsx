@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { requestEmailCode, verifyEmailCode } from "@/lib/auth-api";
+import { requestEmailCode, verifyEmailCode, signInWithAppleToken } from "@/lib/auth-api";
 import { useAuth } from "@/hooks/use-auth";
 
 type Phase = "choose" | "email-input" | "code-input";
@@ -16,6 +16,45 @@ export default function SignInPage() {
 
   // Read Turnstile token from the widget when we add it. For dev (no TURNSTILE_SECRET_KEY set server-side), we can pass empty and server bypasses.
   const [turnstileToken, setTurnstileToken] = useState<string>("");
+
+  useEffect(() => {
+    if (phase !== "choose") return;
+    const servicesId = import.meta.env.VITE_APPLE_SERVICES_ID;
+    const returnURL = import.meta.env.VITE_APPLE_RETURN_URL;
+    if (!servicesId || !returnURL) return; // dev mode — Apple button is inert
+    // @ts-ignore — SDK-provided global
+    if (typeof AppleID === "undefined") return;
+    // @ts-ignore
+    AppleID.auth.init({
+      clientId: servicesId,
+      scope: "email",
+      redirectURI: returnURL,
+      usePopup: true,
+    });
+
+    function onSuccess(evt: any) {
+      const token = evt?.detail?.authorization?.id_token;
+      if (!token) return;
+      (async () => {
+        try {
+          await signInWithAppleToken(token);
+          await refresh();
+          nav("/");
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Apple sign-in failed");
+        }
+      })();
+    }
+    function onFailure(evt: any) {
+      setError(evt?.detail?.error || "Apple sign-in cancelled");
+    }
+    document.addEventListener("AppleIDSignInOnSuccess", onSuccess);
+    document.addEventListener("AppleIDSignInOnFailure", onFailure);
+    return () => {
+      document.removeEventListener("AppleIDSignInOnSuccess", onSuccess);
+      document.removeEventListener("AppleIDSignInOnFailure", onFailure);
+    };
+  }, [phase, nav, refresh]);
 
   async function onRequestCode(e: React.FormEvent) {
     e.preventDefault();

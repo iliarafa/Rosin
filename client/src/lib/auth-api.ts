@@ -39,3 +39,14 @@ export async function me(): Promise<{ account: AccountPublic } | null> {
 export async function signOut(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
 }
+
+export async function signInWithAppleToken(identityToken: string): Promise<{ account: AccountPublic }> {
+  return handle(
+    await fetch("/api/auth/apple/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ identityToken }),
+    }),
+  );
+}
