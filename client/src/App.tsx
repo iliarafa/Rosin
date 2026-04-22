@@ -9,6 +9,7 @@ import Welcome from "@/pages/welcome";
 import ReadmePage from "@/pages/readme";
 import RecommendationsPage from "@/pages/recommendations";
 import HeatmapPage from "@/pages/heatmap";
+import SignInPage from "@/pages/sign-in";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/history" component={Terminal} />
       <Route path="/report/:id" component={Terminal} />
       <Route path="/heatmap" component={HeatmapPage} />
+      <Route path="/sign-in" component={SignInPage} />
       <Route component={NotFound} />
     </Switch>
   );
