@@ -5,6 +5,9 @@ import { TrustScoreBanner } from "@/components/novice/trust-score-banner";
 import { VerifiedAnswerCard, type VerifiedSource } from "@/components/novice/verified-answer-card";
 import type { LLMModel, VerificationSummary, StageOutput } from "@shared/schema";
 import { useRosinMode } from "@/hooks/use-rosin-mode";
+import { useAuth } from "@/hooks/use-auth";
+import { AuthGate } from "@/components/novice/auth-gate";
+import { FreeTierExhausted } from "@/components/novice/free-tier-exhausted";
 
 const NOVICE_CHAIN: LLMModel[] = [
   { provider: "anthropic", model: "claude-sonnet-4-5" },
@@ -27,6 +30,8 @@ export default function NovicePage() {
   const [result, setResult] = useState<ResultState | null>(null);
   const [showPro, setShowPro] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { signedIn, account, isLoading: authLoading, refresh } = useAuth();
+  const [exhausted, setExhausted] = useState(false);
 
   async function runVerification(query: string) {
     setPhase("verifying");
@@ -39,17 +44,23 @@ export default function NovicePage() {
     let summary: VerificationSummary | null = null;
 
     try {
-      const response = await fetch("/api/verify", {
+      const response = await fetch("/api/verify/hosted", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          chain: NOVICE_CHAIN,
-          adversarialMode: false,
-          liveResearch: true,
-          autoTieBreaker: false,
-        }),
+        credentials: "include",
+        body: JSON.stringify({ query }),
       });
+      if (response.status === 402) {
+        setExhausted(true);
+        setPhase("idle");
+        await refresh();
+        return;
+      }
+      if (response.status === 401) {
+        // Session expired mid-session; bounce to sign in
+        window.location.href = "/sign-in";
+        return;
+      }
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
 
       const reader = response.body.getReader();
@@ -105,6 +116,7 @@ export default function NovicePage() {
 
       setResult({ question: query, answer, summary, sources });
       setPhase("done");
+      await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
       setPhase("error");
@@ -140,7 +152,21 @@ export default function NovicePage() {
       </header>
 
       <main className="px-6 pt-12 pb-20">
-        {phase === "idle" && <NoviceInput onSubmit={runVerification} />}
+        {authLoading && phase === "idle" && (
+          <div className="text-center text-xs text-zinc-500 mt-10">[ LOADING... ]</div>
+        )}
+        {!authLoading && !signedIn && phase === "idle" && <AuthGate />}
+        {!authLoading && signedIn && exhausted && <FreeTierExhausted />}
+        {!authLoading && signedIn && !exhausted && phase === "idle" && (
+          <>
+            <NoviceInput onSubmit={runVerification} />
+            {account && (
+              <div className="text-xs text-zinc-500 text-center mt-4">
+                {account.queriesRemaining} free verification{account.queriesRemaining === 1 ? "" : "s"} left
+              </div>
+            )}
+          </>
+        )}
 
         {phase === "verifying" && (
           <div className="text-center text-sm text-zinc-400 mt-10">
