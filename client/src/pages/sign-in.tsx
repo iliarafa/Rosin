@@ -81,8 +81,9 @@ export default function SignInPage() {
 
         {phase === "email-input" && (
           <form onSubmit={onRequestCode} className="space-y-3">
-            <label className="block text-xs text-zinc-500 uppercase tracking-widest">Email</label>
+            <label htmlFor="signin-email-input-field" className="block text-xs text-zinc-500 uppercase tracking-widest">Email</label>
             <input
+              id="signin-email-input-field"
               type="email"
               required
               value={email}
@@ -126,7 +127,9 @@ export default function SignInPage() {
           </form>
         )}
 
-        {error && <div className="text-xs text-red-500 text-center">{error}</div>}
+        <div role="alert" aria-live="polite" className="text-xs text-red-500 text-center min-h-[1rem]">
+          {error ?? ""}
+        </div>
       </div>
     </div>
   );
