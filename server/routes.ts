@@ -1,5 +1,6 @@
 import type { Express, Response } from "express";
 import { registerAuthRoutes } from "./auth/routes";
+import { registerHostedVerifyRoute } from "./routes/verify-hosted";
 import { createServer, type Server } from "http";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
@@ -829,6 +830,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   registerAuthRoutes(app);
+  registerHostedVerifyRoute(app);
   app.post("/api/verify", async (req, res) => {
     const extendedSchema = insertVerificationRequestSchema.extend({
       adversarialMode: z.boolean().optional().default(false),

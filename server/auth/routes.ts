@@ -22,6 +22,7 @@ import {
 import { verifyTurnstile } from "./turnstile";
 import { buildGoogleAuthUrl, decodeState, exchangeGoogleCode } from "./google";
 import { verifyAppleIdentityToken } from "./apple";
+import { HOSTED_FREE_QUERIES } from "../metering";
 
 type AuthedRequest = Request & { account: Account };
 
@@ -52,7 +53,7 @@ async function upsertAccount(opts: {
   return row;
 }
 
-function accountPublic(a: Account, cap = 3) {
+function accountPublic(a: Account, cap = HOSTED_FREE_QUERIES) {
   return {
     id: a.id,
     email: a.email,
