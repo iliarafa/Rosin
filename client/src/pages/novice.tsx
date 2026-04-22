@@ -156,7 +156,7 @@ export default function NovicePage() {
           <div className="text-center text-xs text-zinc-500 mt-10">[ LOADING... ]</div>
         )}
         {!authLoading && !signedIn && phase === "idle" && <AuthGate />}
-        {!authLoading && signedIn && exhausted && <FreeTierExhausted />}
+        {!authLoading && signedIn && exhausted && phase === "idle" && <FreeTierExhausted />}
         {!authLoading && signedIn && !exhausted && phase === "idle" && (
           <>
             <NoviceInput onSubmit={runVerification} />

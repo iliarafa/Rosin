@@ -1,3 +1,5 @@
+import { Link } from "wouter";
+
 export function FreeTierExhausted() {
   return (
     <div className="max-w-md mx-auto text-center mt-16 space-y-4">
@@ -16,12 +18,12 @@ export function FreeTierExhausted() {
           Get an xAI key
         </a>
       </div>
-      <a
+      <Link
         href="/pro"
         className="inline-block border border-green-500 text-green-500 hover:bg-green-500 hover:text-black rounded px-6 py-3 text-sm mt-4"
       >
         Open Pro mode
-      </a>
+      </Link>
     </div>
   );
 }
