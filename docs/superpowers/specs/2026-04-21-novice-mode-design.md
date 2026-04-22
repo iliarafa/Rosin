@@ -25,7 +25,7 @@ Secondary personas (served by the same design, but not the anchor): (1) someone 
 | Scope cap | No payments / no subscriptions — BYO keys after free tier |
 | Platforms | Web and iOS in parallel |
 | Auth | Three options: email magic link, Sign in with Google, Sign in with Apple |
-| Novice stages | 2 stages + Live Research (Sonnet 4.5 → Gemini 2.5 Flash) |
+| Novice stages | 2 stages + Live Research (Sonnet 4.5 → Grok-3-fast; revised 2026-04-22) |
 | Pro stages | Unchanged — 3 stages by default, full power-user surface |
 | Visual style | Terminal aesthetic (monospace, CLI vibes) for both modes |
 
@@ -42,7 +42,7 @@ Secondary personas (served by the same design, but not the anchor): (1) someone 
 
 **Under the hood on Verify:**
 
-- 2 stages: Claude Sonnet 4.5 → Gemini 2.5 Flash (chosen for diversity, cost, and latency).
+- 2 stages: Claude Sonnet 4.5 → Grok-3-fast (revised 2026-04-22 from Gemini 2.5 Flash — user preference for provider diversity with Grok over Gemini).
 - Live Research always on.
 - Judge runs silently, producing structured scoring that gets collapsed to the single trust score.
 - No streaming to the user — single compact progress indicator: `[ VERIFYING ... 2 AIs, 5 sources ]`. Result lands all at once.
@@ -99,7 +99,7 @@ Low-confidence results still show the answer but wrapped in a caution visual —
   - `sessions` (standard token table)
 - No query content persisted. Stateless verification preserved.
 
-**Cost framing.** 2 stages + Live Research on Sonnet + Gemini Flash ≈ $0.015/query. 3 lifetime queries × 1,000 signups ≈ $45/month if every account maxes out. Monthly cap of $50 caps exposure.
+**Cost framing.** 2 stages + Live Research on Sonnet + Grok-3-fast ≈ $0.03/query (Grok-3-fast is ~4× Gemini Flash). 3 lifetime queries × 1,000 signups ≈ $90/month if every account maxes out, which exceeds the $50 cap — hence the cap now caps exposure earlier, meaning the free tier will pause mid-month under heavy sustained signup. Acceptable trade for provider diversity; revisit cap at launch.
 
 **Implementation-scope warning.** §3 is roughly 60% of the total build effort. The UI work in §1 + §2 does not depend on it — novice mode can ship as a BYO-only UX pass first, and §3 can be bolted on later without rework.
 

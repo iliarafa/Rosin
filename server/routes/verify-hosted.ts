@@ -9,7 +9,7 @@ type AuthedRequest = Request & { account: Account };
 
 const HOSTED_NOVICE_CHAIN: LLMModel[] = [
   { provider: "anthropic", model: "claude-sonnet-4-5" },
-  { provider: "gemini", model: "gemini-2.5-flash" },
+  { provider: "xai", model: "grok-3-fast" },
 ];
 
 // Per-account 1-query-per-15-seconds limit. In-memory; resets on server restart.

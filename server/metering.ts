@@ -4,8 +4,10 @@ import { accounts, monthlySpend } from "@shared/schema";
 
 export const HOSTED_FREE_QUERIES = 3;
 
-/** Rough cost per hosted query — Sonnet 4.5 + Gemini Flash + Live Research ≈ $0.015. */
-export const ESTIMATED_QUERY_COST_USD = 0.015;
+/** Rough cost per hosted query — Sonnet 4.5 + Grok-3-fast + Live Research ≈ $0.05.
+ *  Revised from $0.015 when the Gemini→Grok swap landed (2026-04-22). Grok-3-fast
+ *  output pricing is the dominant driver. Tune once real telemetry lands. */
+export const ESTIMATED_QUERY_COST_USD = 0.05;
 
 export function defaultMonthlyCapUsd(): number {
   const raw = process.env.HOSTED_MONTHLY_CAP_USD;
