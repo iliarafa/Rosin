@@ -1,6 +1,5 @@
 import type { Response } from "express";
 import { randomUUID } from "crypto";
-import { tavily } from "@tavily/core";
 import type { LLMModel } from "@shared/schema";
 import { computeTrustScore } from "./trust-score";
 import { storage } from "./storage";
@@ -14,6 +13,7 @@ import {
   runJudge,
   shouldTriggerTieBreaker,
   pickTieBreakerModel,
+  getTavilyClient,
 } from "./routes";
 
 // Re-export CompletedStage shape used internally by the pipeline
@@ -80,11 +80,10 @@ export async function runVerificationPipeline(options: PipelineOptions, res: Res
       }
     }
     if (!rawResults) {
-      const tavilyKey = process.env.TAVILY_API_KEY;
-      if (tavilyKey) {
+      const client = getTavilyClient();
+      if (client) {
         try {
           console.log("[Research] Using Tavily for web search");
-          const client = tavily({ apiKey: tavilyKey });
           const searchResponse = await client.search(query, {
             maxResults: 8,
             searchDepth: "advanced",

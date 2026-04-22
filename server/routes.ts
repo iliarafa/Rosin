@@ -42,7 +42,7 @@ function getXAIClient(): OpenAI {
 
 // Tavily search client for live web research (initialized lazily)
 let tavilyClient: ReturnType<typeof tavily> | null = null;
-function getTavilyClient(): ReturnType<typeof tavily> | null {
+export function getTavilyClient(): ReturnType<typeof tavily> | null {
   if (!process.env.TAVILY_API_KEY) return null;
   if (!tavilyClient) {
     tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
@@ -830,20 +830,25 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerAuthRoutes(app);
   app.post("/api/verify", async (req, res) => {
-    try {
-      const parsed = insertVerificationRequestSchema.extend({
-        adversarialMode: z.boolean().optional(),
-        liveResearch: z.boolean().optional(),
-        autoTieBreaker: z.boolean().optional(),
-      }).parse(req.body);
+    const extendedSchema = insertVerificationRequestSchema.extend({
+      adversarialMode: z.boolean().optional().default(false),
+      liveResearch: z.boolean().optional().default(false),
+      autoTieBreaker: z.boolean().optional().default(true),
+    });
 
+    const parsed = extendedSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
+    }
+
+    try {
       await runVerificationPipeline(
         {
-          query: parsed.query,
-          chain: parsed.chain,
-          adversarialMode: parsed.adversarialMode ?? false,
-          liveResearch: parsed.liveResearch ?? true,
-          autoTieBreaker: parsed.autoTieBreaker ?? true,
+          query: parsed.data.query,
+          chain: parsed.data.chain,
+          adversarialMode: parsed.data.adversarialMode,
+          liveResearch: parsed.data.liveResearch,
+          autoTieBreaker: parsed.data.autoTieBreaker,
         },
         res,
       );
@@ -852,7 +857,7 @@ export async function registerRoutes(
       if (!res.headersSent) {
         res.status(500).json({ error: "Verification failed" });
       } else {
-        try { res.write(`data: ${JSON.stringify({ type: "error", error: "Verification failed" })}\n\n`); } catch {}
+        sendSSE(res, { type: "error", error: "Verification failed" });
         res.end();
       }
     }
