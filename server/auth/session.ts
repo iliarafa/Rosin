@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from "crypto";
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { sessions, accounts, type Account } from "@shared/schema";
@@ -44,7 +44,8 @@ export async function verifySession(token: string): Promise<{ account: Account }
   const now = new Date();
   if (row.session.expiresAt <= now) return null;
 
-  // Sliding window: if more than one window has passed since issue, extend
+  // Extend expiry when the session is older than (TTL - window) = 23 days —
+  // i.e., active users roll the clock forward every 7+ days of use.
   const timeUntilExpiry = row.session.expiresAt.getTime() - now.getTime();
   if (timeUntilExpiry < SESSION_TTL_MS - SESSION_SLIDING_WINDOW_MS) {
     const newExpiry = new Date(now.getTime() + SESSION_TTL_MS);
@@ -83,11 +84,11 @@ export function clearSessionCookie(res: Response): void {
 }
 
 /** Express middleware: attaches `req.account` if a valid session exists; otherwise leaves it undefined. */
-export async function withSession(req: Request, _res: Response, next: () => void): Promise<void> {
+export async function withSession(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const token = extractSessionToken(req);
   if (!token) return next();
   const result = await verifySession(token);
-  if (result) (req as Request & { account?: Account }).account = result.account;
+  if (result) req.account = result.account;
   next();
 }
 
@@ -95,12 +96,12 @@ export async function withSession(req: Request, _res: Response, next: () => void
 export async function requireSession(
   req: Request,
   res: Response,
-  next: () => void,
+  next: NextFunction,
 ): Promise<void | Response> {
   const token = extractSessionToken(req);
   if (!token) return res.status(401).json({ error: "Not signed in" });
   const result = await verifySession(token);
   if (!result) return res.status(401).json({ error: "Invalid or expired session" });
-  (req as Request & { account?: Account }).account = result.account;
+  req.account = result.account;
   next();
 }

@@ -22,7 +22,7 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser(process.env.SESSION_COOKIE_SECRET || "dev-cookie-secret"));
+app.use(cookieParser());
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
