@@ -1,4 +1,5 @@
 import type { Express, Response } from "express";
+import { registerAuthRoutes } from "./auth/routes";
 import { createServer, type Server } from "http";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
@@ -826,6 +827,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  registerAuthRoutes(app);
   app.post("/api/verify", async (req, res) => {
     try {
       const extendedSchema = insertVerificationRequestSchema.extend({
