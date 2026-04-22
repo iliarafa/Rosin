@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
     @EnvironmentObject private var fontSizeManager: FontSizeManager
-    @AppStorage("rosin_mode") private var isRosinMode = false
+    @EnvironmentObject private var modeManager: RosinModeManager
     @AppStorage("auto_tie_breaker") private var isAutoTieBreaker = true
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -98,21 +98,25 @@ struct SettingsView: View {
                         VStack(spacing: 0) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Rosin Mode")
+                                    Text("Pro Mode")
                                         .font(RosinTheme.monoCaption)
-                                    Text("Hide stage-by-stage output. Show only the final verified answer.")
+                                    Text("Full multi-stage verification UI with per-stage scoring, provenance, and Judge details.")
                                         .font(RosinTheme.monoCaption2)
                                         .foregroundColor(RosinTheme.muted)
                                 }
 
                                 Spacer()
 
-                                Toggle("", isOn: $isRosinMode)
+                                Toggle("", isOn: Binding(
+                                    get: { modeManager.mode == .pro },
+                                    set: { modeManager.mode = $0 ? .pro : .novice }
+                                ))
                                     .labelsHidden()
                                     .tint(RosinTheme.green)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
+                            .accessibilityIdentifier("pro-mode-toggle")
 
                             Divider().padding(.leading, 16)
 
