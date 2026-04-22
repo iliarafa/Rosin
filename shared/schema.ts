@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, numeric, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,6 +16,73 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+/** Authenticated account (novice / hosted tier only). No query content is stored. */
+export const accounts = pgTable("accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
+  authProvider: text("auth_provider").notNull(), // "email" | "google" | "apple"
+  providerSubject: text("provider_subject"), // OAuth sub for google/apple (for re-linking on re-signin)
+  queriesUsed: integer("queries_used").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Account = typeof accounts.$inferSelect;
+
+/** Opaque session token for an account. Token stored as SHA-256 hash. */
+export const sessions = pgTable(
+  "sessions",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    accountId: varchar("account_id")
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (table) => ({
+    accountIdx: index("sessions_account_idx").on(table.accountId),
+  }),
+);
+
+export type Session = typeof sessions.$inferSelect;
+
+/** Short-lived email verification codes (6 digits). Code stored as SHA-256 hash. */
+export const emailCodes = pgTable(
+  "email_codes",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    email: text("email").notNull(),
+    codeHash: text("code_hash").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    consumedAt: timestamp("consumed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (table) => ({
+    emailIdx: index("email_codes_email_idx").on(table.email),
+  }),
+);
+
+/** Aggregated monthly hosted-tier spend. One row per calendar month ("YYYY-MM"). */
+export const monthlySpend = pgTable("monthly_spend", {
+  month: text("month").primaryKey(), // "2026-04"
+  spendUsd: numeric("spend_usd", { precision: 10, scale: 4 }).notNull().default("0"),
+  paused: boolean("paused").notNull().default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Zod helpers for API responses
+export const accountPublicSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  authProvider: z.enum(["email", "google", "apple"]),
+  queriesUsed: z.number().int().nonnegative(),
+  queriesRemaining: z.number().int().nonnegative(),
+});
+
+export type AccountPublic = z.infer<typeof accountPublicSchema>;
 
 export const llmProviders = ["anthropic", "gemini", "xai"] as const;
 export type LLMProvider = (typeof llmProviders)[number];
