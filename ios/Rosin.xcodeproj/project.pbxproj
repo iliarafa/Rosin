@@ -73,6 +73,7 @@
 		A10039000000000000000039 /* ExaKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20039000000000000000039 /* ExaKeyRowView.swift */; };
 		A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */; };
 		DFDB8F5B570D2DFBA64B4916 /* NoviceTerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */; };
+		F8AD9BF7B04FEF834E449C7D /* GoogleAuthController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39308C0A751398E824189207 /* GoogleAuthController.swift */; };
 		F8BCCABC9096971E6DE065C7 /* TrustScoreBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */; };
 		F8CF35CDD1BAAE9BE0F67450 /* NoviceTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */; };
 /* End PBXBuildFile section */
@@ -80,6 +81,7 @@
 /* Begin PBXFileReference section */
 		0F00B5513DCD2CC3AFD2C8AF /* AppleAuthController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleAuthController.swift; sourceTree = "<group>"; };
 		22CF3B2C418015826305A819 /* AuthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
+		39308C0A751398E824189207 /* GoogleAuthController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoogleAuthController.swift; sourceTree = "<group>"; };
 		6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrustScoreBannerView.swift; sourceTree = "<group>"; };
 		6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceResultView.swift; sourceTree = "<group>"; };
 		9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalViewModel.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 			children = (
 				B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */,
 				0F00B5513DCD2CC3AFD2C8AF /* AppleAuthController.swift */,
+				39308C0A751398E824189207 /* GoogleAuthController.swift */,
 			);
 			name = Auth;
 			path = Auth;
@@ -543,6 +546,7 @@
 				1FC7D45E51C92D40C879BE9F /* AuthModels.swift in Sources */,
 				7D7847B0CFF27BD0E92E2800 /* EmailAuthClient.swift in Sources */,
 				28A1ADD3460DB7CAC700BDB3 /* AppleAuthController.swift in Sources */,
+				F8AD9BF7B04FEF834E449C7D /* GoogleAuthController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
