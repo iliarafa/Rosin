@@ -12,6 +12,7 @@
 		1FC7D45E51C92D40C879BE9F /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CF3B2C418015826305A819 /* AuthModels.swift */; };
 		7638CAC91F4AE36A0FEB5D89 /* TrustScoreCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939282F945C32E7CE002891B /* TrustScoreCalculator.swift */; };
 		7978ABFDECE174E9FC416416 /* RosinModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AC8082CD92CE32F8854919 /* RosinModeManager.swift */; };
+		7D7847B0CFF27BD0E92E2800 /* EmailAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */; };
 		A10001000000000000000001 /* RosinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20001000000000000000001 /* RosinApp.swift */; };
 		A10002000000000000000002 /* LLMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20002000000000000000002 /* LLMProvider.swift */; };
 		A10003000000000000000003 /* StageOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20003000000000000000003 /* StageOutput.swift */; };
@@ -141,6 +142,7 @@
 		A20039000000000000000039 /* ExaKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaKeyRowView.swift; sourceTree = "<group>"; };
 		A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryComplexityClassifier.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EmailAuthClient.swift; sourceTree = "<group>"; };
 		B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -163,6 +165,15 @@
 			);
 			name = Session;
 			path = Session;
+			sourceTree = "<group>";
+		};
+		97B5F5DBA844AB1672C79D9C /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */,
+			);
+			name = Auth;
+			path = Auth;
 			sourceTree = "<group>";
 		};
 		A09401972F5235448C7DF75D /* Novice */ = {
@@ -235,6 +246,7 @@
 				939282F945C32E7CE002891B /* TrustScoreCalculator.swift */,
 				95AC8082CD92CE32F8854919 /* RosinModeManager.swift */,
 				23CD0EA7C14F26BD67C00BDD /* Session */,
+				97B5F5DBA844AB1672C79D9C /* Auth */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -526,6 +538,7 @@
 				0C754191CA07383EE1A11DE6 /* NoviceResultView.swift in Sources */,
 				1EE6F71286CF5A4386C8AA45 /* SessionStore.swift in Sources */,
 				1FC7D45E51C92D40C879BE9F /* AuthModels.swift in Sources */,
+				7D7847B0CFF27BD0E92E2800 /* EmailAuthClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
