@@ -18,6 +18,6 @@ enum AuthMethod {
 }
 
 struct RosinEndpoint {
-    static let baseURL = URL(string: ProcessInfo.processInfo.environment["ROSIN_API_BASE"] ?? "https://rosin.app")!
+    static let baseURL = URL(string: ProcessInfo.processInfo.environment["ROSIN_API_BASE"] ?? "https://llmrosin.replit.app")!
     static func url(_ path: String) -> URL { baseURL.appendingPathComponent(path) }
 }
