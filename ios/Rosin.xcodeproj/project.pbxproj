@@ -75,6 +75,7 @@
 		A10038000000000000000038 /* ExaSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20038000000000000000038 /* ExaSearchService.swift */; };
 		A10039000000000000000039 /* ExaKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20039000000000000000039 /* ExaKeyRowView.swift */; };
 		A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */; };
+		B5B1EDEC82C567BBCE65036E /* HostedVerificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B0E376C287C9615C4B0CC /* HostedVerificationService.swift */; };
 		DFDB8F5B570D2DFBA64B4916 /* NoviceTerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */; };
 		E968F5C3A645130C4F1F4520 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F369CBFB6C9678564866FEE /* SignInView.swift */; };
 		F8AD9BF7B04FEF834E449C7D /* GoogleAuthController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39308C0A751398E824189207 /* GoogleAuthController.swift */; };
@@ -157,6 +158,7 @@
 		B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		C1E3D8F08ECEC86092CFD7D3 /* AuthViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalView.swift; sourceTree = "<group>"; };
+		E92B0E376C287C9615C4B0CC /* HostedVerificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HostedVerificationService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -286,6 +288,7 @@
 				A2000E00000000000000000E /* LLMServiceFactory.swift */,
 				A2002C00000000000000002C /* TavilySearchService.swift */,
 				A20038000000000000000038 /* ExaSearchService.swift */,
+				E92B0E376C287C9615C4B0CC /* HostedVerificationService.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -572,6 +575,7 @@
 				2B7254CE58E986DECC21F3D0 /* AuthViewModel.swift in Sources */,
 				E968F5C3A645130C4F1F4520 /* SignInView.swift in Sources */,
 				6849D0181A010D46362D2866 /* EmailCodeView.swift in Sources */,
+				B5B1EDEC82C567BBCE65036E /* HostedVerificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
