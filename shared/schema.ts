@@ -173,6 +173,7 @@ export const stageOutputSchema = z.object({
 export type StageOutput = z.infer<typeof stageOutputSchema>;
 
 export const contradictionSchema = z.object({
+  id: z.string(),
   topic: z.string(),
   stageA: z.number(),
   stageB: z.number(),

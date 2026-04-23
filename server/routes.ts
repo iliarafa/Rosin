@@ -784,6 +784,7 @@ JSON field rules:
         sa.hallucinationFlags
           .filter((f) => f.severity === "high")
           .map((f) => ({
+            id: randomUUID(),
             topic: f.claim,
             stageA: sa.stage,
             stageB: 0,
