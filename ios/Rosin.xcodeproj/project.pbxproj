@@ -11,6 +11,8 @@
 		1EE6F71286CF5A4386C8AA45 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */; };
 		1FC7D45E51C92D40C879BE9F /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CF3B2C418015826305A819 /* AuthModels.swift */; };
 		28A1ADD3460DB7CAC700BDB3 /* AppleAuthController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F00B5513DCD2CC3AFD2C8AF /* AppleAuthController.swift */; };
+		2B7254CE58E986DECC21F3D0 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E3D8F08ECEC86092CFD7D3 /* AuthViewModel.swift */; };
+		468C436205E9C726A38B632D /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F285E267551679D3B19E /* AuthService.swift */; };
 		7638CAC91F4AE36A0FEB5D89 /* TrustScoreCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939282F945C32E7CE002891B /* TrustScoreCalculator.swift */; };
 		7978ABFDECE174E9FC416416 /* RosinModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AC8082CD92CE32F8854919 /* RosinModeManager.swift */; };
 		7D7847B0CFF27BD0E92E2800 /* EmailAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */; };
@@ -146,8 +148,10 @@
 		A20039000000000000000039 /* ExaKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaKeyRowView.swift; sourceTree = "<group>"; };
 		A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryComplexityClassifier.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0D6F285E267551679D3B19E /* AuthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EmailAuthClient.swift; sourceTree = "<group>"; };
 		B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		C1E3D8F08ECEC86092CFD7D3 /* AuthViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -177,6 +181,7 @@
 				B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */,
 				0F00B5513DCD2CC3AFD2C8AF /* AppleAuthController.swift */,
 				39308C0A751398E824189207 /* GoogleAuthController.swift */,
+				B0D6F285E267551679D3B19E /* AuthService.swift */,
 			);
 			name = Auth;
 			path = Auth;
@@ -296,6 +301,7 @@
 			children = (
 				A20011000000000000000011 /* TerminalViewModel.swift */,
 				9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */,
+				C1E3D8F08ECEC86092CFD7D3 /* AuthViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -547,6 +553,8 @@
 				7D7847B0CFF27BD0E92E2800 /* EmailAuthClient.swift in Sources */,
 				28A1ADD3460DB7CAC700BDB3 /* AppleAuthController.swift in Sources */,
 				F8AD9BF7B04FEF834E449C7D /* GoogleAuthController.swift in Sources */,
+				468C436205E9C726A38B632D /* AuthService.swift in Sources */,
+				2B7254CE58E986DECC21F3D0 /* AuthViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
