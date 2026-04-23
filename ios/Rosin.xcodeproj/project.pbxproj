@@ -13,6 +13,7 @@
 		28A1ADD3460DB7CAC700BDB3 /* AppleAuthController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F00B5513DCD2CC3AFD2C8AF /* AppleAuthController.swift */; };
 		2B7254CE58E986DECC21F3D0 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E3D8F08ECEC86092CFD7D3 /* AuthViewModel.swift */; };
 		468C436205E9C726A38B632D /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F285E267551679D3B19E /* AuthService.swift */; };
+		6849D0181A010D46362D2866 /* EmailCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29B546C2D4C1C8249C3177B0 /* EmailCodeView.swift */; };
 		7638CAC91F4AE36A0FEB5D89 /* TrustScoreCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939282F945C32E7CE002891B /* TrustScoreCalculator.swift */; };
 		7978ABFDECE174E9FC416416 /* RosinModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AC8082CD92CE32F8854919 /* RosinModeManager.swift */; };
 		7D7847B0CFF27BD0E92E2800 /* EmailAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B6F631EA29E46BFE9C7ED9 /* EmailAuthClient.swift */; };
@@ -75,6 +76,7 @@
 		A10039000000000000000039 /* ExaKeyRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20039000000000000000039 /* ExaKeyRowView.swift */; };
 		A100FF000000000000000FF0 /* QueryComplexityClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */; };
 		DFDB8F5B570D2DFBA64B4916 /* NoviceTerminalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */; };
+		E968F5C3A645130C4F1F4520 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F369CBFB6C9678564866FEE /* SignInView.swift */; };
 		F8AD9BF7B04FEF834E449C7D /* GoogleAuthController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39308C0A751398E824189207 /* GoogleAuthController.swift */; };
 		F8BCCABC9096971E6DE065C7 /* TrustScoreBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */; };
 		F8CF35CDD1BAAE9BE0F67450 /* NoviceTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */; };
@@ -82,7 +84,9 @@
 
 /* Begin PBXFileReference section */
 		0F00B5513DCD2CC3AFD2C8AF /* AppleAuthController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleAuthController.swift; sourceTree = "<group>"; };
+		0F369CBFB6C9678564866FEE /* SignInView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		22CF3B2C418015826305A819 /* AuthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
+		29B546C2D4C1C8249C3177B0 /* EmailCodeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EmailCodeView.swift; sourceTree = "<group>"; };
 		39308C0A751398E824189207 /* GoogleAuthController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoogleAuthController.swift; sourceTree = "<group>"; };
 		6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrustScoreBannerView.swift; sourceTree = "<group>"; };
 		6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceResultView.swift; sourceTree = "<group>"; };
@@ -317,6 +321,7 @@
 				A50011000000000000000011 /* History */,
 				A50012000000000000000012 /* Analytics */,
 				A09401972F5235448C7DF75D /* Novice */,
+				BE60576C03060E76D87CE7A9 /* Auth */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -413,6 +418,16 @@
 				A2002B00000000000000002B /* DisagreementStatsView.swift */,
 			);
 			path = Analytics;
+			sourceTree = "<group>";
+		};
+		BE60576C03060E76D87CE7A9 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				0F369CBFB6C9678564866FEE /* SignInView.swift */,
+				29B546C2D4C1C8249C3177B0 /* EmailCodeView.swift */,
+			);
+			name = Auth;
+			path = Auth;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -555,6 +570,8 @@
 				F8AD9BF7B04FEF834E449C7D /* GoogleAuthController.swift in Sources */,
 				468C436205E9C726A38B632D /* AuthService.swift in Sources */,
 				2B7254CE58E986DECC21F3D0 /* AuthViewModel.swift in Sources */,
+				E968F5C3A645130C4F1F4520 /* SignInView.swift in Sources */,
+				6849D0181A010D46362D2866 /* EmailCodeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
