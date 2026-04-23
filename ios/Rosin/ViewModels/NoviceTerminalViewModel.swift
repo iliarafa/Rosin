@@ -49,6 +49,7 @@ final class NoviceTerminalViewModel: ObservableObject {
     func verify() {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return }
+        if case .verifying = phase { return }
 
         currentQuestion = q
         currentStageContents = [:]
@@ -69,6 +70,7 @@ final class NoviceTerminalViewModel: ObservableObject {
     func runHostedVerification(query q: String, token: String) async {
         let trimmed = q.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        if case .verifying = phase { return }
 
         currentQuestion = trimmed
         currentStageContents = [:]
@@ -120,6 +122,8 @@ final class NoviceTerminalViewModel: ObservableObject {
             self.currentStageContents[stage, default: ""] += text
         case .stageError(_, let error):
             self.phase = .failed(error)
+        case .researchError:
+            self.phase = .verifying(status: "[ AI THINKING (no web) ]")
         case .summary(let summary):
             let answer = self.currentStageContents[self.chain.count]
                 ?? Array(self.currentStageContents.values).last
