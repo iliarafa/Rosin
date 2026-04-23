@@ -2,11 +2,12 @@ import Foundation
 
 /// Streams the server-side 2-stage novice pipeline from POST /api/verify/hosted.
 /// Emits events parsed from the shared SSE format via SSELineParser.
-actor HostedVerificationService {
+struct HostedVerificationService {
     enum HostedError: LocalizedError {
         case notSignedIn
         case freeTierExhausted
         case rateLimited(retryAfterMs: Int?)
+        case monthlyCapPaused
         case network(Int)
 
         var errorDescription: String? {
@@ -16,6 +17,7 @@ actor HostedVerificationService {
             case .rateLimited(let ms):
                 if let ms { return "Slow down — try again in \(ms/1000)s" }
                 return "Rate limited"
+            case .monthlyCapPaused: return "Hosted tier is paused for this month — try again next month, or use your own API keys."
             case .network(let c): return "Server error (\(c))"
             }
         }
@@ -42,6 +44,7 @@ actor HostedVerificationService {
                     if http.statusCode == 429 {
                         throw HostedError.rateLimited(retryAfterMs: nil)
                     }
+                    if http.statusCode == 503 { throw HostedError.monthlyCapPaused }
                     if !(200..<300).contains(http.statusCode) {
                         throw HostedError.network(http.statusCode)
                     }
