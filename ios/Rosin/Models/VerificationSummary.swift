@@ -14,6 +14,21 @@ struct Contradiction: Identifiable, Codable {
         self.stageB = stageB
         self.description = description
     }
+
+    /// Lenient decoder — tolerate payloads from older server versions that
+    /// don't include `id`. Generates a fresh UUID in that case.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let raw = try container.decodeIfPresent(String.self, forKey: .id), let parsed = UUID(uuidString: raw) {
+            id = parsed
+        } else {
+            id = UUID()
+        }
+        topic = try container.decode(String.self, forKey: .topic)
+        stageA = try container.decode(Int.self, forKey: .stageA)
+        stageB = try container.decode(Int.self, forKey: .stageB)
+        description = try container.decode(String.self, forKey: .description)
+    }
 }
 
 /// Raw JSON response from the old analysis LLM (kept for backward compat)

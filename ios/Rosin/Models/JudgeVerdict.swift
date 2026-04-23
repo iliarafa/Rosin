@@ -46,6 +46,25 @@ struct Claim: Codable {
         self.sources = sources
         self.provenance = provenance
     }
+
+    /// Lenient decoder — the Judge sometimes returns `sources` as numeric indexes
+    /// (e.g. [1, 2, 3]) instead of URL strings. Accept both and stringify.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        text = try container.decode(String.self, forKey: .text)
+        confidence = try container.decode(Int.self, forKey: .confidence)
+        provenance = try container.decodeIfPresent([ProvenanceEntry].self, forKey: .provenance)
+
+        if let strs = try? container.decodeIfPresent([String].self, forKey: .sources) {
+            sources = strs
+        } else if let ints = try? container.decodeIfPresent([Int].self, forKey: .sources) {
+            sources = ints.map(String.init)
+        } else if let dbls = try? container.decodeIfPresent([Double].self, forKey: .sources) {
+            sources = dbls.map { String(Int($0)) }
+        } else {
+            sources = nil
+        }
+    }
 }
 
 /// A potential hallucination flagged by the Judge
