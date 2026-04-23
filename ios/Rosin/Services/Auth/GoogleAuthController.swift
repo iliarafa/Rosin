@@ -36,7 +36,15 @@ final class GoogleAuthController: NSObject, ASWebAuthenticationPresentationConte
         // 3. Run ASWebAuthenticationSession to let the user authorise Google
         let callbackURL: URL = try await withCheckedThrowingContinuation { cont in
             let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: callbackScheme) { url, error in
-                if let error { cont.resume(throwing: error); return }
+                if let error {
+                    if let asError = error as? ASWebAuthenticationSessionError,
+                       asError.code == .canceledLogin {
+                        cont.resume(throwing: GoogleAuthError.userCancelled)
+                    } else {
+                        cont.resume(throwing: error)
+                    }
+                    return
+                }
                 guard let url else { cont.resume(throwing: GoogleAuthError.invalidCallback); return }
                 cont.resume(returning: url)
             }
