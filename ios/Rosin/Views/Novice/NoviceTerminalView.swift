@@ -4,6 +4,7 @@ struct NoviceTerminalView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
     @StateObject private var viewModel: NoviceTerminalViewModel
     @State private var showSettings = false
+    @EnvironmentObject private var auth: AuthViewModel
 
     init(apiKeyManager: APIKeyManager) {
         _viewModel = StateObject(wrappedValue: NoviceTerminalViewModel(apiKeyManager: apiKeyManager))
@@ -16,7 +17,11 @@ struct NoviceTerminalView: View {
             Group {
                 switch viewModel.phase {
                 case .idle:
-                    inputView
+                    if viewModel.freeTierExhausted {
+                        FreeGateView { url in UIApplication.shared.open(url) }
+                    } else {
+                        inputView
+                    }
                 case .verifying(let status):
                     verifyingView(status: status)
                 case .done(let result):
@@ -84,7 +89,10 @@ struct NoviceTerminalView: View {
             )
 
             Button {
-                viewModel.verify()
+                guard let token = SessionStore.shared.token else { return }
+                Task {
+                    await viewModel.runHostedVerification(query: viewModel.query, token: token)
+                }
             } label: {
                 Text("[ VERIFY ]")
                     .tracking(3)
@@ -99,6 +107,13 @@ struct NoviceTerminalView: View {
             }
             .disabled(viewModel.query.trimmingCharacters(in: .whitespaces).isEmpty)
             .accessibilityIdentifier("novice-verify")
+
+            if auth.queriesRemaining > 0 {
+                Text("\(auth.queriesRemaining) free verification\(auth.queriesRemaining == 1 ? "" : "s") left")
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+            }
 
             Spacer()
             Spacer()

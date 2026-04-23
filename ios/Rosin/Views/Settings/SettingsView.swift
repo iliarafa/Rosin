@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject private var apiKeyManager: APIKeyManager
     @EnvironmentObject private var fontSizeManager: FontSizeManager
     @EnvironmentObject private var modeManager: RosinModeManager
+    @EnvironmentObject var auth: AuthViewModel
     @AppStorage("auto_tie_breaker") private var isAutoTieBreaker = true
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -187,6 +188,45 @@ struct SettingsView: View {
                         .padding(16)
                         .background(cardBackground)
                         .cornerRadius(10)
+                    }
+
+                    if auth.isSignedIn {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Account")
+                                .font(RosinTheme.monoCaption2)
+                                .foregroundColor(RosinTheme.muted)
+                                .textCase(.uppercase)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 8)
+
+                            VStack(spacing: 0) {
+                                if let email = auth.account?.email {
+                                    HStack {
+                                        Text(email)
+                                            .font(RosinTheme.monoCaption)
+                                            .foregroundColor(RosinTheme.muted)
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    Divider().padding(.leading, 16)
+                                }
+                                Button {
+                                    Task { await auth.signOut() }
+                                } label: {
+                                    HStack {
+                                        Text("Sign out")
+                                            .font(RosinTheme.monoCaption)
+                                            .foregroundColor(Color("RosinDestructive"))
+                                        Spacer()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                            }
+                            .background(cardBackground)
+                            .cornerRadius(10)
+                        }
                     }
                 }
                 .padding()

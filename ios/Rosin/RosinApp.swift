@@ -6,6 +6,7 @@ struct RosinApp: App {
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var fontSizeManager = FontSizeManager()
     @StateObject private var modeManager = RosinModeManager()
+    @StateObject private var auth = AuthViewModel()
     @State private var onboardingComplete = false
 
     var body: some Scene {
@@ -16,7 +17,11 @@ struct RosinApp: App {
                 } else {
                     switch modeManager.mode {
                     case .novice:
-                        NoviceTerminalView(apiKeyManager: apiKeyManager)
+                        if auth.isSignedIn {
+                            NoviceTerminalView(apiKeyManager: apiKeyManager)
+                        } else {
+                            SignInView()
+                        }
                     case .pro:
                         TerminalView()
                     }
@@ -26,8 +31,10 @@ struct RosinApp: App {
             .environmentObject(appearanceManager)
             .environmentObject(fontSizeManager)
             .environmentObject(modeManager)
+            .environmentObject(auth)
             .preferredColorScheme(appearanceManager.colorScheme)
             .animation(.default, value: modeManager.mode)
+            .task { await auth.hydrate() }
         }
     }
 }
