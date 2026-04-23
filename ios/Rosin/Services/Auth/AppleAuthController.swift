@@ -26,7 +26,11 @@ final class AppleAuthController: NSObject, ASAuthorizationControllerDelegate, AS
             continuation = nil
             return
         }
-        Task { [continuation] in
+        Task { [weak self] in
+            guard let self else { return }
+            let cont = self.continuation
+            self.continuation = nil
+            guard let cont else { return }
             do {
                 var req = URLRequest(url: RosinEndpoint.url("/api/auth/apple/token"))
                 req.httpMethod = "POST"
@@ -37,17 +41,17 @@ final class AppleAuthController: NSObject, ASAuthorizationControllerDelegate, AS
                     throw NSError(domain: "Apple", code: (response as? HTTPURLResponse)?.statusCode ?? -1)
                 }
                 let decoded = try JSONDecoder().decode(SessionResponse.self, from: data)
-                continuation?.resume(returning: decoded)
+                cont.resume(returning: decoded)
             } catch {
-                continuation?.resume(throwing: error)
+                cont.resume(throwing: error)
             }
-            await MainActor.run { self.continuation = nil }
         }
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        continuation?.resume(throwing: error)
+        let cont = continuation
         continuation = nil
+        cont?.resume(throwing: error)
     }
 
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
