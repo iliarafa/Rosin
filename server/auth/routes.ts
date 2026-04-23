@@ -38,10 +38,23 @@ function isSafeRedirect(value: string | undefined, mode: "web" | "mobile"): bool
 }
 
 async function upsertAccount(opts: {
-  email: string;
+  email?: string;
   authProvider: "email" | "google" | "apple";
   providerSubject?: string;
 }): Promise<Account> {
+  // OAuth re-sign-in: look up by providerSubject first. Apple omits the email claim on
+  // subsequent sign-ins, so email-keyed upsert would fail without this branch.
+  if (opts.providerSubject && (opts.authProvider === "apple" || opts.authProvider === "google")) {
+    const [existing] = await db
+      .select()
+      .from(accounts)
+      .where(and(eq(accounts.authProvider, opts.authProvider), eq(accounts.providerSubject, opts.providerSubject)))
+      .limit(1);
+    if (existing) return existing;
+  }
+  if (!opts.email) {
+    throw new Error("upsertAccount: email required to create a new account");
+  }
   const email = normalizeEmail(opts.email);
   // Atomic: insert or do nothing, then always re-fetch — guarantees a row exists.
   await db
