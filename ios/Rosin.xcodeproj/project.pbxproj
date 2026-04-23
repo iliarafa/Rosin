@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0C754191CA07383EE1A11DE6 /* NoviceResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */; };
+		1EE6F71286CF5A4386C8AA45 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */; };
+		1FC7D45E51C92D40C879BE9F /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CF3B2C418015826305A819 /* AuthModels.swift */; };
 		7638CAC91F4AE36A0FEB5D89 /* TrustScoreCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939282F945C32E7CE002891B /* TrustScoreCalculator.swift */; };
 		7978ABFDECE174E9FC416416 /* RosinModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AC8082CD92CE32F8854919 /* RosinModeManager.swift */; };
 		A10001000000000000000001 /* RosinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20001000000000000000001 /* RosinApp.swift */; };
@@ -74,6 +76,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		22CF3B2C418015826305A819 /* AuthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
 		6584789178D0B2BDEAC42ABD /* TrustScoreBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrustScoreBannerView.swift; sourceTree = "<group>"; };
 		6F999F093767B2AC1B69F6DF /* NoviceResultView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceResultView.swift; sourceTree = "<group>"; };
 		9289BCE72739EBD6A635654B /* NoviceTerminalViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalViewModel.swift; sourceTree = "<group>"; };
@@ -138,6 +141,7 @@
 		A20039000000000000000039 /* ExaKeyRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExaKeyRowView.swift; sourceTree = "<group>"; };
 		A200FF000000000000000FF0 /* QueryComplexityClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryComplexityClassifier.swift; sourceTree = "<group>"; };
 		A30000000000000000000000 /* Rosin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rosin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		D75E178AD54AEA79DC15C3D2 /* NoviceTerminalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoviceTerminalView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -152,6 +156,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		23CD0EA7C14F26BD67C00BDD /* Session */ = {
+			isa = PBXGroup;
+			children = (
+				B94E8DEE50DBB4D0C74A0397 /* SessionStore.swift */,
+			);
+			name = Session;
+			path = Session;
+			sourceTree = "<group>";
+		};
 		A09401972F5235448C7DF75D /* Novice */ = {
 			isa = PBXGroup;
 			children = (
@@ -206,6 +219,7 @@
 				A20006000000000000000006 /* StreamingResponse.swift */,
 				A2002D00000000000000002D /* ResearchStatus.swift */,
 				A20031000000000000000031 /* JudgeVerdict.swift */,
+				22CF3B2C418015826305A819 /* AuthModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -220,6 +234,7 @@
 				A20033000000000000000033 /* NavBarManager.swift */,
 				939282F945C32E7CE002891B /* TrustScoreCalculator.swift */,
 				95AC8082CD92CE32F8854919 /* RosinModeManager.swift */,
+				23CD0EA7C14F26BD67C00BDD /* Session */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -509,6 +524,8 @@
 				F8BCCABC9096971E6DE065C7 /* TrustScoreBannerView.swift in Sources */,
 				F8CF35CDD1BAAE9BE0F67450 /* NoviceTerminalView.swift in Sources */,
 				0C754191CA07383EE1A11DE6 /* NoviceResultView.swift in Sources */,
+				1EE6F71286CF5A4386C8AA45 /* SessionStore.swift in Sources */,
+				1FC7D45E51C92D40C879BE9F /* AuthModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
