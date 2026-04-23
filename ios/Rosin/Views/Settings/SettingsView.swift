@@ -212,7 +212,10 @@ struct SettingsView: View {
                                     Divider().padding(.leading, 16)
                                 }
                                 Button {
-                                    Task { await auth.signOut() }
+                                    Task {
+                                        await auth.signOut()
+                                        dismiss()
+                                    }
                                 } label: {
                                     HStack {
                                         Text("Sign out")

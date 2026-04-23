@@ -5,12 +5,15 @@ final class AuthViewModel: ObservableObject {
     @Published var account: AccountPublic?
     @Published var isSigningIn = false
     @Published var error: String?
+    @Published var isHydrating: Bool = false
 
     var isSignedIn: Bool { account != nil }
     var queriesRemaining: Int { account?.queriesRemaining ?? 0 }
 
     func hydrate() async {
         guard SessionStore.shared.isSignedIn else { account = nil; return }
+        isHydrating = true
+        defer { isHydrating = false }
         do {
             account = try await AuthService.shared.fetchAccount()
         } catch {

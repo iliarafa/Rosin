@@ -19,6 +19,8 @@ struct RosinApp: App {
                     case .novice:
                         if auth.isSignedIn {
                             NoviceTerminalView(apiKeyManager: apiKeyManager)
+                        } else if auth.isHydrating {
+                            hydratingPlaceholder
                         } else {
                             SignInView()
                         }
@@ -36,5 +38,18 @@ struct RosinApp: App {
             .animation(.default, value: modeManager.mode)
             .task { await auth.hydrate() }
         }
+    }
+
+    private var hydratingPlaceholder: some View {
+        VStack(spacing: 8) {
+            Text("● ROSIN")
+                .foregroundStyle(Color("RosinGreen"))
+                .font(.system(.caption, design: .monospaced))
+            ProgressView()
+                .progressViewStyle(.circular)
+                .tint(Color("RosinGreen"))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color("RosinBackground").ignoresSafeArea())
     }
 }
