@@ -39,6 +39,16 @@ struct NoviceTerminalView: View {
             SettingsView()
                 .environmentObject(apiKeyManager)
         }
+        .onChange(of: phaseIsDone) { _, done in
+            if done { Task { await auth.refreshAccount() } }
+        }
+    }
+
+    /// Tracks whether the VM is in .done phase so we can react to its edge
+    /// (Phase has associated values, so we can't use it as onChange target directly).
+    private var phaseIsDone: Bool {
+        if case .done = viewModel.phase { return true }
+        return false
     }
 
     private var header: some View {

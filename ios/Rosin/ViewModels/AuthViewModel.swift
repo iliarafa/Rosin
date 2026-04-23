@@ -11,6 +11,7 @@ final class AuthViewModel: ObservableObject {
     var queriesRemaining: Int { account?.queriesRemaining ?? 0 }
 
     func hydrate() async {
+        error = nil
         guard SessionStore.shared.isSignedIn else { account = nil; return }
         isHydrating = true
         defer { isHydrating = false }
@@ -19,6 +20,15 @@ final class AuthViewModel: ObservableObject {
         } catch {
             account = nil
             try? SessionStore.shared.clear()
+        }
+    }
+
+    /// Refresh the current account from the server without hydration spinner.
+    /// Use after successful hosted verification to update queriesRemaining.
+    func refreshAccount() async {
+        guard SessionStore.shared.isSignedIn else { return }
+        if let fresh = try? await AuthService.shared.fetchAccount() {
+            account = fresh
         }
     }
 
@@ -41,6 +51,7 @@ final class AuthViewModel: ObservableObject {
     func signOut() async {
         try? await AuthService.shared.signOut()
         account = nil
+        error = nil
     }
 
     private func perform(_ op: @Sendable () async throws -> AccountPublic) async {
